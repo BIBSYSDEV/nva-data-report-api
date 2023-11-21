@@ -1,0 +1,19 @@
+plugins {
+    id 'nva.data.report.api.java-conventions'
+}
+
+dependencies {
+    implementation libs.nva.commons.core
+    implementation libs.nva.json
+    implementation libs.jackson.databind
+    implementation libs.nva.commons.apigateway
+    testImplementation libs.bundles.testing
+}
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    environment("ALLOWED_ORIGIN", "*")
+}

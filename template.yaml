@@ -1,0 +1,338 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SAM Template for NVA data report API
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: nva-data-report
+  ApiDomain:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: The Api domain
+    Default: /NVA/ApiDomain
+  NeptuneInstanceClass:
+    Type: String
+    Default: db.serverless
+
+Mappings:
+  SubnetConfig:
+    VPC:
+      CIDR: '10.0.0.0/16'
+    Public1:
+      CIDR: '10.0.0.0/24'
+    Public2:
+      CIDR: '10.0.1.0/24'
+    Private1:
+      CIDR: '10.0.2.0/24'
+    Private2:
+      CIDR: '10.0.3.0/24'
+    Lambda1:
+      CIDR: '10.0.4.0/24'
+    Lambda2:
+      CIDR: '10.0.5.0/24'
+
+Globals:
+  Function:
+    Runtime: java17
+    MemorySize: 1536
+    VpcConfig:
+      SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
+      SubnetIds:
+        - !Ref LambdaSubnet1
+        - !Ref LambdaSubnet2
+    Environment:
+      Variables:
+        NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
+        NEPTUNE_PORT: 8182
+
+Resources:
+
+  # ---- Logging ----
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+
+  # ---- Lambda ----
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ lambda.amazonaws.com ]
+            Action: [ 'sts:AssumeRole' ]
+      Policies:
+        - PolicyName: readFromS3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get*
+                  - s3:List*
+                  - events:*
+                Resource: '*'
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+        - PolicyName: invokeFunction
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: '*'
+     
+
+
+  #============================= Roles ==========================================================
+  DataReportApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+      StageName: Prod
+      EndpointConfiguration:
+        Type: REGIONAL
+      DefinitionBody:
+        'Fn::Transform':
+          Name: AWS::Include
+          Parameters:
+            Location: ./docs/openapi.yaml
+
+  #===========================BasePathMappings========================================================
+  BasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: !If
+        - WithSuffix
+        - !Sub ${CustomDomainBasePath}-${Suffix}
+        - !Sub ${CustomDomainBasePath}
+      DomainName: !Ref ApiDomain
+      RestApiId: !Ref DataReportApi
+      Stage: !Ref DataReportApi.Stage
+
+  # ---- Handler ----
+
+  FetchDataReportHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: report-api
+      Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /period
+            Method: get
+            RestApiId: !Ref DataReportApi
+
+  # ---- Amazon Neptune ----
+  # Two instance Amazon Neptune cluster, using default
+  # parameter groups
+  NeptuneCluster:
+    Type: AWS::Neptune::DBCluster
+    Properties:
+      DBClusterIdentifier: !Ref ProjectName
+      DBSubnetGroupName: !Ref NeptuneSubnets
+      VpcSecurityGroupIds:
+        - !Ref NeptuneSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-neptune-cluster"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  NeptuneInstance1:
+    Type: AWS::Neptune::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref NeptuneCluster
+      DBInstanceClass: !Ref NeptuneInstanceClass
+      DBInstanceIdentifier: !Sub "${ProjectName}-neptune-1"
+      DBSubnetGroupName: !Ref NeptuneSubnets
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-neptune-instance-1"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  NeptuneInstance2:
+    Type: AWS::Neptune::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref NeptuneCluster
+      DBInstanceClass: !Ref NeptuneInstanceClass
+      DBInstanceIdentifier: !Sub "${ProjectName}-neptune-2"
+      DBSubnetGroupName: !Ref NeptuneSubnets
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-neptune-instance-2"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  NeptuneSubnets:
+    Type: AWS::Neptune::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub "${ProjectName} Subnet Group"
+      DBSubnetGroupName: !Sub "${ProjectName}-subnet-group"
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-neptune-subnet-group"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  NeptuneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: LambdaSecurityGroup
+    Properties:
+      GroupName: !Sub "${ProjectName}-neptune-security-group"
+      GroupDescription: Allow access to Amazon Neptune from Lambda
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8182
+          ToPort: 8182
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # --- Lambda ----
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${ProjectName}-lambda-security-group"
+      GroupDescription: Access from AWS Lambda to Amazon Neptune
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # ---- Networking Resources ----
+  # A VPC with two public subnets and two private
+  # subnets along with an internet gateway.
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-vpc"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref VPC
+      CidrBlock:  !FindInMap ['SubnetConfig', 'Private1', 'CIDR']
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-private-subnet-1"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref VPC
+      CidrBlock:  !FindInMap ['SubnetConfig', 'Private2', 'CIDR']
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-private-subnet-2"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  LambdaSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref VPC
+      CidrBlock:  !FindInMap ['SubnetConfig', 'Lambda1', 'CIDR']
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-lambda-subnet-1"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  LambdaSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref VPC
+      CidrBlock:  !FindInMap ['SubnetConfig', 'Lambda2', 'CIDR']
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-lambda-subnet-2"
+        - Key: Project
+          Value: !Ref ProjectName
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PrivateRouteTable1Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet1
+
+#### OUTPUTS ####
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+
+  NeptuneClusterEndpoint:
+    Description: Endpoint for Neptune Cluster
+    Value: !GetAtt NeptuneCluster.Endpoint
+
+  NeptuneClusterReadEndpoint:
+    Description: Read endpoint for Neptune Cluster
+    Value: !GetAtt NeptuneCluster.ReadEndpoint
