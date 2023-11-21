@@ -1,0 +1,3 @@
+plugins {
+    id 'nva.data.report.api.rootplugin'
+}
