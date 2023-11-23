@@ -178,6 +178,9 @@ Resources:
           Value: !Sub "${ProjectName}-neptune-cluster"
         - Key: Project
           Value: !Ref ProjectName
+      ServerlessScalingConfiguration:
+        MaxCapacity: 128
+        MinCapacity: 2.5
 
   NeptuneInstance1:
     Type: AWS::Neptune::DBInstance
