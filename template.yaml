@@ -4,6 +4,10 @@ Description: >
   SAM Template for NVA data report API
 
 Parameters:
+  CognitoAuthorizerArn:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: Reference to Cognito UserPool for the stage
+    Default: CognitoAuthorizerArn
   ProjectName:
     Type: String
     Default: nva-data-report
