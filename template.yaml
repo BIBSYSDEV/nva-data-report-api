@@ -156,6 +156,15 @@ Resources:
           Parameters:
             Location: ./docs/openapi.yaml
 
+  ApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref FetchDataReportHandler
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !GetAtt DataReportApi.Arn
+      # SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Fn::GetAtt DataReportApi}/*/<method>/<resource>"
+
   #===========================BasePathMappings========================================================
   BasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
