@@ -123,8 +123,22 @@ Resources:
                   - ec2:AttachNetworkInterface
                 Resource: '*'
 
-     
-
+  DefaultLambdaPermissions:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub DefaultLambdaPermissions-${AWS::StackName}
+      Roles:
+        - !Ref LambdaRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - lambda:InvokeFunction
+            Resource: "*"
 
   #============================= Roles ==========================================================
   DataReportApi:
@@ -155,7 +169,6 @@ Resources:
       Stage: !Ref DataReportApi.Stage
 
   # ---- Handler ----
-
   FetchDataReportHandler:
     Type: AWS::Serverless::Function
     Properties:
