@@ -162,8 +162,7 @@ Resources:
       Action: "lambda:InvokeFunction"
       FunctionName: !Ref FetchDataReportHandler
       Principal: "apigateway.amazonaws.com"
-      SourceArn: !GetAtt DataReportApi.Arn
-      # SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Fn::GetAtt DataReportApi}/*/<method>/<resource>"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${DataReportApi}/*/<method>/<resource>"
 
   #===========================BasePathMappings========================================================
   BasePathMapping:
