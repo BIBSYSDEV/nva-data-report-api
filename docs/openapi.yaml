@@ -8,7 +8,7 @@ x-amazon-apigateway-request-validators:
     validateRequestBody: true
     validateRequestParameters: false
 paths:
-  /report/{type}:
+  /{type}:
     get:
       description: Get report for a given report type, supporting text/csv download according to <https://www.rfc-editor.org/rfc/rfc4180>
       parameters:

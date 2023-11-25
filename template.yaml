@@ -195,7 +195,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /report
+            Path: /{type}
             Method: get
             RestApiId: !Ref DataReportApi
 
