@@ -141,33 +141,33 @@ Resources:
             Resource: "*"
 
   #============================= Roles ==========================================================
-  DataReportApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
-      StageName: Prod
-      EndpointConfiguration:
-        Type: REGIONAL
-      DefinitionBody:
-        'Fn::Transform':
-          Name: AWS::Include
-          Parameters:
-            Location: ./docs/openapi.yaml
+#  DataReportApi:
+#    Type: AWS::Serverless::Api
+#    Properties:
+#      AccessLogSetting:
+#        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+#        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+#      StageName: Prod
+#      EndpointConfiguration:
+#        Type: REGIONAL
+#      DefinitionBody:
+#        'Fn::Transform':
+#          Name: AWS::Include
+#          Parameters:
+#            Location: ./docs/openapi.yaml
 
 
   #===========================BasePathMappings========================================================
-  BasePathMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath: !If
-        - WithSuffix
-        - !Sub ${CustomDomainBasePath}-${Suffix}
-        - !Sub ${CustomDomainBasePath}
-      DomainName: !Ref ApiDomain
-      RestApiId: !Ref DataReportApi
-      Stage: !Ref DataReportApi.Stage
+#  BasePathMapping:
+#    Type: AWS::ApiGateway::BasePathMapping
+#    Properties:
+#      BasePath: !If
+#        - WithSuffix
+#        - !Sub ${CustomDomainBasePath}-${Suffix}
+#        - !Sub ${CustomDomainBasePath}
+#      DomainName: !Ref ApiDomain
+#      RestApiId: !Ref DataReportApi
+#      Stage: !Ref DataReportApi.Stage
 
   # ---- Handler ----
   FetchDataReportHandler:
@@ -190,7 +190,7 @@ Resources:
           Properties:
             Path: /report
             Method: get
-            RestApiId: !Ref DataReportApi
+#            RestApiId: !Ref DataReportApi
 
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
