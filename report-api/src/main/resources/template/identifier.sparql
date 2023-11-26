@@ -17,4 +17,4 @@ WHERE {
     ?sourceId :identifier ?source .
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
-} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ?publicationUri LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
