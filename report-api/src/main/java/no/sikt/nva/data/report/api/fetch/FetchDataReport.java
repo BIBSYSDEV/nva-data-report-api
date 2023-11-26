@@ -34,7 +34,6 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
 
     @Override
     protected String processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        // TODO: use the request.
         var reportRequest = ReportRequest.fromRequestInfo(requestInfo);
         var formatter = reportRequest.getReportFormat().equals(ReportFormat.CSV)
             ? new CsvFormatter() : new PlainTextFormatter();

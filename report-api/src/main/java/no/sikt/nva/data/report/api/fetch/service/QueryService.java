@@ -23,7 +23,6 @@ public class QueryService {
         return databaseConnection.getResult(query, formatter);
     }
 
-    // TODO: Actually use the reportRequest.
     private Query getQuery(ReportRequest reportRequest) {
         return QueryFactory.create(generateQuery(reportRequest));
     }
