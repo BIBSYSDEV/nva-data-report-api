@@ -11,6 +11,10 @@ public final class InstantUtil {
     private static final String TIME_SEPARATOR = "T";
 
     private static final LocalTime END_OF_DAY = LocalTime.of(23, 59, 59);
+    public static final String DATE_FORMAT_ERROR = "Supply a valid '%s' value in format 'YYYY-MM-DD' or "
+                                                   + "'YYYY-MM-DDThh:mm:ssZ'";
+    public static final String BEFORE_TEXT = "before";
+    public static final String AFTER_TEXT = "after";
 
     private InstantUtil() {
         // NO-OP
@@ -22,8 +26,7 @@ public final class InstantUtil {
                        ? Instant.parse(date)
                        : LocalDate.parse(date).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
         } catch (Exception e) {
-            throw new BadRequestException("Supply a valid 'before' value in format 'YYYY-MM-DD' or "
-                                          + "'YYYY-MM-DDThh:mm:ssZ");
+            throw new BadRequestException(formatError(BEFORE_TEXT));
         }
     }
 
@@ -37,8 +40,11 @@ public final class InstantUtil {
                        ? Instant.parse(date)
                        : LocalDate.parse(date).atTime(END_OF_DAY).atZone(ZoneId.systemDefault()).toInstant();
         } catch (Exception e) {
-            throw new BadRequestException("Supply a valid 'after' value in format 'YYYY-MM-DD' or "
-                                          + "'YYYY-MM-DDThh:mm:ssZ");
+            throw new BadRequestException(formatError(AFTER_TEXT));
         }
+    }
+
+    private static String formatError(String after) {
+        return String.format(DATE_FORMAT_ERROR, after);
     }
 }
