@@ -1,6 +1,6 @@
 package no.sikt.nva.data.report.api.fetch;
 
-import static no.sikt.nva.data.report.api.fetch.FetchDataReport.TEXT_CSV;
+import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;

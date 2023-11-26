@@ -12,6 +12,10 @@ public class QueryService {
 
     public static final String TEMPLATE_DIRECTORY = "template";
     public static final String SPARQL = ".sparql";
+    public static final String BEFORE_PLACEHOLDER = "__BEFORE__";
+    public static final String AFTER_PLACEHOLDER = "__AFTER__";
+    public static final String OFFSET_PLACEHOLDER = "__OFFSET__";
+    public static final String PAGE_SIZE_PLACEHOLDER = "__PAGE_SIZE__";
     private final DatabaseConnection databaseConnection;
 
     public QueryService(DatabaseConnection databaseConnection) {
@@ -30,9 +34,9 @@ public class QueryService {
     private String generateQuery(ReportRequest reportRequest) {
         var template = Path.of(TEMPLATE_DIRECTORY, reportRequest.getReportType().getType() + SPARQL);
         var sparqlTemplate = IoUtils.stringFromResources(template);
-        return sparqlTemplate.replace("__BEFORE__", reportRequest.getBefore().toString())
-                   .replace("__AFTER__", reportRequest.getAfter().toString())
-                   .replace("__OFFSET__", String.valueOf(reportRequest.getOffset()))
-                   .replace("__PAGE_SIZE__", String.valueOf(reportRequest.getPageSize()));
+        return sparqlTemplate.replace(BEFORE_PLACEHOLDER, reportRequest.getBefore().toString())
+                   .replace(AFTER_PLACEHOLDER, reportRequest.getAfter().toString())
+                   .replace(OFFSET_PLACEHOLDER, String.valueOf(reportRequest.getOffset()))
+                   .replace(PAGE_SIZE_PLACEHOLDER, String.valueOf(reportRequest.getPageSize()));
     }
 }

@@ -11,6 +11,8 @@ import org.apache.jena.query.QueryExecution;
 public class NeptuneConnection implements DatabaseConnection {
 
     public static final Environment ENVIRONMENT = new Environment();
+    public static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
+                                                                   + " SELECT";
 
     private final HttpClient httpClient;
 
@@ -29,7 +31,7 @@ public class NeptuneConnection implements DatabaseConnection {
             if (query.isSelectType()) {
                 return formatter.format(queryExecution.execSelect());
             }
-            throw new UnsupportedOperationException("The query method is unsupported, supported types: SELECT");
+            throw new UnsupportedOperationException(UNSUPPORTED_SPARQL_METHOD_MESSAGE);
         }
     }
 

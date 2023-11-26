@@ -1,5 +1,7 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
+import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.util.List;
@@ -15,11 +17,6 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
 public class FetchDataReport extends ApiGatewayHandler<Void, String> {
-
-    private static final String TEXT = "text";
-    public static final MediaType TEXT_PLAIN = MediaType.create(TEXT, "plain");
-    public static final String CSV = "csv";
-    public static final MediaType TEXT_CSV = MediaType.create(TEXT, CSV);
     private final QueryService queryService;
 
     @JacocoGenerated

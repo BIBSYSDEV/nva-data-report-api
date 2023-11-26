@@ -61,17 +61,12 @@ public class ReportRequest {
     }
 
     public static ReportRequest fromRequestInfo(RequestInfo requestInfo) throws BadRequestException {
-        var format = requestInfo.getHeaders().getOrDefault(ACCEPT, null);
-        var reportType = requestInfo.getPathParameter(TYPE_SELECTOR);
-        var before = requestInfo.getQueryParameterOpt(BEFORE_SELECTOR).orElse(null);
-        var after = requestInfo.getQueryParameterOpt(AFTER_SELECTOR).orElse(null);
-        var offset = requestInfo.getQueryParameterOpt(OFFSET_SELECTOR)
-                         .map(Integer::valueOf)
-                         .orElse(null);
-        var pageSize = requestInfo.getQueryParameterOpt(PAGE_SIZE_SELECTOR)
-                           .map(Integer::valueOf)
-                           .orElse(null);
-        return new ReportRequest(format, reportType, before, after, offset, pageSize);
+        return new ReportRequest(extractFormat(requestInfo),
+                                 extractReportType(requestInfo),
+                                 extractBeforeDate(requestInfo),
+                                 extractAfterDate(requestInfo),
+                                 extractOffset(requestInfo),
+                                 extractPageSize(requestInfo));
     }
 
     public ReportFormat getReportFormat() {
@@ -96,5 +91,36 @@ public class ReportRequest {
 
     public int getPageSize() {
         return pageSize;
+    }
+
+
+    private static Integer extractPageSize(RequestInfo requestInfo) {
+        return extractValueAsInteger(requestInfo, PAGE_SIZE_SELECTOR);
+    }
+
+    private static Integer extractOffset(RequestInfo requestInfo) {
+        return extractValueAsInteger(requestInfo, OFFSET_SELECTOR);
+    }
+
+    private static Integer extractValueAsInteger(RequestInfo requestInfo, String selector) {
+        return requestInfo.getQueryParameterOpt(selector)
+                   .map(Integer::valueOf)
+                   .orElse(null);
+    }
+
+    private static String extractAfterDate(RequestInfo requestInfo) {
+        return requestInfo.getQueryParameterOpt(AFTER_SELECTOR).orElse(null);
+    }
+
+    private static String extractBeforeDate(RequestInfo requestInfo) {
+        return requestInfo.getQueryParameterOpt(BEFORE_SELECTOR).orElse(null);
+    }
+
+    private static String extractReportType(RequestInfo requestInfo) {
+        return requestInfo.getPathParameter(TYPE_SELECTOR);
+    }
+
+    private static String extractFormat(RequestInfo requestInfo) {
+        return requestInfo.getHeaders().getOrDefault(ACCEPT, null);
     }
 }

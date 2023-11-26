@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.db;
 
+import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -51,7 +52,7 @@ class NeptuneConnectionTest {
         when(httpResponse.statusCode()).thenReturn(200);
         when(httpResponse.headers()).thenReturn(httpHeaders);
         when(httpHeaders.firstValue(any())).thenReturn(Optional.of("gzip"))
-            .thenReturn(Optional.of("text/csv"));
+            .thenReturn(Optional.of(TEXT_CSV.toString()));
         when(httpResponse.body()).thenReturn(compressedResponse());
         when(httpClient.send(any(), any())).thenReturn(httpResponse);
     }
