@@ -1,0 +1,22 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT ?publicationUri ?publicationIdentifier ?id ?name ?sequenceNo ?role WHERE {
+
+    ?uri a :Publication .
+    ?uri :modifiedDate ?modifiedDate .
+    ?uri :identifier ?publicationIdentifier .
+    ?uri :entityDescription/:contributor ?contributor .
+    BIND(STR(?uri) AS ?publicationUri)
+
+    ?contributor :identity ?personId ;
+                 :role ?roleRaw ;
+                 :sequence ?sequenceNo .
+    ?personId :name ?name .
+    BIND(REPLACE(STR(?personId), "https://api.nva.unit.no/cristin/person/", "", "i") AS ?id)
+    ?roleRaw a ?roleType
+    FILTER(!ISBLANK(?personId))
+    BIND(REPLACE(STR(?roleType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?role)
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

@@ -1,0 +1,54 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT
+    ?publicationUri
+    ?publicationIdentifier
+    ?contributorId
+    ?contributorName
+    ?affiliationId
+    ?affiliationName
+    ?institutionId
+    ?departmentId
+    ?subDepartmentId
+    ?groupId
+WHERE {
+  ?uri a :Publication ;
+                  :identifier ?publicationIdentifier ;
+                  :modifiedDate ?modifiedDate ;
+                  :entityDescription/:contributor ?contributor .
+    ?contributor :identity ?personId ;
+                 :affiliation ?affiliationId .
+
+    BIND(STR(?uri) AS ?publicationUri)
+    ?affiliationId :label ?label .
+    OPTIONAL {
+        ?institutionId a :Organization ;
+                       :hasPart+ ?affiliationId .
+        OPTIONAL {
+           ?somewhere :hasPart ?institutionId
+        }
+        FILTER(!BOUND(?somewhere))
+        OPTIONAL {
+            ?institutionId :hasPart ?departmentId .
+            ?departmentId :hasPart+ ?affiliationId .
+            OPTIONAL {
+                ?departmentId :hasPart ?subDepartmentId .
+                ?subDepartmentId :hasPart+ ?affiliationId .
+                OPTIONAL {
+                    ?subDepartmentId :hasPart ?groupId .
+                    ?groupId :hasPart+ ?affiliationId .
+                }
+            }
+        }
+    }
+
+    FILTER(LANG(?label) = "nb")
+    BIND(STR(?label) AS ?affiliationName)
+
+    ?personId :name ?contributorName .
+    BIND(REPLACE(STR(?personId), "https://api.nva.unit.no/cristin/person/", "", "i") AS ?contributorId)
+    FILTER(!ISBLANK(?personId))
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
