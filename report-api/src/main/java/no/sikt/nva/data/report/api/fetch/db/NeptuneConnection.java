@@ -33,6 +33,7 @@ public class NeptuneConnection implements DatabaseConnection {
         }
     }
 
+    @JacocoGenerated
     private HttpClient useDefault() {
         return null;
     }
