@@ -6,7 +6,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import nva.commons.apigateway.exceptions.BadRequestException;
 
-public class InstantUtil {
+public final class InstantUtil {
 
     private static final String TIME_SEPARATOR = "T";
 

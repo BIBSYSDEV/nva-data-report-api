@@ -16,7 +16,7 @@ public class NeptuneConnection implements DatabaseConnection {
 
     @JacocoGenerated
     public NeptuneConnection() {
-        this.httpClient = null;
+        this.httpClient = useDefault();
     }
 
     public NeptuneConnection(HttpClient client) {
@@ -31,6 +31,10 @@ public class NeptuneConnection implements DatabaseConnection {
             }
             throw new UnsupportedOperationException("The query method is unsupported, supported types: SELECT");
         }
+    }
+
+    private HttpClient useDefault() {
+        return null;
     }
 
     private QueryExecution configureQueryExecution(Query query) {
