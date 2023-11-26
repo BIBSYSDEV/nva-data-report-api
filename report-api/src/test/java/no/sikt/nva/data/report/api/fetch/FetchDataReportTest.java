@@ -1,5 +1,7 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static no.sikt.nva.data.report.api.fetch.FetchDataReport.TEXT_CSV;
+import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
@@ -22,6 +24,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 class FetchDataReportTest {
+
+    public static final String CRLF = "\r\n";
+    public static final String LF = "\n";
+    public static final String CSV_FILE_EXTENSION = ".csv";
+    public static final String TXT_FILE_EXTENSION = ".txt";
 
     @ParameterizedTest()
     @DisplayName("Should throw BadRequestException when input is invalid")
@@ -52,69 +59,15 @@ class FetchDataReportTest {
 
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
     private String getExpected(TestingRequest request) {
-        var acceptHeader = request.acceptHeader().get("Accept");
+        var acceptHeader = request.acceptHeader().get(ACCEPT);
+        var fileExtension = TEXT_CSV.toString().equals(acceptHeader) ? CSV_FILE_EXTENSION : TXT_FILE_EXTENSION;
 
-        if ("text/csv".equals(acceptHeader) && "affiliation".equals(request.reportType())) {
-            return """
-                publicationUri,publicationIdentifier,contributorId,contributorName,affiliationId,affiliationName,institutionId,departmentId,subDepartmentId,groupId\r
-                https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,1403720,Sunniva Hansen Fuglestveit,https://api.nva.unit.no/cristin/organization/258.1.0.0,Avdeling Oslo,https://api.nva.unit.no/cristin/organization/258.0.0.0,,,\r
-                https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,326676,Arne Helge Teigen,https://api.nva.unit.no/cristin/organization/258.1.0.0,Avdeling Oslo,https://api.nva.unit.no/cristin/organization/258.0.0.0,,,\r
-                """;
-        } else if ("text/plain".equals(acceptHeader) && "affiliation".equals(request.reportType())) {
-            return """
-                -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                | publicationUri                                                                          | publicationIdentifier                               | contributorId | contributorName              | affiliationId                                            | affiliationName | institutionId                                            | departmentId | subDepartmentId | groupId |
-                ===================================================================================================================================================================================================================================================================================================================================================================================
-                | "https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "1403720"     | "Sunniva Hansen Fuglestveit" | <https://api.nva.unit.no/cristin/organization/258.1.0.0> | "Avdeling Oslo" | <https://api.nva.unit.no/cristin/organization/258.0.0.0> |              |                 |         |
-                | "https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "326676"      | "Arne Helge Teigen"          | <https://api.nva.unit.no/cristin/organization/258.1.0.0> | "Avdeling Oslo" | <https://api.nva.unit.no/cristin/organization/258.0.0.0> |              |                 |         |
-                -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                """;
-        } else if ("text/csv".equals(acceptHeader) && "contributor".equals(request.reportType())) {
-            return """
-                publicationUri,publicationIdentifier,id,name,sequenceNo,role\r
-                https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,1403720,Sunniva Hansen Fuglestveit,1,Creator\r
-                https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020,326676,Arne Helge Teigen,2,Supervisor\r
-                """;
-        } else if ("text/plain".equals(acceptHeader) && "contributor".equals(request.reportType())) {
-            return """
-                ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                | publicationUri                                                                          | publicationIdentifier                               | id        | name                         | sequenceNo | role         |
-                ========================================================================================================================================================================================================================
-                | "https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "1403720" | "Sunniva Hansen Fuglestveit" | 1          | "Creator"    |
-                | "https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020" | "326676"  | "Arne Helge Teigen"          | 2          | "Supervisor" |
-                ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                """;
-        } else if ("text/csv".equals(acceptHeader) && "funding".equals(request.reportType())) {
-            return "publicationUri,publicationIdentifier,source,id,name\r\n";
-        } else if ("text/plain".equals(acceptHeader) && "funding".equals(request.reportType())) {
-            return """
-                ---------------------------------------------------------------
-                | publicationUri | publicationIdentifier | source | id | name |
-                ===============================================================
-                ---------------------------------------------------------------
-                """;
-        } else if ("text/csv".equals(acceptHeader) && "identifier".equals(request.reportType())) {
-            return "publicationUri,publicationIdentifier,source,identifier\r\n";
-        } else if ("text/plain".equals(acceptHeader) && "identifier".equals(request.reportType())) {
-            return """
-                ----------------------------------------------------------------
-                | publicationUri | publicationIdentifier | source | identifier |
-                ================================================================
-                ----------------------------------------------------------------
-                """;
-        } else if ("text/csv".equals(acceptHeader) && "publication".equals(request.reportType())) {
-            return "publicationUri,title,category,publicationDate,channelType,channelIdentifier,channelName,"
-                   + "channelOnlineIssn,channelPrintIssn,channelLevel,identifier\r\n";
-        } else if ("text/plain".equals(acceptHeader) && "publication".equals(request.reportType())) {
-            return """
-                --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                | publicationUri | title | category | publicationDate | channelType | channelIdentifier | channelName | channelOnlineIssn | channelPrintIssn | channelLevel | identifier |
-                ==========================================================================================================================================================================
-                --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                """;
-        } else {
-            throw new RuntimeException("Cannot produce expected from given criteria");
-        }
+        var data = IoUtils.stringFromResources(Path.of("expected_response", request.reportType() + fileExtension));
+        return CSV_FILE_EXTENSION.equals(fileExtension) ? reformatCsv(data) : data;
+    }
+
+    private static String reformatCsv(String data) {
+        return data.replace(LF, CRLF) + CRLF;
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
