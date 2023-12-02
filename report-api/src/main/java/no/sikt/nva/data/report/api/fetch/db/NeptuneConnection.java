@@ -10,19 +10,21 @@ import org.apache.jena.query.QueryExecution;
 
 public class NeptuneConnection implements DatabaseConnection {
 
-    public static final Environment ENVIRONMENT = new Environment();
     public static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
                                                                    + " SELECT";
 
     private final HttpClient httpClient;
+    private final Environment environment;
 
     @JacocoGenerated
     public NeptuneConnection() {
         this.httpClient = useDefault();
+        this.environment = new Environment();
     }
 
-    public NeptuneConnection(HttpClient client) {
+    public NeptuneConnection(HttpClient client, Environment environment) {
         this.httpClient = client;
+        this.environment = environment;
     }
 
     @Override
@@ -50,9 +52,9 @@ public class NeptuneConnection implements DatabaseConnection {
                    .build();
     }
 
-    private static String getEndpoint() {
-        var endpoint = ENVIRONMENT.readEnv("NEPTUNE_ENDPOINT");
-        var port = ENVIRONMENT.readEnv("NEPTUNE_PORT");
+    private String getEndpoint() {
+        var endpoint = environment.readEnv("NEPTUNE_ENDPOINT");
+        var port = environment.readEnv("NEPTUNE_PORT");
         return String.format("https://%s:%s/sparql", endpoint, port);
     }
 }
