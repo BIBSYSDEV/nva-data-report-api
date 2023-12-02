@@ -4,17 +4,17 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 SELECT DISTINCT
     ?publicationId
     ?publicationIdentifier
-    ?source
-    ?identifier
+    ?fundingSource
+    ?fundingId
 WHERE {
     ?uri a :Publication ;
                     :modifiedDate ?modifiedDate ;
                     :identifier ?publicationIdentifier ;
                     :funding ?funding .
     BIND(STR(?uri) AS ?publicationId)
-    ?funding :identifier ?identifier ;
+    ?funding :identifier ?fundingId ;
              :source ?sourceId .
-    ?sourceId :identifier ?source .
+    ?sourceId :identifier ?fundingSource .
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 } ORDER BY ?publicationId LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

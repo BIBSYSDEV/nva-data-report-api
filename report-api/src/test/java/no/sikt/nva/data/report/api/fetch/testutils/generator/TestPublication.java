@@ -125,6 +125,18 @@ public class TestPublication {
         return stringBuilder.toString();
     }
 
+    public String getExpectedIdentifierResponse() {
+        var stringBuilder = new StringBuilder();
+        for (TestFunding funding : fundings) {
+            stringBuilder.append(publicationUri).append(DELIMITER)
+                .append(identifier).append(DELIMITER)
+                .append(funding.getFundingSource()).append(DELIMITER)
+                .append(funding.getId())
+                .append(CRLF.getString());
+        }
+        return stringBuilder.toString();
+    }
+
     private static String getLocalName(TestContributor contributor) {
         return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
     }

@@ -46,6 +46,8 @@ public class TestData {
 
     public static final List<String> FUNDING_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER, FUNDING_SOURCE,
                                                                FUNDING_ID, FUNDING_NAME);
+    private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
+                                                                   FUNDING_SOURCE, FUNDING_ID);
 
     private final List<TestPublication> testData;
     private final Model model;
@@ -86,6 +88,14 @@ public class TestData {
                          .map(TestPublication::getExpectedFundingResponse)
                          .collect(Collectors.joining());
         return headers + values;        }
+
+    public String getIdentifierResponseData() {
+        var headers = String.join(DELIMITER, IDENTIFIER_HEADERS) + CRLF.getString();
+        testData.sort(this::sortByPublicationUri);
+        var values = testData.stream()
+                         .map(TestPublication::getExpectedIdentifierResponse)
+                         .collect(Collectors.joining());
+        return headers + values;       }
 
     private void generateModel(List<TestPublication> testData) {
         testData.stream()
