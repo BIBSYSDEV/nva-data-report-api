@@ -14,6 +14,7 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.model.ReferenceGene
 import org.apache.jena.rdf.model.Model;
 
 public class TestPublication {
+
     public static final String DELIMITER = ",";
     public static final String EMPTY_STRING = "";
 
@@ -97,19 +98,32 @@ public class TestPublication {
         return stringBuilder.toString();
     }
 
-
     public String getExpectedContributorResponse() {
         var stringBuilder = new StringBuilder();
         for (TestContributor contributor : contributors) {
-                stringBuilder.append(publicationUri).append(DELIMITER)
-                    .append(identifier).append(DELIMITER)
-                    .append(getLocalName(contributor)).append(DELIMITER)
-                    .append(contributor.getIdentity().name()).append(DELIMITER)
-                    .append(contributor.getSequenceNumber()).append(DELIMITER)
-                    .append(contributor.role())
-                    .append(CRLF.getString());
+            stringBuilder.append(publicationUri).append(DELIMITER)
+                .append(identifier).append(DELIMITER)
+                .append(getLocalName(contributor)).append(DELIMITER)
+                .append(contributor.getIdentity().name()).append(DELIMITER)
+                .append(contributor.getSequenceNumber()).append(DELIMITER)
+                .append(contributor.role())
+                .append(CRLF.getString());
         }
-        return stringBuilder.toString();    }
+        return stringBuilder.toString();
+    }
+
+    public String getExpectedFundingResponse() {
+        var stringBuilder = new StringBuilder();
+        for (TestFunding funding : fundings) {
+            stringBuilder.append(publicationUri).append(DELIMITER)
+                .append(identifier).append(DELIMITER)
+                .append(funding.getFundingSource()).append(DELIMITER)
+                .append(funding.getId()).append(DELIMITER)
+                .append(funding.getName())
+                .append(CRLF.getString());
+        }
+        return stringBuilder.toString();
+    }
 
     private static String getLocalName(TestContributor contributor) {
         return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
@@ -125,8 +139,8 @@ public class TestPublication {
                             .withPublicationInstance(new PublicationInstanceGenerator(publicationCategory));
         var entityDescription = new EntityDescriptionGenerator()
                                     .withPublicationDate(publicationDate)
-                                        .withMainTitle(mainTitle)
-                                            .withReference(reference);
+                                    .withMainTitle(mainTitle)
+                                    .withReference(reference);
         contributors.stream()
             .map(TestContributor::toModel)
             .forEach(entityDescription::withContributor);
@@ -161,9 +175,9 @@ public class TestPublication {
     }
 
     private static Optional<TestOrganization> getPartOf(ArrayList<String> affiliations, TestOrganization partOf) {
-            affiliations.add(partOf.getId());
-            return partOf.getPartOf();
-        }
+        affiliations.add(partOf.getId());
+        return partOf.getPartOf();
+    }
 
     private record University(String institution, String faculty, String department, String group) {
 

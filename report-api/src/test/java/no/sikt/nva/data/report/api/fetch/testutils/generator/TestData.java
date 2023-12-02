@@ -27,7 +27,7 @@ public class TestData {
     public static final String DEPARTMENT_ID = "departmentId";
     public static final String GROUP_ID = "groupId";
     public static final String FUNDING_SOURCE = "fundingSource";
-    public static final String FUNDING_IDENTIFIER = "fundingIdentifier";
+    public static final String FUNDING_ID = "fundingId";
     public static final String FUNDING_NAME = "fundingName";
     public static final String CHANNEL_TYPE = "channelType";
     public static final String CHANNEL_IDENTIFIER = "channelIdentifier";
@@ -43,6 +43,9 @@ public class TestData {
     private static final List<String> CONTRIBUTOR_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
                                                                     CONTRIBUTOR_IDENTIFIER, CONTRIBUTOR_NAME,
                                                                     CONTRIBUTOR_SEQUENCE_NUMBER,CONTRIBUTOR_ROLE);
+
+    public static final List<String> FUNDING_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER, FUNDING_SOURCE,
+                                                               FUNDING_ID, FUNDING_NAME);
 
     private final List<TestPublication> testData;
     private final Model model;
@@ -73,7 +76,16 @@ public class TestData {
         var values = testData.stream()
                          .map(TestPublication::getExpectedContributorResponse)
                          .collect(Collectors.joining());
-        return headers + values;    }
+        return headers + values;
+    }
+
+    public String getFundingResponseData() {
+        var headers = String.join(DELIMITER, FUNDING_HEADERS) + CRLF.getString();
+        testData.sort(this::sortByPublicationUri);
+        var values = testData.stream()
+                         .map(TestPublication::getExpectedFundingResponse)
+                         .collect(Collectors.joining());
+        return headers + values;        }
 
     private void generateModel(List<TestPublication> testData) {
         testData.stream()
@@ -118,10 +130,10 @@ public class TestData {
 
     private static TestFunding generateFunding() {
         return new TestFunding()
-                   .withFundingName("My big funding")
-                   .withFundingIdentifier("my-funding-1")
+                   .withName("My big funding")
+                   .withId("my-funding-1")
                    .withFundingSource(Constants.fundingSourceUri("my-funding"))
-                   .withFundingName("My-funding");
+                   .withName("My-funding");
     }
 
     private static TestContributor generateContributor() {

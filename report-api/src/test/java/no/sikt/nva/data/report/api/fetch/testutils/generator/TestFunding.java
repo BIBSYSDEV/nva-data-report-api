@@ -6,8 +6,8 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.model.FundingSource
 public class TestFunding {
 
     private String fundingSource;
-    private String fundingIdentifier;
-    private String fundingName;
+    private String id;
+    private String name;
 
     public TestFunding() {
 
@@ -18,20 +18,32 @@ public class TestFunding {
         return this;
     }
 
-    public TestFunding withFundingIdentifier(String fundingIdentifier) {
-        this.fundingIdentifier = fundingIdentifier;
+    public TestFunding withId(String fundingIdentifier) {
+        this.id = fundingIdentifier;
         return this;
     }
 
-    public TestFunding withFundingName(String fundingName) {
-        this.fundingName = fundingName;
+    public TestFunding withName(String fundingName) {
+        this.name = fundingName;
         return this;
     }
 
     public FundingGenerator toModel() {
         return new FundingGenerator()
-                   .withIdentifier(fundingIdentifier)
-                   .withLabel(fundingName, "en")
+                   .withIdentifier(id)
+                   .withLabel(name, "en")
                    .withSource(new FundingSourceGenerator().withIdentifier(fundingSource));
+    }
+
+    public String getFundingSource() {
+        return fundingSource;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
     }
 }

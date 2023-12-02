@@ -1,7 +1,6 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
-import static no.sikt.nva.data.report.api.fetch.model.ReportType.AFFILIATION;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -92,7 +91,9 @@ class FetchDataReportTest {
             case CONTRIBUTOR -> TEXT_CSV.toString().equals(acceptHeader)
                                     ? test.getContributorResponseData()
                                     : ExpectedCsvFormatter.generateTable(test.getContributorResponseData());
-            case FUNDING -> throw new RuntimeException("No response data created for this type of request");
+            case FUNDING -> TEXT_CSV.toString().equals(acceptHeader)
+                                ? test.getFundingResponseData()
+                                : ExpectedCsvFormatter.generateTable(test.getFundingResponseData());
             case IDENTIFIER -> throw new RuntimeException("No response data created for this type of request");
             case PUBLICATION -> throw new RuntimeException("No response data created for this type of request");
         };
