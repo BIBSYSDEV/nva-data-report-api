@@ -1,6 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model;
 
-import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.ONTOLOGY_BASE_URI;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -11,9 +11,9 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 public class ReferenceGenerator extends TripleBasedBuilder {
 
     public final Model model;
-    private static final Resource REFERENCE = new ResourceImpl(Constants.ONTOLOGY_BASE_URI + "Reference");
-    private static final Property PUBLICATION_CONTEXT = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "publicationContext");
-    private static final Property PUBLICATION_INSTANCE = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "publicationInstance");
+    private static final Resource REFERENCE = new ResourceImpl(ONTOLOGY_BASE_URI + "Reference");
+    private static final Property PUBLICATION_CONTEXT = new PropertyImpl(ONTOLOGY_BASE_URI, "publicationContext");
+    private static final Property PUBLICATION_INSTANCE = new PropertyImpl(ONTOLOGY_BASE_URI, "publicationInstance");
     private final Resource subject;
 
     public ReferenceGenerator() {

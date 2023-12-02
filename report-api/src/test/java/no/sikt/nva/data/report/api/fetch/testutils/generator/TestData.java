@@ -43,7 +43,7 @@ public class TestData {
                                                                    DEPARTMENT_ID, GROUP_ID);
     private static final List<String> CONTRIBUTOR_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
                                                                     CONTRIBUTOR_IDENTIFIER, CONTRIBUTOR_NAME,
-                                                                    CONTRIBUTOR_SEQUENCE_NUMBER,CONTRIBUTOR_ROLE);
+                                                                    CONTRIBUTOR_SEQUENCE_NUMBER, CONTRIBUTOR_ROLE);
 
     public static final List<String> FUNDING_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER, FUNDING_SOURCE,
                                                                FUNDING_ID, FUNDING_NAME);
@@ -68,7 +68,6 @@ public class TestData {
         return model;
     }
 
-
     public String getAffiliationResponseData() {
         var headers = String.join(DELIMITER, AFFILIATION_HEADERS) + CRLF.getString();
         testData.sort(this::sortByPublicationUri);
@@ -77,7 +76,7 @@ public class TestData {
                          .collect(Collectors.joining());
         return headers + values;
     }
-    
+
     public String getContributorResponseData() {
         var headers = String.join(DELIMITER, CONTRIBUTOR_HEADERS) + CRLF.getString();
         testData.sort(this::sortByPublicationUri);
@@ -93,7 +92,8 @@ public class TestData {
         var values = testData.stream()
                          .map(TestPublication::getExpectedFundingResponse)
                          .collect(Collectors.joining());
-        return headers + values;        }
+        return headers + values;
+    }
 
     public String getIdentifierResponseData() {
         var headers = String.join(DELIMITER, IDENTIFIER_HEADERS) + CRLF.getString();

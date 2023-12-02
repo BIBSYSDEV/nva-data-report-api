@@ -48,7 +48,8 @@ public class JournalGenerator extends TripleBasedBuilder implements PublicationC
     @Override
     public JournalGenerator withScientificValue(String value) {
         model.add(subject, SCIENTIFIC_VALUE, model.createLiteral(value));
-        return this;    }
+        return this;
+    }
 
     @Override
     public PublicationContext withName(String name) {

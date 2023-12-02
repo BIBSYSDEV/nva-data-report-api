@@ -6,6 +6,7 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublicationCo
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublisherGenerator;
 
 public class TestChannel {
+
     private String type;
     private UUID identifier;
     private String name;
@@ -49,14 +50,14 @@ public class TestChannel {
 
     public PublicationContext toModel() {
         return type.contains("Journal")
-            ? new JournalGenerator(identifier)
-                  .withName(name)
-                  .withScientificValue(scientificValue)
-                  .withOnlineIssn(onlineIssn)
-                  .withPrintIssn(printIssn)
-           : new PublisherGenerator(identifier)
-                 .withName(name)
-                 .withScientificValue(scientificValue);
+                   ? new JournalGenerator(identifier)
+                         .withName(name)
+                         .withScientificValue(scientificValue)
+                         .withOnlineIssn(onlineIssn)
+                         .withPrintIssn(printIssn)
+                   : new PublisherGenerator(identifier)
+                         .withName(name)
+                         .withScientificValue(scientificValue);
     }
 
     public String getType() {

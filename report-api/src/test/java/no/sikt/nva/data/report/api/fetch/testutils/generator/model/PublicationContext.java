@@ -7,6 +7,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public interface PublicationContext {
+
     Property ONLINE_ISSN = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "onlineIssn");
     Property PRINT_ISSN = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "printIssn");
 
@@ -15,6 +16,7 @@ public interface PublicationContext {
     PublicationContext withScientificValue(String value);
 
     PublicationContext withName(String name);
+
     Model build();
 
     PublicationContext withOnlineIssn(String onlineIssn);
