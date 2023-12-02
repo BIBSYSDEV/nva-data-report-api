@@ -63,11 +63,11 @@ class FetchDataReportTest {
     @ParameterizedTest
     @ArgumentsSource(ValidRequestSource.class)
     void shouldReturnFormattedResult(TestingRequest request) throws IOException, BadRequestException {
-        var test = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
+        var testData = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
                                                      Instant.now().minus(100, ChronoUnit.DAYS)),
                                         new DatePair(new PublicationDate("2023", "10", "18"),
                                                      Instant.now().minus(100, ChronoUnit.DAYS))));
-        databaseConnection = setupDatabaseConnection(test.getModel());
+        databaseConnection = setupDatabaseConnection(testData.getModel());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -75,7 +75,7 @@ class FetchDataReportTest {
         handler.handleRequest(input, output, new FakeContext());
         var response = GatewayResponse.fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
-        var expected = getExpected(request, test);
+        var expected = getExpected(request, testData);
         assertEquals(expected, response.getBody());
     }
 
