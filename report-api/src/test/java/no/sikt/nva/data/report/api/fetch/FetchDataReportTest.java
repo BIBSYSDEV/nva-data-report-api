@@ -37,8 +37,6 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 class FetchDataReportTest {
 
-    public static final String CRLF = "\r\n";
-    public static final String LF = "\n";
     private DatabaseConnection databaseConnection;
 
     @AfterEach
@@ -66,7 +64,6 @@ class FetchDataReportTest {
                                                      Instant.now().minus(100, ChronoUnit.DAYS)),
                                         new DatePair(new PublicationDate("2023", "10", "18"),
                                                      Instant.now().minus(100, ChronoUnit.DAYS))));
-        //        databaseConnection = setupDatabaseConnection(generateCompleteData());
         databaseConnection = setupDatabaseConnection(test.getModel());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
@@ -94,7 +91,7 @@ class FetchDataReportTest {
 
         return TEXT_CSV.equals(responseType)
                    ? data
-         : ExpectedCsvFormatter.generateTable(data);
+                   : ExpectedCsvFormatter.generateTable(data);
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
