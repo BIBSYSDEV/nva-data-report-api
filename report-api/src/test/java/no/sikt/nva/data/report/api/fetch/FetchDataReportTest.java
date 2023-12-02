@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -28,7 +27,6 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -107,14 +105,6 @@ class FetchDataReportTest {
 
     private DatabaseConnection setupDatabaseConnection(Model data) {
         var databaseConnection = new FakeDatabaseConnection();
-        databaseConnection.insert(data);
-        return databaseConnection;
-    }
-
-    private DatabaseConnection setupDatabaseConnection() {
-        var databaseConnection = new FakeDatabaseConnection();
-        var data = IoUtils.stringFromResources(Path.of("example_data", "017c310cab3a-5f71edea-621b-403c-8138"
-                                                                       + "-9d598cdb4020.json"));
         databaseConnection.insert(data);
         return databaseConnection;
     }
