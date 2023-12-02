@@ -97,6 +97,20 @@ public class TestPublication {
         return stringBuilder.toString();
     }
 
+
+    public String getExpectedContributorResponse() {
+        var stringBuilder = new StringBuilder();
+        for (TestContributor contributor : contributors) {
+                stringBuilder.append(publicationUri).append(DELIMITER)
+                    .append(identifier).append(DELIMITER)
+                    .append(getLocalName(contributor)).append(DELIMITER)
+                    .append(contributor.getIdentity().name()).append(DELIMITER)
+                    .append(contributor.getSequenceNumber()).append(DELIMITER)
+                    .append(contributor.role())
+                    .append(CRLF.getString());
+        }
+        return stringBuilder.toString();    }
+
     private static String getLocalName(TestContributor contributor) {
         return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
     }

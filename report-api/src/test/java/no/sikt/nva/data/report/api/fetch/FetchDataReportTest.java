@@ -65,10 +65,10 @@ class FetchDataReportTest {
     @ArgumentsSource(ValidRequestSource.class)
     void shouldReturnFormattedResult(TestingRequest request) throws IOException, BadRequestException {
         var test = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
-                                        Instant.now().minus(100, ChronoUnit.DAYS)),
+                                                     Instant.now().minus(100, ChronoUnit.DAYS)),
                                         new DatePair(new PublicationDate("2023", "10", "18"),
                                                      Instant.now().minus(100, ChronoUnit.DAYS))));
-//        databaseConnection = setupDatabaseConnection(generateCompleteData());
+        //        databaseConnection = setupDatabaseConnection(generateCompleteData());
         databaseConnection = setupDatabaseConnection(test.getModel());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
@@ -84,13 +84,18 @@ class FetchDataReportTest {
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
     private String getExpected(TestingRequest request, TestData test) throws BadRequestException, IOException {
         var acceptHeader = request.acceptHeader().get(ACCEPT);
-        if (AFFILIATION.equals(ReportType.parse(request.reportType()))) {
-            return TEXT_CSV.toString().equals(acceptHeader)
-                       ? test.getAffiliationResponseData()
-                       : ExpectedCsvFormatter.generateTable(test.getAffiliationResponseData());
-        } else {
-            throw new RuntimeException("No response data created for this type of request");
-        }
+
+        return switch (ReportType.parse(request.reportType())) {
+            case AFFILIATION -> TEXT_CSV.toString().equals(acceptHeader)
+                                    ? test.getAffiliationResponseData()
+                                    : ExpectedCsvFormatter.generateTable(test.getAffiliationResponseData());
+            case CONTRIBUTOR -> TEXT_CSV.toString().equals(acceptHeader)
+                                    ? test.getContributorResponseData()
+                                    : ExpectedCsvFormatter.generateTable(test.getContributorResponseData());
+            case FUNDING -> throw new RuntimeException("No response data created for this type of request");
+            case IDENTIFIER -> throw new RuntimeException("No response data created for this type of request");
+            case PUBLICATION -> throw new RuntimeException("No response data created for this type of request");
+        };
     }
 
     private static String reformatCsv(String data) {

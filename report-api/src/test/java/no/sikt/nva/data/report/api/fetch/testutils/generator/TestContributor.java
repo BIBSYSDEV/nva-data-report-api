@@ -51,4 +51,12 @@ public class TestContributor {
     public TestIdentity getIdentity() {
         return identity;
     }
+
+    public String getSequenceNumber() {
+        return contributorSequenceNumber;
+    }
+
+    public String role() {
+        return contributorRole;
+    }
 }

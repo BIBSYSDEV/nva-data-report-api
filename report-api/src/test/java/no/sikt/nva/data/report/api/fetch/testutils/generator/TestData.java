@@ -11,13 +11,14 @@ import org.apache.jena.rdf.model.ModelFactory;
 
 public class TestData {
 
-    public static final String PUBLICATION_URI = "publicationUri";
+    public static final String PUBLICATION_ID = "publicationId";
     public static final String PUBLICATION_IDENTIFIER = "publicationIdentifier";
     public static final String PUBLICATION_CATEGORY = "publicationCategory";
     public static final String PUBLICATION_TITLE = "publicationTitle";
     public static final String CONTRIBUTOR_SEQUENCE_NUMBER = "contributorSequenceNumber";
     public static final String CONTRIBUTOR_ROLE = "contributorRole";
     public static final String CONTRIBUTOR_ID = "contributorId";
+    public static final String CONTRIBUTOR_IDENTIFIER = "contributorIdentifier";
     public static final String CONTRIBUTOR_NAME = "contributorName";
     public static final String AFFILIATION_ID = "affiliationId";
     public static final String AFFILIATION_NAME = "affiliationName";
@@ -35,10 +36,13 @@ public class TestData {
     public static final String CHANNEL_PRINT_ISSN = "channelPrintIssn";
     public static final String CHANNEL_LEVEL = "channelLevel";
     public static final String DELIMITER = ",";
-    public static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_URI, PUBLICATION_IDENTIFIER,
+    public static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
                                                                    CONTRIBUTOR_ID, CONTRIBUTOR_NAME, AFFILIATION_ID,
                                                                    AFFILIATION_NAME, INSTITUTION_ID, FACULTY_ID,
                                                                    DEPARTMENT_ID, GROUP_ID);
+    private static final List<String> CONTRIBUTOR_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
+                                                                    CONTRIBUTOR_IDENTIFIER, CONTRIBUTOR_NAME,
+                                                                    CONTRIBUTOR_SEQUENCE_NUMBER,CONTRIBUTOR_ROLE);
 
     private final List<TestPublication> testData;
     private final Model model;
@@ -52,6 +56,24 @@ public class TestData {
     public Model getModel() {
         return model;
     }
+
+
+    public String getAffiliationResponseData() {
+        var headers = String.join(DELIMITER, AFFILIATION_HEADERS) + CRLF.getString();
+        testData.sort(this::sortByPublicationUri);
+        var values = testData.stream()
+                         .map(TestPublication::getExpectedAffiliationResponse)
+                         .collect(Collectors.joining());
+        return headers + values;
+    }
+    
+    public String getContributorResponseData() {
+        var headers = String.join(DELIMITER, CONTRIBUTOR_HEADERS) + CRLF.getString();
+        testData.sort(this::sortByPublicationUri);
+        var values = testData.stream()
+                         .map(TestPublication::getExpectedContributorResponse)
+                         .collect(Collectors.joining());
+        return headers + values;    }
 
     private void generateModel(List<TestPublication> testData) {
         testData.stream()
@@ -112,15 +134,6 @@ public class TestData {
 
     private static TestOrganization generateAffiliation() {
         return new TestOrganization(Constants.organizationUri("10.1.1.2"), "My university");
-    }
-
-    public String getAffiliationResponseData() {
-        var headers = String.join(DELIMITER, AFFILIATION_HEADERS) + CRLF.getString();
-        testData.sort(this::sortByPublicationUri);
-        var values = testData.stream()
-                         .map(TestPublication::getExpectedAffiliationResponse)
-                         .collect(Collectors.joining());
-        return headers + values;
     }
 
     private int sortByPublicationUri(TestPublication a, TestPublication b) {
