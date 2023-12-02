@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
+import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,8 +39,6 @@ class FetchDataReportTest {
 
     public static final String CRLF = "\r\n";
     public static final String LF = "\n";
-    public static final String CSV_FILE_EXTENSION = ".csv";
-    public static final String TXT_FILE_EXTENSION = ".txt";
     private DatabaseConnection databaseConnection;
 
     @AfterEach
@@ -81,30 +80,21 @@ class FetchDataReportTest {
     }
 
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
-    private String getExpected(TestingRequest request, TestData test) throws BadRequestException, IOException {
-        var acceptHeader = request.acceptHeader().get(ACCEPT);
-
-        return switch (ReportType.parse(request.reportType())) {
-            case AFFILIATION -> TEXT_CSV.toString().equals(acceptHeader)
-                                    ? test.getAffiliationResponseData()
-                                    : ExpectedCsvFormatter.generateTable(test.getAffiliationResponseData());
-            case CONTRIBUTOR -> TEXT_CSV.toString().equals(acceptHeader)
-                                    ? test.getContributorResponseData()
-                                    : ExpectedCsvFormatter.generateTable(test.getContributorResponseData());
-            case FUNDING -> TEXT_CSV.toString().equals(acceptHeader)
-                                ? test.getFundingResponseData()
-                                : ExpectedCsvFormatter.generateTable(test.getFundingResponseData());
-            case IDENTIFIER -> TEXT_CSV.toString().equals(acceptHeader)
-                                   ? test.getIdentifierResponseData()
-                                   : ExpectedCsvFormatter.generateTable(test.getIdentifierResponseData());
-            case PUBLICATION -> TEXT_CSV.toString().equals(acceptHeader)
-                                    ? test.getPublicationResponseData()
-                                    : ExpectedCsvFormatter.generateTable(test.getPublicationResponseData());
+    private String getExpected(TestingRequest request, TestData test) throws BadRequestException {
+        var responseType = TEXT_CSV.toString().equals(request.acceptHeader().get(ACCEPT))
+                               ? TEXT_CSV
+                               : TEXT_PLAIN;
+        var data = switch (ReportType.parse(request.reportType())) {
+            case AFFILIATION -> test.getAffiliationResponseData();
+            case CONTRIBUTOR -> test.getContributorResponseData();
+            case FUNDING -> test.getFundingResponseData();
+            case IDENTIFIER -> test.getIdentifierResponseData();
+            case PUBLICATION -> test.getPublicationResponseData();
         };
-    }
 
-    private static String reformatCsv(String data) {
-        return data.replace(LF, CRLF) + CRLF;
+        return TEXT_CSV.equals(responseType)
+                   ? data
+         : ExpectedCsvFormatter.generateTable(data);
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {

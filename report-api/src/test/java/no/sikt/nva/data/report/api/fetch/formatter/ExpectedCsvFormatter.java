@@ -18,7 +18,7 @@ public class ExpectedCsvFormatter {
     public static final String HEADER_ROW_SEPARATOR = "=";
     public static final String COLUMN_SEPARATOR = "|";
 
-    public static String generateTable(String csvString) throws IOException {
+    public static String generateTable(String csvString) {
         try (CSVReader csvReader = new CSVReader(new StringReader(csvString))) {
             var headers = csvReader.readNext();
             var rows = csvReader.readAll();
@@ -26,7 +26,7 @@ public class ExpectedCsvFormatter {
             var maxLengths = calculateMaxLengths(headers, rows);
 
             return printTable(headers, rows, maxLengths);
-        } catch (CsvException e) {
+        } catch (CsvException | IOException e) {
             throw new RuntimeException(e);
         }
     }
