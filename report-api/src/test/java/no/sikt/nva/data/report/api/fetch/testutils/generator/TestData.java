@@ -15,6 +15,7 @@ public class TestData {
     public static final String PUBLICATION_IDENTIFIER = "publicationIdentifier";
     public static final String PUBLICATION_CATEGORY = "publicationCategory";
     public static final String PUBLICATION_TITLE = "publicationTitle";
+    private static final String PUBLICATION_DATE = "publicationDate";
     public static final String CONTRIBUTOR_SEQUENCE_NUMBER = "contributorSequenceNumber";
     public static final String CONTRIBUTOR_ROLE = "contributorRole";
     public static final String CONTRIBUTOR_ID = "contributorId";
@@ -49,6 +50,11 @@ public class TestData {
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
                                                                    FUNDING_SOURCE, FUNDING_ID);
 
+    public static final List<String> PUBLICATION_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_TITLE,
+                                                                   PUBLICATION_CATEGORY, PUBLICATION_DATE,
+                                                                   CHANNEL_TYPE, CHANNEL_IDENTIFIER, CHANNEL_NAME,
+                                                                   CHANNEL_ONLINE_ISSN, CHANNEL_PRINT_ISSN,
+                                                                   CHANNEL_LEVEL, PUBLICATION_IDENTIFIER);
     private final List<TestPublication> testData;
     private final Model model;
 
@@ -95,7 +101,17 @@ public class TestData {
         var values = testData.stream()
                          .map(TestPublication::getExpectedIdentifierResponse)
                          .collect(Collectors.joining());
-        return headers + values;       }
+        return headers + values;
+    }
+
+    public String getPublicationResponseData() {
+        var headers = String.join(DELIMITER, PUBLICATION_HEADERS) + CRLF.getString();
+        testData.sort(this::sortByPublicationUri);
+        var values = testData.stream()
+                         .map(TestPublication::getExpectedPublicationResponse)
+                         .collect(Collectors.joining());
+        return headers + values;
+    }
 
     private void generateModel(List<TestPublication> testData) {
         testData.stream()

@@ -48,7 +48,7 @@ public class TestChannel {
     }
 
     public PublicationContext toModel() {
-        return "Journal".equals(type)
+        return type.contains("Journal")
             ? new JournalGenerator(identifier)
                   .withName(name)
                   .withScientificValue(scientificValue)
@@ -57,5 +57,29 @@ public class TestChannel {
            : new PublisherGenerator(identifier)
                  .withName(name)
                  .withScientificValue(scientificValue);
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getIdentifier() {
+        return identifier.toString();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getOnlineIssn() {
+        return onlineIssn;
+    }
+
+    public String getPrintIssn() {
+        return printIssn;
+    }
+
+    public String getScientificValue() {
+        return scientificValue;
     }
 }

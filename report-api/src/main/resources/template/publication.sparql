@@ -3,8 +3,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT DISTINCT
     ?publicationId
-    ?title
-    ?category
+    ?publicationTitle
+    ?publicationCategory
     ?publicationDate
     ?channelType
     ?channelIdentifier
@@ -12,15 +12,15 @@ SELECT DISTINCT
     ?channelOnlineIssn
     ?channelPrintIssn
     ?channelLevel
-    ?identifier
+    ?publicationIdentifier
 WHERE {
     ?uri a :Publication ;
          :modifiedDate ?modifiedDate ;
-         :identifier ?identifier ;
+         :identifier ?publicationIdentifier ;
          :entityDescription ?entityDescription .
     BIND(STR(?uri) AS ?publicationId)
 
-    ?entityDescription :mainTitle ?title ;
+    ?entityDescription :mainTitle ?publicationTitle ;
                        :publicationDate ?date .
     ?date :year ?year ;
 
@@ -37,15 +37,15 @@ WHERE {
 
     ?entityDescription :reference ?reference .
     ?reference :publicationContext ?publicationContext .
-    ?publicationContext a ?channelType ;
+    ?publicationContext a ?channelTypeId ;
                         :name ?channelName ;
                         :scientificValue ?channelLevel .
 
-    BIND(SUBSTR(STR(?publicationContext), "57"^^xsd:integer) AS ?channelIdentifier)
-
+    BIND(REPLACE(STR(?publicationContext), "^.*/([^/]*)$", "$1") AS ?channelIdentifier)
+    BIND(STR(?channelTypeId) AS ?channelType)
     ?reference :publicationInstance ?instance .
     ?instance a ?instanceType .
-    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?category)
+    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
 
     OPTIONAL {
         ?publicationContext :onlineIssn ?channelOnlineIssn

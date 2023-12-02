@@ -97,7 +97,9 @@ class FetchDataReportTest {
             case IDENTIFIER -> TEXT_CSV.toString().equals(acceptHeader)
                                    ? test.getIdentifierResponseData()
                                    : ExpectedCsvFormatter.generateTable(test.getIdentifierResponseData());
-            case PUBLICATION -> throw new RuntimeException("No response data created for this type of request");
+            case PUBLICATION -> TEXT_CSV.toString().equals(acceptHeader)
+                                    ? test.getPublicationResponseData()
+                                    : ExpectedCsvFormatter.generateTable(test.getPublicationResponseData());
         };
     }
 

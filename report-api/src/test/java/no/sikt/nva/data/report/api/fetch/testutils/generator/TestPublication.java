@@ -137,6 +137,24 @@ public class TestPublication {
         return stringBuilder.toString();
     }
 
+    public String getExpectedPublicationResponse() {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.append(publicationUri).append(DELIMITER)
+            .append(mainTitle).append(DELIMITER)
+            .append(publicationCategory).append(DELIMITER)
+            .append(date.getIsoDate()).append(DELIMITER)
+            .append(channel.getType()).append(DELIMITER)
+            .append(channel.getIdentifier()).append(DELIMITER)
+            .append(channel.getName()).append(DELIMITER)
+            .append(channel.getOnlineIssn()).append(DELIMITER)
+            .append(channel.getPrintIssn()).append(DELIMITER)
+            .append(channel.getScientificValue()).append(DELIMITER)
+            .append(identifier)
+            .append(CRLF.getString());
+
+        return stringBuilder.toString();
+    }
+
     private static String getLocalName(TestContributor contributor) {
         return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
     }
