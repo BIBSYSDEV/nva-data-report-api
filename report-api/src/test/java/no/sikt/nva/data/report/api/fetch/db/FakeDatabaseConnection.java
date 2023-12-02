@@ -25,14 +25,11 @@ public class FakeDatabaseConnection implements DatabaseConnection {
         }
     }
 
-    public void insert(String data) {
-        RDFDataMgr.read(model, new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), Lang.JSONLD);
-    }
-
     public void insert(Model data) {
         model.add(data);
     }
 
+    // Helpful when debugging
     public String dump() {
         var stringWriter = new StringWriter();
         RDFDataMgr.write(stringWriter, model, Lang.TURTLE);
