@@ -1,0 +1,144 @@
+{
+  "type": "Publication",
+  "publicationContextUris": [
+    "https://api.nva.unit.no/publication-channels-v2/publisher/D11D89A7-601F-40AC-9BD9-DE240B5DAF09/2021"
+  ],
+  "@context": "https://api.nva.unit.no/publication/context",
+  "id": "https://api.nva.unit.no/publication/017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020",
+  "associatedArtifacts": [
+    {
+      "type": "PublishedFile",
+      "administrativeAgreement": false,
+      "identifier": "a42a1026-60e5-47e6-a0b9-e8f458bbccf8",
+      "license": "https://creativecommons.org/licenses/by-nc/4.0",
+      "mimeType": "application/pdf",
+      "name": "Sunniva Hansen Fuglestveit.pdf",
+      "publisherAuthority": true,
+      "rightsRetentionStrategy": {
+        "type": "NullRightsRetentionStrategy"
+      },
+      "size": 50432773,
+      "visibleForNonOwner": true
+    }
+  ],
+  "createdDate": "2021-09-29T10:14:46.328888Z",
+  "entityDescription": {
+    "type": "EntityDescription",
+    "alternativeAbstracts": {},
+    "contributors": [
+      {
+        "type": "Contributor",
+        "affiliations": [
+          {
+            "id": "https://api.nva.unit.no/cristin/organization/258.1.0.0",
+            "type": "Organization",
+            "countryCode": "NO",
+            "labels": {
+              "nb": "Avdeling Oslo",
+              "en": "Oslo"
+            }
+          }
+        ],
+        "correspondingAuthor": false,
+        "identity": {
+          "id": "https://api.nva.unit.no/cristin/person/326676",
+          "type": "Identity",
+          "name": "Arne Helge Teigen"
+        },
+        "role": {
+          "type": "Supervisor"
+        },
+        "sequence": 2
+      },
+      {
+        "type": "Contributor",
+        "affiliations": [
+          {
+            "id": "https://api.nva.unit.no/cristin/organization/258.1.0.0",
+            "type": "Organization",
+            "countryCode": "NO",
+            "labels": {
+              "nb": "Avdeling Oslo",
+              "en": "Oslo"
+            }
+          }
+        ],
+        "correspondingAuthor": false,
+        "identity": {
+          "id": "https://api.nva.unit.no/cristin/person/1403720",
+          "type": "Identity",
+          "name": "Sunniva Hansen Fuglestveit"
+        },
+        "role": {
+          "type": "Creator"
+        },
+        "sequence": 1
+      }
+    ],
+    "language": "http://lexvo.org/id/iso639-3/nob",
+    "mainTitle": "Guddommelig impassibility og Guds lidelse : Jürgen Moltmann og Kevin Vanhoozer om Guds følelser og lidelsen på korset",
+    "publicationDate": {
+      "type": "PublicationDate",
+      "year": "2021"
+    },
+    "reference": {
+      "type": "Reference",
+      "publicationContext": {
+        "type": "Degree",
+        "publisher": {
+          "id": "https://api.nva.unit.no/publication-channels-v2/publisher/D11D89A7-601F-40AC-9BD9-DE240B5DAF09/2021",
+          "type": "Publisher",
+          "isbnPrefix": "978-82-9191",
+          "name": "Fjellhaug Internasjonale Høgskole",
+          "sameAs": "https://kanalregister.hkdir.no/publiseringskanaler/KanalForlagInfo?pid=D11D89A7-601F-40AC-9BD9-DE240B5DAF09",
+          "scientificValue": "LevelZero",
+          "valid": true
+        }
+      },
+      "publicationInstance": {
+        "type": "DegreeMaster",
+        "pages": {
+          "type": "MonographPages",
+          "illustrated": false,
+          "pages": "90"
+        }
+      }
+    }
+  },
+  "identifier": "017c310cab3a-5f71edea-621b-403c-8138-9d598cdb4020",
+  "modelVersion": "0.20.56",
+  "modifiedDate": "2023-04-26T12:19:16.808542Z",
+  "publishedDate": "2021-09-29T10:19:20.959055Z",
+  "publisher": {
+    "id": "https://api.nva.unit.no/customer/7419c86e-e435-4b02-a6a8-38e72ea4f1b6",
+    "type": "Organization"
+  },
+  "resourceOwner": {
+    "owner": "326694@258.0.0.0",
+    "ownerAffiliation": "https://api.nva.unit.no/cristin/organization/258.0.0.0"
+  },
+  "status": "PUBLISHED",
+  "topLevelOrganizations": [
+    {
+      "id": "https://api.nva.unit.no/cristin/organization/258.0.0.0",
+      "type": "Organization",
+      "countryCode": "NO",
+      "hasPart": {
+        "id": "https://api.nva.unit.no/cristin/organization/258.1.0.0",
+        "type": "Organization",
+        "countryCode": "NO",
+        "labels": {
+          "nb": "Avdeling Oslo",
+          "en": "Oslo"
+        },
+        "partOf": {
+          "id": "https://api.nva.unit.no/cristin/organization/258.0.0.0"
+        }
+      },
+      "labels": {
+        "nb": "Fjellhaug Internasjonale Høgskole",
+        "en": "Fjellhaug International University College"
+      }
+    }
+  ]
+}

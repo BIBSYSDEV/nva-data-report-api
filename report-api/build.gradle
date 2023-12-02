@@ -10,6 +10,7 @@ dependencies {
     implementation libs.jackson.databind
     implementation libs.nva.commons.apigateway
     testImplementation libs.bundles.testing
+    testImplementation 'com.opencsv:opencsv:5.9'
 }
 
 repositories {

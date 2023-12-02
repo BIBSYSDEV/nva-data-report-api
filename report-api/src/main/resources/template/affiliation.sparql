@@ -9,8 +9,8 @@ SELECT DISTINCT
     ?affiliationId
     ?affiliationName
     ?institutionId
+    ?facultyId
     ?departmentId
-    ?subDepartmentId
     ?groupId
 WHERE {
   ?uri a :Publication ;
@@ -18,36 +18,42 @@ WHERE {
                   :modifiedDate ?modifiedDate ;
                   :entityDescription/:contributor ?contributor .
     ?contributor :identity ?personId ;
-                 :affiliation ?affiliationId .
+                 :affiliation ?affiliationUri .
 
     BIND(STR(?uri) AS ?publicationUri)
-    ?affiliationId :label ?label .
+    ?affiliationUri :label ?label .
     OPTIONAL {
-        ?institutionId a :Organization ;
-                       :hasPart+ ?affiliationId .
+        ?institutionUri a :Organization ;
+                       :hasPart+ ?affiliationUri .
         OPTIONAL {
-           ?somewhere :hasPart ?institutionId
+           ?somewhere :hasPart ?institutionUri
         }
         FILTER(!BOUND(?somewhere))
         OPTIONAL {
-            ?institutionId :hasPart ?departmentId .
-            ?departmentId :hasPart+ ?affiliationId .
+            ?institutionUri :hasPart ?facultyUri .
+            ?facultyUri :hasPart+ ?affiliationUri .
             OPTIONAL {
-                ?departmentId :hasPart ?subDepartmentId .
-                ?subDepartmentId :hasPart+ ?affiliationId .
+                ?facultyUri :hasPart ?departmentUri .
+                ?departmentUri :hasPart+ ?affiliationUri .
                 OPTIONAL {
-                    ?subDepartmentId :hasPart ?groupId .
-                    ?groupId :hasPart+ ?affiliationId .
+                    ?departmentUri :hasPart ?groupUri .
+                    ?groupUri :hasPart+ ?affiliationUri .
                 }
             }
         }
     }
 
-    FILTER(LANG(?label) = "nb")
+    BIND(STR(?affiliationUri) as ?affiliationId)
+    BIND(STR(?institutionUri) as ?institutionId)
+    BIND(STR(?facultyUri) as ?facultyId)
+    BIND(STR(?departmentUri) as ?departmentId)
+    BIND(STR(?groupUri) as ?groupId)
+
+    FILTER(LANG(?label) = "en")
     BIND(STR(?label) AS ?affiliationName)
 
     ?personId :name ?contributorName .
-    BIND(REPLACE(STR(?personId), "https://api.nva.unit.no/cristin/person/", "", "i") AS ?contributorId)
+    BIND(REPLACE(STR(?personId), "^.*/([^/]*)$", "$1") AS ?contributorId)
     FILTER(!ISBLANK(?personId))
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
