@@ -1,0 +1,20 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT
+    ?publicationUri
+    ?publicationIdentifier
+    ?source
+    ?identifier
+WHERE {
+    ?uri a :Publication ;
+                    :modifiedDate ?modifiedDate ;
+                    :identifier ?publicationIdentifier ;
+                    :funding ?funding .
+    BIND(STR(?uri) AS ?publicationUri)
+    ?funding :identifier ?identifier ;
+             :source ?sourceId .
+    ?sourceId :identifier ?source .
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

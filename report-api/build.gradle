@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation libs.guava
+    implementation libs.bundles.jena
     implementation libs.nva.commons.core
     implementation libs.nva.json
     implementation libs.jackson.databind
@@ -16,4 +18,6 @@ repositories {
 
 test {
     environment("ALLOWED_ORIGIN", "*")
+    environment("NEPTUNE_ENDPOINT", "localhost")
+    environment("NEPTUNE_PORT", "8182")
 }

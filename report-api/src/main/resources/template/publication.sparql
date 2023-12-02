@@ -1,0 +1,58 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT
+    ?publicationUri
+    ?title
+    ?category
+    ?publicationDate
+    ?channelType
+    ?channelIdentifier
+    ?channelName
+    ?channelOnlineIssn
+    ?channelPrintIssn
+    ?channelLevel
+    ?identifier
+WHERE {
+    ?uri a :Publication ;
+         :modifiedDate ?modifiedDate ;
+         :identifier ?identifier ;
+         :entityDescription ?entityDescription .
+    BIND(STR(?uri) AS ?publicationUri)
+
+    ?entityDescription :mainTitle ?title ;
+                       :publicationDate ?date .
+    ?date :year ?year ;
+
+    OPTIONAL {
+        ?date :month ?month .
+    }
+    OPTIONAL {
+        ?date :day ?day .
+    }
+
+    BIND(IF(BOUND(?month), CONCAT("-", ?month), "") AS ?monthPart)
+    BIND(IF(BOUND(?day), CONCAT("-", ?day), "") AS ?dayPart)
+    BIND(CONCAT(?year, CONCAT(?monthPart, ?dayPart)) AS ?publicationDate)
+
+    ?entityDescription :reference ?reference .
+    ?reference :publicationContext ?publicationContext .
+    ?publicationContext a ?channelType ;
+                        :name ?channelName ;
+                        :scientificValue ?channelLevel .
+
+    BIND(SUBSTR(STR(?publicationContext), "57"^^xsd:integer) AS ?channelIdentifier)
+
+    ?reference :publicationInstance ?instance .
+    ?instance a ?instanceType .
+    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?category)
+
+    OPTIONAL {
+        ?publicationContext :onlineIssn ?channelOnlineIssn
+    }
+    OPTIONAL {
+        ?publicationContext :printIssn ?channelPrintIssn
+    }
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

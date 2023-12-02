@@ -10,6 +10,8 @@ awslog4j2 = { strictly = '1.5.1' }
 awsSdk2 = { strictly = '2.20.141' }
 jena = { strictly = '4.7.0' }
 jackson = { strictly = '2.15.2' }
+guava = { strictly = '32.1.2-jre' }
+mockito = { strictly = '5.3.1' }
 
 
 [libraries]
@@ -54,7 +56,10 @@ jena-arq = { group = 'org.apache.jena', name = 'jena-arq', version.ref = 'jena' 
 
 zalando = { group = 'org.zalando', name = 'problem', version.ref = 'zalando' }
 
+guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
+
+mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mockito' }
 
 [bundles]
 jena = ['jena-core', 'jena-arq']
-testing = [ 'junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'nva-testutils' ]
+testing = [ 'junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'nva-testutils', 'mockito-core' ]
