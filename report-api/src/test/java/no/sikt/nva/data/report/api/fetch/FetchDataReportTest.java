@@ -30,6 +30,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +38,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 class FetchDataReportTest {
 
+    public static final Model EMPTY_MODEL = ModelFactory.createDefaultModel();
     private DatabaseConnection databaseConnection;
 
     @AfterEach
@@ -49,7 +51,8 @@ class FetchDataReportTest {
     @ArgumentsSource(BadRequestProvider.class)
     void shouldThrowBadRequest(TestingRequest report)
         throws IOException {
-        var service = new QueryService(setupDatabaseConnection());
+        databaseConnection = setupDatabaseConnection(EMPTY_MODEL);
+        var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(generateHandlerRequest(report), output, new FakeContext());
