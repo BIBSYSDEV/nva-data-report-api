@@ -8,6 +8,7 @@ log4j = { strictly = '2.22.0' }
 slf4j = { strictly = '2.0.9' }
 awslog4j2 = { strictly = '1.5.1' }
 awsSdk2 = { strictly = '2.20.141' }
+awsSdk2Events = { strictly = '3.11.4' }
 jena = { strictly = '4.7.0' }
 jackson = { strictly = '2.15.2' }
 guava = { strictly = '32.1.2-jre' }
@@ -38,9 +39,11 @@ jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'ja
 aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnectionclient = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-s3 = { group = 'software.amazon.awssdk', name = 's3', version.ref = 'awsSdk2' }
+aws-sdk2-sqs = { group = 'software.amazon.awssdk', name = 'sqs', version.ref = 'awsSdk2' }
 aws-sdk2-core = { group = 'software.amazon.awssdk', name = 'sdk-core', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-httpClientApi = { group = 'software.amazon.awssdk', name = 'http-client-spi', version.ref = 'awsSdk2' }
+aws-sdk2-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsSdk2Events'}
 
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaJavaCore' }
 aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
