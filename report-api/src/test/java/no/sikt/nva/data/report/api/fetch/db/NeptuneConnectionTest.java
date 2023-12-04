@@ -23,11 +23,6 @@ import org.junit.jupiter.api.Test;
 
 class NeptuneConnectionTest {
 
-    public static final Environment ENVIRONMENT = new Environment();
-    public static final int PORT = Integer.parseInt(ENVIRONMENT.readEnv("NEPTUNE_PORT"));
-    public static final String ENDPOINT = ENVIRONMENT.readEnv("NEPTUNE_ENDPOINT");
-
-
     private static HttpClient httpClient;
     private static HttpResponse httpResponse;
     private HttpHeaders httpHeaders;
@@ -44,7 +39,7 @@ class NeptuneConnectionTest {
         setupMockedServerResponse();
 
         var query = QueryFactory.create("SELECT * WHERE { ?a a [] } LIMIT 1");
-        var result = new NeptuneConnection(httpClient).getResult(query, new CsvFormatter());
+        var result = new NeptuneConnection(httpClient, new Environment()).getResult(query, new CsvFormatter());
         assertNotNull(result);
     }
 
