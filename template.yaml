@@ -4,10 +4,14 @@ Description: >
   SAM Template for NVA data report API
 
 Parameters:
+  # TODO: Determine access to API
   CognitoAuthorizerArn:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: Reference to Cognito UserPool for the stage
     Default: CognitoAuthorizerArn
+  CognitoAuthorizationUri:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/NVA/CognitoUri'
   ProjectName:
     Type: String
     Default: nva-data-report
@@ -26,6 +30,18 @@ Parameters:
     Type: String
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
+  ResourcesBucket:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NVA/Events/PersistedEntriesBucketName
+  PersistedResourceQueueName:
+    Type: String
+    Default: PersistedResourceQueue
+  PersistedResourceDLQName:
+    Type: String
+    Default: PersistedResourceDLQ
+  DataLoadingDLQName:
+    Type: String
+    Default: DataLoadingDLQName
 
 Mappings:
   SubnetConfig:
@@ -64,11 +80,38 @@ Globals:
 
 Resources:
 
+  # ---- SQS ----
+  PersistedResourceQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Ref PersistedResourceQueueName
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt PersistedResourceDLQ.Arn
+        maxReceiveCount: 5
+  PersistedResourceDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Ref PersistedResourceDLQName
+      MessageRetentionPeriod: 1209600 #14 days
+  DataLoadingDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Ref DataLoadingDLQName
+      MessageRetentionPeriod: 1209600 #14 days
+
   # ---- Logging ----
 
   ApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${FetchDataReportHandler}'
+      RetentionInDays: 5
 
+  DataLoadingLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${DataLoadingHandler}'
+      RetentionInDays: 5
   # ---- Lambda ----
 
   LambdaRole:
@@ -198,6 +241,35 @@ Resources:
             Path: /{type}
             Method: get
             RestApiId: !Ref DataReportApi
+
+  DataLoadingHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: data-loading
+      Policies:
+        - VPCAccessPolicy: { }
+      Handler: no.sikt.nva.data.report.api.etl.DataLoader::handleRequest
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
+          BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
+          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
+      Events:
+        SqsEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt PersistedResourceQueue.Arn
+            BatchSize: 1
+            # TODO: Batching
+      EventInvokeConfig:
+        DestinationConfig:
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt DataLoadingDLQ.Arn
 
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
