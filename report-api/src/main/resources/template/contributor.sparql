@@ -1,22 +1,29 @@
 PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT ?publicationUri ?publicationIdentifier ?id ?name ?sequenceNo ?role WHERE {
+SELECT DISTINCT
+  ?publicationId
+  ?publicationIdentifier
+  ?contributorIdentifier
+  ?contributorName
+  ?contributorSequenceNumber
+  ?contributorRole
+  WHERE {
 
     ?uri a :Publication .
     ?uri :modifiedDate ?modifiedDate .
     ?uri :identifier ?publicationIdentifier .
     ?uri :entityDescription/:contributor ?contributor .
-    BIND(STR(?uri) AS ?publicationUri)
+    BIND(STR(?uri) AS ?publicationId)
 
     ?contributor :identity ?personId ;
                  :role ?roleRaw ;
-                 :sequence ?sequenceNo .
-    ?personId :name ?name .
-    BIND(REPLACE(STR(?personId), "https://api.nva.unit.no/cristin/person/", "", "i") AS ?id)
+                 :sequence ?contributorSequenceNumber .
+    ?personId :name ?contributorName .
+    BIND(REPLACE(STR(?personId), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
     ?roleRaw a ?roleType
     FILTER(!ISBLANK(?personId))
-    BIND(REPLACE(STR(?roleType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?role)
+    BIND(REPLACE(STR(?roleType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?contributorRole)
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
-} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ?publicationId LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
