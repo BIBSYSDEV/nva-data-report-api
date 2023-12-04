@@ -8,7 +8,6 @@ import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.s3.S3Driver;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DataLoaderTest {
+
     public static final ObjectMapper objectMapper = JsonUtils.dtoObjectMapper;
 
     private static final String BUCKET_NAME = "irrelevant";
