@@ -65,7 +65,7 @@ Conditions:
 
 Globals:
   Function:
-    Runtime: java17
+    Runtime: java21
     MemorySize: 1536
     VpcConfig:
       SecurityGroupIds:
