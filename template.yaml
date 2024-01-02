@@ -135,6 +135,15 @@ Resources:
                   - s3:List*
                   - events:*
                 Resource: '*'
+        - PolicyName: queuePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                Resource:
+                  - !GetAtt DataReportPersistedResourceQueue.Arn
         - PolicyName: writeLog
           PolicyDocument:
             Version: 2012-10-17
