@@ -144,6 +144,7 @@ Resources:
                   - sqs:ReceiveMessage
                   - sqs:DeleteMessage
                   - sqs:SendMessage
+                  - sqs:GetQueueAttributes
                 Resource:
                   - !GetAtt DataReportPersistedResourceQueue.Arn
         - PolicyName: writeLog
