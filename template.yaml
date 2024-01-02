@@ -85,6 +85,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Ref DataReportPersistedResourceQueueName
+      VisibilityTimeout: 600
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt DataReportPersistedResourceDLQ.Arn
         maxReceiveCount: 5
