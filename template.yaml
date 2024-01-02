@@ -33,12 +33,12 @@ Parameters:
   ResourcesBucket:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/Events/PersistedEntriesBucketName
-  PersistedResourceQueueName:
+  DataReportPersistedResourceQueueName:
     Type: String
-    Default: PersistedResourceQueue
-  PersistedResourceDLQName:
+    Default: DataReportPersistedResourceQueue
+  DataReportPersistedResourceDLQName:
     Type: String
-    Default: PersistedResourceDLQ
+    Default: DataReportPersistedResourceDLQ
   DataLoadingDLQName:
     Type: String
     Default: DataLoadingDLQName
@@ -81,17 +81,17 @@ Globals:
 Resources:
 
   # ---- SQS ----
-  PersistedResourceQueue:
+  DataReportPersistedResourceQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Ref PersistedResourceQueueName
+      QueueName: !Ref DataReportPersistedResourceQueueName
       RedrivePolicy:
-        deadLetterTargetArn: !GetAtt PersistedResourceDLQ.Arn
+        deadLetterTargetArn: !GetAtt DataReportPersistedResourceDLQ.Arn
         maxReceiveCount: 5
-  PersistedResourceDLQ:
+  DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Ref PersistedResourceDLQName
+      QueueName: !Ref DataReportPersistedResourceDLQName
       MessageRetentionPeriod: 1209600 #14 days
   DataLoadingDLQ:
     Type: AWS::SQS::Queue
@@ -262,7 +262,7 @@ Resources:
         SqsEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt PersistedResourceQueue.Arn
+            Queue: !GetAtt DataReportPersistedResourceQueue.Arn
             BatchSize: 1
             # TODO: Batching
       EventInvokeConfig:
