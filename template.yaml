@@ -142,6 +142,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
                 Resource:
                   - !GetAtt DataReportPersistedResourceQueue.Arn
         - PolicyName: writeLog
