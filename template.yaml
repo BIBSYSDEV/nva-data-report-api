@@ -148,6 +148,7 @@ Resources:
                   - sqs:GetQueueAttributes
                 Resource:
                   - !GetAtt DataReportPersistedResourceQueue.Arn
+                  - !GetAtt DataLoadingDLQ.Arn
         - PolicyName: writeLog
           PolicyDocument:
             Version: 2012-10-17
