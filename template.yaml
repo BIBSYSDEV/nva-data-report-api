@@ -197,6 +197,14 @@ Resources:
               - lambda:InvokeFunction
             Resource: "*"
 
+  InvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt DataLoadingHandler.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn: !GetAtt PersistedResourcesEventRule.Arn
+
   #============================= Roles ==========================================================
   DataReportApi:
     Type: AWS::Serverless::Api
