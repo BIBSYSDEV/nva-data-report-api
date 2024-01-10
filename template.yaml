@@ -33,9 +33,6 @@ Parameters:
   ResourcesBucket:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/Events/PersistedEntriesBucketName
-  DataReportPersistedResourceQueueName:
-    Type: String
-    Default: DataReportPersistedResourceQueue
   DataReportPersistedResourceDLQName:
     Type: String
     Default: DataReportPersistedResourceDLQ
@@ -81,14 +78,6 @@ Globals:
 Resources:
 
   # ---- SQS ----
-  DataReportPersistedResourceQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Ref DataReportPersistedResourceQueueName
-      VisibilityTimeout: 600
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt DataReportPersistedResourceDLQ.Arn
-        maxReceiveCount: 5
   DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
@@ -147,7 +136,6 @@ Resources:
                   - sqs:SendMessage
                   - sqs:GetQueueAttributes
                 Resource:
-                  - !GetAtt DataReportPersistedResourceQueue.Arn
                   - !GetAtt DataLoadingDLQ.Arn
         - PolicyName: writeLog
           PolicyDocument:
