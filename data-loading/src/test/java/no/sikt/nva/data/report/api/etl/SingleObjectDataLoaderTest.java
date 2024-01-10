@@ -53,20 +53,9 @@ class SingleObjectDataLoaderTest {
         var path = "event.json";
         var eventBody = IoUtils.inputStreamFromResources(path);
         var fileUri = s3Driver.insertFile(UnixPath.of(path), eventBody);
-        var event = randomS3Event();
+        var event = new PersistedResourceMessage("someBucketName", "someKey");
         var handler = new SingleObjectDataLoader();
         assertDoesNotThrow(() -> handler.handleRequest(event, context));
-    }
-
-    private static S3Event randomS3Event() {
-        return new S3Event(List.of(randomS3EventNotificationRecord()));
-    }
-
-    private static S3EventNotificationRecord randomS3EventNotificationRecord() {
-        return new S3EventNotificationRecord("awsRegion", "eventName", "eventTime", DateTime.now().toString(), "awsAccountId",
-                                             null, null, new S3Entity(null, null,
-                                                                      new S3ObjectEntity("someKey", null, null, null,
-                                                                                         null), null), null);
     }
 
     //private static SQSEvent createEvent(PersistedResourceMessage persistedResourceMessage) {

@@ -259,11 +259,11 @@ Resources:
       Targets:
         - Arn: !GetAtt DataLoadingHandler.Arn
           Id: "DataLoadingHandler"
-          #InputTransformer:
-          #  InputPathsMap:
-          #    bucketName: "$.detail.requestParameters.bucketName"
-          #    key: "$.detail.requestParameters.key"
-          #  InputTemplate: '{"bucketName": <bucketName>, "key": <key>}'
+          InputTransformer:
+            InputPathsMap:
+              bucketName: "$.detail.requestParameters.bucketName"
+              key: "$.detail.requestParameters.key"
+            InputTemplate: '{"bucketName": <bucketName>, "key": <key>}'
 
   # ---- Handler ----
   FetchDataReportHandler:
