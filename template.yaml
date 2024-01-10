@@ -250,10 +250,10 @@ Resources:
         source:
           - "aws.s3"
         detail-type:
-          - "AWS API Call via CloudTrail"
+          - "Object Created"
         detail:
-          requestParameters:
-            bucketName:
+          bucket:
+            name:
               - !Ref ResourcesBucket
       State: ENABLED
       Targets:
@@ -261,9 +261,9 @@ Resources:
           Id: "DataLoadingHandler"
           InputTransformer:
             InputPathsMap:
-              bucketName: "$.detail.requestParameters.bucketName"
-              key: "$.detail.requestParameters.key"
-              operation: "$.detail.eventName"
+              bucketName: "$.detail.bucket.name"
+              key: "$.detail.object.key"
+              operation: "$.reason"
             InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "operation": <operation>}'
 
   # ---- Handler ----
