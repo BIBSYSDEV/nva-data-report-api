@@ -305,19 +305,6 @@ Resources:
           BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
-      Events:
-        PersistedResourcesEventRule:
-          Type: EventBridgeRule
-          Properties:
-            Pattern:
-              source:
-                - aws.s3
-              detail-type:
-                - AWS API Call via CloudTrail
-              detail:
-                requestParameters:
-                  bucketName:
-                    - !Ref ResourcesBucket
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
