@@ -250,8 +250,7 @@ Resources:
         source:
           - "aws.s3"
         detail-type:
-          - "Object Created"
-          - "Object Deleted"
+          - "AWS API Call via CloudTrail"
         detail:
           requestParameters:
             bucketName:
