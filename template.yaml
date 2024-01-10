@@ -263,7 +263,8 @@ Resources:
             InputPathsMap:
               bucketName: "$.detail.requestParameters.bucketName"
               key: "$.detail.requestParameters.key"
-            InputTemplate: '{"bucketName": <bucketName>, "key": <key>}'
+              operation: "$.detail.eventName"
+            InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "operation": <operation>}'
 
   # ---- Handler ----
   FetchDataReportHandler:

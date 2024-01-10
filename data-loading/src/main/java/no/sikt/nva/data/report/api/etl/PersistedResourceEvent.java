@@ -1,11 +1,13 @@
 package no.sikt.nva.data.report.api.etl;
 
-public record PersistedResourceMessage(String bucketName, String key) {
+public record PersistedResourceEvent(String bucketName, String key, String operation) {
+
     @Override
     public String toString() {
-        return "PersistedResourceMessage{"
+        return "PersistedResourceEvent{"
                + "bucketName='" + bucketName + '\''
                + ", key='" + key + '\''
+               + ", operation='" + operation + '\''
                + '}';
     }
 }
