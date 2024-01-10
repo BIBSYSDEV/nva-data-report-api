@@ -246,7 +246,8 @@ Resources:
           - "Object Deleted"
         detail:
           requestParameters:
-            bucketName: !Ref ResourcesBucket
+            bucketName:
+              - !Ref ResourcesBucket
       State: ENABLED
       Targets:
         - Arn: !GetAtt DataLoadingHandler.Arn
@@ -400,7 +401,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 0
           ToPort: 65535
-          CidrIp: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+          CidrIp: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
       VpcId: !Ref VPC
       Tags:
         - Key: Project
@@ -414,7 +415,7 @@ Resources:
     Properties:
       EnableDnsSupport: true
       EnableDnsHostnames: true
-      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-vpc"
@@ -429,7 +430,7 @@ Resources:
           - 0
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Private1', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private1', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-private-subnet-1"
@@ -444,7 +445,7 @@ Resources:
           - 1
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Private2', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private2', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-private-subnet-2"
@@ -459,7 +460,7 @@ Resources:
           - 0
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Lambda1', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda1', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-lambda-subnet-1"
@@ -474,7 +475,7 @@ Resources:
           - 1
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Lambda2', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda2', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-lambda-subnet-2"
