@@ -251,15 +251,11 @@ Resources:
           - "aws.s3"
         detail-type:
           - "Object Created"
+          - "Object Deleted"
         detail:
           bucket:
             name:
               - !Ref ResourcesBucket
-          object:
-            key:
-              prefix:
-                - "nvi-candidates/"
-                - "resources/"
       State: ENABLED
       Targets:
         - Arn: !GetAtt DataLoadingHandler.Arn
