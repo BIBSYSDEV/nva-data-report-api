@@ -308,7 +308,8 @@ Resources:
                 - AWS API Call via CloudTrail
               detail:
                 requestParameters:
-                  bucketName: !Ref ResourcesBucket
+                  bucketName:
+                    - !Ref ResourcesBucket
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
