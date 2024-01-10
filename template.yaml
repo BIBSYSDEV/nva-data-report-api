@@ -233,6 +233,30 @@ Resources:
       RestApiId: !Ref DataReportApi
       Stage: !Ref DataReportApi.Stage
 
+  #===========================EventBridge Rule========================================================
+  PersistedResourcesEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "Trigger on create and delete events for S3 bucket persisted-resources"
+      EventPattern:
+        source:
+          - "aws.s3"
+        detail-type:
+          - "Object Created"
+          - "Object Deleted"
+        detail:
+          requestParameters:
+            bucketName: !Ref ResourcesBucket
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt DataLoadingHandler.Arn
+          Id: "DataLoadingHandler"
+          InputTransformer:
+            InputPathsMap:
+              bucketName: "$.detail.requestParameters.bucketName"
+              key: "$.detail.requestParameters.key"
+            InputTemplate: '{"bucketName": <bucketName>, "key": <key>}'
+
   # ---- Handler ----
   FetchDataReportHandler:
     Type: AWS::Serverless::Function
@@ -262,7 +286,7 @@ Resources:
       CodeUri: data-loading
       Policies:
         - VPCAccessPolicy: { }
-      Handler: no.sikt.nva.data.report.api.etl.DataLoader::handleRequest
+      Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
       Role: !GetAtt LambdaRole.Arn
       Timeout: 600
       MemorySize: 1536
@@ -273,12 +297,17 @@ Resources:
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
       Events:
-        SqsEvent:
-          Type: SQS
+        PersistedResourcesEventRule:
+          Type: EventBridgeRule
           Properties:
-            Queue: !GetAtt DataReportPersistedResourceQueue.Arn
-            BatchSize: 1
-            # TODO: Batching
+            Pattern:
+              source:
+                - aws.s3
+              detail-type:
+                - AWS API Call via CloudTrail
+              detail:
+                requestParameters:
+                  bucketName: !Ref ResourcesBucket
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
