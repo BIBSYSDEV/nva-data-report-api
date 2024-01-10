@@ -255,6 +255,11 @@ Resources:
           bucket:
             name:
               - !Ref ResourcesBucket
+          object:
+            key:
+              prefix:
+                - "nvi-candidates/"
+                - "resources/"
       State: ENABLED
       Targets:
         - Arn: !GetAtt DataLoadingHandler.Arn
@@ -263,7 +268,7 @@ Resources:
             InputPathsMap:
               bucketName: "$.detail.bucket.name"
               key: "$.detail.object.key"
-              operation: "$.reason"
+              operation: "$.detail.reason"
             InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "operation": <operation>}'
 
   # ---- Handler ----
