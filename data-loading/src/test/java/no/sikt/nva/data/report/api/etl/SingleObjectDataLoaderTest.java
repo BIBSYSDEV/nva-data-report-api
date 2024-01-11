@@ -36,10 +36,10 @@ class SingleObjectDataLoaderTest {
 
     @ParameterizedTest(name = "should extract and log folderName {0}")
     @ValueSource(strings = {RESOURCES_FOLDER, NVI_CANDIDATES_FOLDER})
-    void shouldExtractAndLogKeyPrefix(String folderName) {
-        final var logAppender = LogUtils.getTestingAppenderForRootLogger();
+    void shouldExtractAndLogObjectParentFolder(String folderName) {
         var key = UnixPath.of(folderName, randomString()).toString();
         var event = new PersistedResourceEvent(BUCKET_NAME, key, SOME_OPERATION);
+        final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
         assertTrue(logAppender.getMessages().contains("Object folder: " + folderName));
     }
