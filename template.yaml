@@ -33,15 +33,6 @@ Parameters:
   ResourcesBucket:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/Events/PersistedEntriesBucketName
-  DataReportPersistedResourceQueueName:
-    Type: String
-    Default: DataReportPersistedResourceQueue
-  DataReportPersistedResourceDLQName:
-    Type: String
-    Default: DataReportPersistedResourceDLQ
-  DataLoadingDLQName:
-    Type: String
-    Default: DataLoadingDLQName
 
 Mappings:
   SubnetConfig:
@@ -81,23 +72,13 @@ Globals:
 Resources:
 
   # ---- SQS ----
-  DataReportPersistedResourceQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Ref DataReportPersistedResourceQueueName
-      VisibilityTimeout: 600
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt DataReportPersistedResourceDLQ.Arn
-        maxReceiveCount: 5
   DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Ref DataReportPersistedResourceDLQName
       MessageRetentionPeriod: 1209600 #14 days
   DataLoadingDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Ref DataLoadingDLQName
       MessageRetentionPeriod: 1209600 #14 days
 
   # ---- Logging ----
@@ -147,7 +128,6 @@ Resources:
                   - sqs:SendMessage
                   - sqs:GetQueueAttributes
                 Resource:
-                  - !GetAtt DataReportPersistedResourceQueue.Arn
                   - !GetAtt DataLoadingDLQ.Arn
         - PolicyName: writeLog
           PolicyDocument:
@@ -197,6 +177,14 @@ Resources:
               - lambda:InvokeFunction
             Resource: "*"
 
+  InvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt DataLoadingHandler.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn: !GetAtt PersistedResourcesEventRule.Arn
+
   #============================= Roles ==========================================================
   DataReportApi:
     Type: AWS::Serverless::Api
@@ -233,6 +221,36 @@ Resources:
       RestApiId: !Ref DataReportApi
       Stage: !Ref DataReportApi.Stage
 
+  #===========================EventBridge Rule========================================================
+  PersistedResourcesEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "Trigger on create and delete events for S3 bucket persisted-resources"
+      EventPattern:
+        source:
+          - "aws.s3"
+        detail-type:
+          - "Object Created"
+          - "Object Deleted"
+        detail:
+          bucket:
+            name:
+              - !Ref ResourcesBucket
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt DataLoadingHandler.Arn
+          Id: "DataLoadingHandler"
+          InputTransformer:
+            InputPathsMap:
+              bucketName: "$.detail.bucket.name"
+              key: "$.detail.object.key"
+              operation: "$.detail.reason"
+            InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "operation": <operation>}'
+          DeadLetterConfig:
+            Arn: !GetAtt DataReportPersistedResourceDLQ.Arn
+          RetryPolicy:
+            MaximumRetryAttempts: 3
+
   # ---- Handler ----
   FetchDataReportHandler:
     Type: AWS::Serverless::Function
@@ -262,7 +280,7 @@ Resources:
       CodeUri: data-loading
       Policies:
         - VPCAccessPolicy: { }
-      Handler: no.sikt.nva.data.report.api.etl.DataLoader::handleRequest
+      Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
       Role: !GetAtt LambdaRole.Arn
       Timeout: 600
       MemorySize: 1536
@@ -272,13 +290,6 @@ Resources:
           BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
-      Events:
-        SqsEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt DataReportPersistedResourceQueue.Arn
-            BatchSize: 1
-            # TODO: Batching
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
@@ -371,7 +382,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 0
           ToPort: 65535
-          CidrIp: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+          CidrIp: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
       VpcId: !Ref VPC
       Tags:
         - Key: Project
@@ -385,7 +396,7 @@ Resources:
     Properties:
       EnableDnsSupport: true
       EnableDnsHostnames: true
-      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-vpc"
@@ -400,7 +411,7 @@ Resources:
           - 0
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Private1', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private1', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-private-subnet-1"
@@ -415,7 +426,7 @@ Resources:
           - 1
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Private2', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private2', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-private-subnet-2"
@@ -430,7 +441,7 @@ Resources:
           - 0
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Lambda1', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda1', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-lambda-subnet-1"
@@ -445,7 +456,7 @@ Resources:
           - 1
           - Fn::GetAZs: !Ref AWS::Region
       VpcId: !Ref VPC
-      CidrBlock:  !FindInMap ['SubnetConfig', 'Lambda2', 'CIDR']
+      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda2', 'CIDR' ]
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-lambda-subnet-2"
