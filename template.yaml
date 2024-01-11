@@ -35,10 +35,10 @@ Parameters:
     Default: /NVA/Events/PersistedEntriesBucketName
   DataReportPersistedResourceDLQName:
     Type: String
-    Default: DataReportPersistedResourceDLQ
+    Default: !Sub ${AWS::StackName}-DataReportPersistedResourceDLQ
   DataLoadingDLQName:
     Type: String
-    Default: DataLoadingDLQName
+    Default: !Sub ${AWS::StackName}-DataLoadingDLQ
 
 Mappings:
   SubnetConfig:
@@ -254,6 +254,10 @@ Resources:
               key: "$.detail.object.key"
               operation: "$.detail.reason"
             InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "operation": <operation>}'
+          DeadLetterConfig:
+            Arn: !GetAtt DataReportPersistedResourceDLQ.Arn
+          RetryPolicy:
+            MaximumRetryAttempts: 3
 
   # ---- Handler ----
   FetchDataReportHandler:
