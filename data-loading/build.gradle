@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation libs.nva.commons.core
     implementation libs.aws.sdk2.lambda.events
     implementation libs.aws.lambda.java.core
     implementation libs.bundles.logging

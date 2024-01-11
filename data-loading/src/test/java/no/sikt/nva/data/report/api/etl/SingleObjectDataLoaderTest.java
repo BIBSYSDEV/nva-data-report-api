@@ -1,7 +1,6 @@
 package no.sikt.nva.data.report.api.etl;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.nva.stubs.FakeContext;
@@ -43,5 +42,14 @@ class SingleObjectDataLoaderTest {
         var event = new PersistedResourceEvent(BUCKET_NAME, key, SOME_OPERATION);
         handler.handleRequest(event, context);
         assertTrue(logAppender.getMessages().contains("Object folder: " + folderName));
+    }
+
+    @Test
+    void shouldLogNoFolderIfKeyHasNoParent() {
+        final var logAppender = LogUtils.getTestingAppenderForRootLogger();
+        var key = randomString();
+        var event = new PersistedResourceEvent(BUCKET_NAME, key, SOME_OPERATION);
+        handler.handleRequest(event, context);
+        assertTrue(logAppender.getMessages().contains("No parent folder"));
     }
 }
