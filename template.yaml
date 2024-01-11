@@ -33,12 +33,6 @@ Parameters:
   ResourcesBucket:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/Events/PersistedEntriesBucketName
-  DataReportPersistedResourceDLQName:
-    Type: String
-    Default: !Sub ${AWS::StackName}-DataReportPersistedResourceDLQ
-  DataLoadingDLQName:
-    Type: String
-    Default: !Sub ${AWS::StackName}-DataLoadingDLQ
 
 Mappings:
   SubnetConfig:
@@ -81,12 +75,10 @@ Resources:
   DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Ref DataReportPersistedResourceDLQName
       MessageRetentionPeriod: 1209600 #14 days
   DataLoadingDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Ref DataLoadingDLQName
       MessageRetentionPeriod: 1209600 #14 days
 
   # ---- Logging ----
