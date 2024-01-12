@@ -53,13 +53,22 @@ class SingleObjectDataLoaderTest {
         assertTrue(logAppender.getMessages().contains("No parent folder"));
     }
 
-    @ParameterizedTest(name = "Should extract and log operation type {0}")
-    @ValueSource(strings = {"PubObject", "DeleteObject"})
-    void shouldExtractAndLogOperationType(String operation) {
+    @ParameterizedTest(name = "Should extract and log eventType type {0}")
+    @ValueSource(strings = {"PutObject", "DeleteObject"})
+    void shouldExtractAndLogOperationType(String eventType) {
         var key = UnixPath.of(RESOURCES_FOLDER, randomString()).toString();
-        var event = new PersistedResourceEvent(BUCKET_NAME, key, operation);
+        var event = new PersistedResourceEvent(BUCKET_NAME, key, eventType);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
-        assertTrue(logAppender.getMessages().contains("Operation: " + operation));
+        assertTrue(logAppender.getMessages().contains("Event type: " + EventType.parse(eventType)));
+    }
+
+    @Test
+    void shouldLogUnknownEventTypeIfEventTypeIsUnknown() {
+        var key = UnixPath.of(RESOURCES_FOLDER, randomString()).toString();
+        var event = new PersistedResourceEvent(BUCKET_NAME, key, randomString());
+        final var logAppender = LogUtils.getTestingAppenderForRootLogger();
+        handler.handleRequest(event, context);
+        assertTrue(logAppender.getMessages().contains("Unknown event type: " + event.eventType()));
     }
 }
