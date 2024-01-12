@@ -33,6 +33,14 @@ Parameters:
   ResourcesBucket:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/Events/PersistedEntriesBucketName
+  ResourcesPrefix:
+    Type: String
+    Description: Prefix for resource files in persisted-resources bucket
+    Default: resources/
+  NviCandidatesPrefix:
+    Type: String
+    Description: Prefix for nvi-candidate files in persisted-resources bucket
+    Default: nvi-candidates/
 
 Mappings:
   SubnetConfig:
@@ -236,6 +244,10 @@ Resources:
           bucket:
             name:
               - !Ref ResourcesBucket
+          object:
+            key:
+              - prefix: !Ref ResourcesPrefix
+              - prefix: !Ref NviCandidatesPrefix
       State: ENABLED
       Targets:
         - Arn: !GetAtt DataLoadingHandler.Arn
