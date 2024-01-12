@@ -256,8 +256,8 @@ Resources:
             InputPathsMap:
               bucketName: "$.detail.bucket.name"
               key: "$.detail.object.key"
-              operation: "$.detail.reason"
-            InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "operation": <operation>}'
+              eventType: "$.detail.reason"
+            InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "eventType": <eventType>}'
           DeadLetterConfig:
             Arn: !GetAtt DataReportPersistedResourceDLQ.Arn
           RetryPolicy:
