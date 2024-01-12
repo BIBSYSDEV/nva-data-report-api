@@ -18,6 +18,7 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     public Void handleRequest(PersistedResourceEvent input, Context context) {
         LOGGER.info("Handling request with input: {}", input.toString());
         UnixPath.of(input.key()).getParent().ifPresentOrElse(this::logFolderName, this::logNoParentFolder);
+        LOGGER.info("Operation: {}", input.operation());
         return null;
     }
 
