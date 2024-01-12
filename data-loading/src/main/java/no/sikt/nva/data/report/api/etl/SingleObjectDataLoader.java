@@ -32,16 +32,16 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         getEventType(input).ifPresentOrElse(this::logEventType, () -> logUnknownEventType(input.eventType()));
     }
 
+    private void logEventType(EventType eventType) {
+        LOGGER.info("Event type: {}", eventType);
+    }
+
     private void logFolderName(UnixPath folder) {
         LOGGER.info("Object folder: {}", folder);
     }
 
     private Optional<EventType> getEventType(PersistedResourceEvent input) {
         return attempt(() -> EventType.parse(input.eventType())).toOptional();
-    }
-
-    private void logEventType(EventType eventType) {
-        LOGGER.info("Event type: {}", eventType);
     }
 
     private void logUnknownEventType(String eventType) {
