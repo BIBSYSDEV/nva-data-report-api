@@ -6,6 +6,7 @@ dependencies {
     implementation libs.nva.commons.core
     implementation libs.bundles.jena
     implementation libs.jena.core
+    implementation libs.bundles.logging
     implementation libs.jena.rdfconnection
     testImplementation libs.jena.fuseki
 }

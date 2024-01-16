@@ -12,7 +12,6 @@ import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.riot.Lang;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,9 +37,9 @@ class SingleObjectDataLoaderTest {
         server = FusekiServer.create()
                      .add(GSP_ENDPOINT, dataSet)
                      .build();
-        dbConnection = new GraphStoreProtocolConnection(server.serverURL(), GSP_ENDPOINT);
+        server.start(); // Initialise server before using it!
+        dbConnection = new GraphStoreProtocolConnection(server.serverURL());
         handler = new SingleObjectDataLoader(new GraphService(dbConnection));
-        server.start();
     }
 
     @AfterEach
