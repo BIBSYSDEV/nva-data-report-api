@@ -1,14 +1,14 @@
 package commons.db;
 
-import static java.util.Objects.nonNull;
 import commons.formatter.ResponseFormatter;
 import java.io.ByteArrayInputStream;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionRemote;
@@ -23,9 +23,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
                                                                    + " SELECT";
     public static final String QSP_ENDPOINT = "gsp";
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphStoreProtocolConnection.class);
-    private final HttpClient httpClient;
-    private String endpoint;
-    private String port;
+    private final String endpoint;
 
     @JacocoGenerated
     public GraphStoreProtocolConnection() {
@@ -34,14 +32,11 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @JacocoGenerated
     private GraphStoreProtocolConnection(Environment environment) {
-        this(environment.readEnv("NEPTUNE_ENDPOINT"),
-             environment.readEnv("NEPTUNE_PORT"));
+        this(environment.readEnv("NEPTUNE_ENDPOINT"));
     }
 
-    public GraphStoreProtocolConnection(String destination, String gspEndpoint) {
-        this.httpClient = useDefault();
+    public GraphStoreProtocolConnection(String destination) {
         this.endpoint = destination;
-        this.port = gspEndpoint;
     }
 
     public void logConnection() {
@@ -53,9 +48,11 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @Override
     public String getResult(Query query, ResponseFormatter formatter) {
-        try (var queryExecution = configureQueryExecution(query)) {
+        try (var connection = configureRemoteConnection()) {
             if (query.isSelectType()) {
-                return formatter.format(queryExecution.execSelect());
+                var solution = new ArrayList<ResultSet>();
+                connection.queryResultSet(query, solution::add);
+                return formatter.format(solution.get(0));
             }
             throw new UnsupportedOperationException(UNSUPPORTED_SPARQL_METHOD_MESSAGE);
         }
@@ -74,25 +71,9 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     private RDFConnection configureRemoteConnection() {
         return RDFConnectionRemote.newBuilder()
                    .gspEndpoint(QSP_ENDPOINT)
+                   .queryEndpoint("gsp/query")
                    .destination(endpoint)
                    .httpClient(HttpClient.newHttpClient())
                    .build();
-    }
-
-    @JacocoGenerated
-    private HttpClient useDefault() {
-        return HttpClient.newHttpClient();
-    }
-
-    private QueryExecution configureQueryExecution(Query query) {
-        var builder = QueryExecution.service(endpoint);
-        if (nonNull(httpClient)) {
-            builder.httpClient(httpClient);
-        }
-        return builder.query(query).build();
-    }
-
-    private String getEndpoint() {
-        return String.format("https://%s:%s/sparql", endpoint, port);
     }
 }
