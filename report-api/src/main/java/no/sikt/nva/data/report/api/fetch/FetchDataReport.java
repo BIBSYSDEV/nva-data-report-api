@@ -5,7 +5,7 @@ import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.db.NeptuneConnection;
+import commons.db.GraphStoreProtocolConnection;
 import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
@@ -21,7 +21,7 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
 
     @JacocoGenerated
     public FetchDataReport() {
-        this(new QueryService(new NeptuneConnection()));
+        this(new QueryService(new GraphStoreProtocolConnection()));
     }
 
     public FetchDataReport(QueryService queryService) {

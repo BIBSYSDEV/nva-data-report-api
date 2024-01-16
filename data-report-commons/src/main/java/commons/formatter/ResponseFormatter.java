@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.formatter;
+package commons.formatter;
 
 import org.apache.jena.query.ResultSet;
 

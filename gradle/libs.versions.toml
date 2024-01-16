@@ -1,6 +1,6 @@
 [versions]
 junit = { strictly = '5.10.0' }
-nva = { strictly = '1.36.2' }
+nva = { strictly = '1.36.12' }
 zalando = { strictly = '0.27.1' }
 awsLambdaJavaCore = { strictly = '1.2.2' }
 awsLambdaEvents = { strictly = '3.11.2' }
@@ -9,8 +9,8 @@ slf4j = { strictly = '2.0.9' }
 awslog4j2 = { strictly = '1.5.1' }
 awsSdk2 = { strictly = '2.20.141' }
 awsSdk2Events = { strictly = '3.11.4' }
-jena = { strictly = '4.7.0' }
-jackson = { strictly = '2.15.2' }
+jena = { strictly = '4.10.0' }
+jackson = { require = '2.15.3' }
 guava = { strictly = '32.1.2-jre' }
 mockito = { strictly = '5.3.1' }
 
@@ -57,6 +57,8 @@ slf4j-api = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
 
 jena-core = { group = 'org.apache.jena', name = 'jena-core', version.ref = 'jena' }
 jena-arq = { group = 'org.apache.jena', name = 'jena-arq', version.ref = 'jena' }
+jena-fuseki = { group = 'org.apache.jena', name = 'jena-fuseki-main', version.ref = 'jena' }
+jena-rdfconnection = { group = 'org.apache.jena', name = 'jena-rdfconnection', version.ref = 'jena' }
 
 zalando = { group = 'org.zalando', name = 'problem', version.ref = 'zalando' }
 
@@ -65,6 +67,6 @@ guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mockito' }
 
 [bundles]
-jena = ['jena-core', 'jena-arq']
+jena = ['jena-core', 'jena-arq', 'jena-rdfconnection']
 logging = ['log4j-core', 'log4j-api', 'log4j-slf4j2-impl', 'slf4j-api', 'nva-logutils']
-testing = [ 'junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'nva-testutils', 'mockito-core' ]
+testing = [ 'junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'mockito-core' ]

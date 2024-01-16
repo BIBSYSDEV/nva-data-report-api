@@ -1,9 +1,9 @@
 package no.sikt.nva.data.report.api.fetch.service;
 
+import commons.db.DatabaseConnection;
+import commons.formatter.ResponseFormatter;
 import java.nio.file.Path;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
-import no.sikt.nva.data.report.api.fetch.db.DatabaseConnection;
-import no.sikt.nva.data.report.api.fetch.formatter.ResponseFormatter;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;

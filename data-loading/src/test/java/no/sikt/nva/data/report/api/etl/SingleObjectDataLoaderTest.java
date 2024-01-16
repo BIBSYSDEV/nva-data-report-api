@@ -3,9 +3,17 @@ package no.sikt.nva.data.report.api.etl;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
+import commons.db.GraphStoreProtocolConnection;
+import no.sikt.nva.data.report.api.etl.model.EventType;
+import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
+import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
+import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.riot.Lang;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,24 +21,44 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class SingleObjectDataLoaderTest {
 
-    public static final String BUCKET_NAME = "notRelevant";
-    public static final String SOME_OPERATION = "someOperation";
-    public static final String RESOURCES_FOLDER = "resources";
-    public static final String NVI_CANDIDATES_FOLDER = "nvi-candidates";
+    private static final String GSP_ENDPOINT = "/gsp";
+    private static final String NVI_CANDIDATES_FOLDER = "nvi-candidates";
+    private static final String RESOURCES_FOLDER = "resources";
+    private static final String SOME_OPERATION = "someOperation";
+    private static final String BUCKET_NAME = "notRelevant";
     private Context context;
-
     private SingleObjectDataLoader handler;
+    private FusekiServer server;
+    private GraphStoreProtocolConnection dbConnection;
 
     @BeforeEach
     void setup() {
         context = new FakeContext();
-        handler = new SingleObjectDataLoader();
+        var dataSet = DatasetFactory.createTxnMem();
+        server = FusekiServer.create()
+                     .add(GSP_ENDPOINT, dataSet)
+                     .build();
+        dbConnection = new GraphStoreProtocolConnection(server.serverURL(), GSP_ENDPOINT);
+        handler = new SingleObjectDataLoader(new GraphService(dbConnection));
+        server.start();
+    }
+
+    @AfterEach
+    void tearDown() {
+        server.stop();
+    }
+
+    @Test
+    void shouldLogSuccessfulDatabaseConnection() {
+        final var logAppender = LogUtils.getTestingAppenderForRootLogger();
+        new SingleObjectDataLoader(new GraphService(dbConnection));
+        assertTrue(logAppender.getMessages().contains("Connection"));
     }
 
     @Test
     void shouldLogStuff() {
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        new SingleObjectDataLoader();
+        new SingleObjectDataLoader(new GraphService(dbConnection));
         assertTrue(logAppender.getMessages().contains("Initializing DataLoader"));
     }
 
