@@ -20,10 +20,11 @@ import org.slf4j.LoggerFactory;
 
 public class GraphStoreProtocolConnection implements DatabaseConnection {
 
-    public static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
-                                                                   + " SELECT";
-    public static final String GSP_PATH = "gsp";
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphStoreProtocolConnection.class);
+    private static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
+                                                                    + " SELECT";
+    private static final String GSP_PATH = "gsp";
+    private static final String SPARQL_PATH = "sparql";
     private final String writeEndpoint;
     private final String readEndpoint;
     private final String queryPath;
@@ -35,10 +36,10 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @JacocoGenerated
     private GraphStoreProtocolConnection(Environment environment) {
-        this(String.format("https://%s:%s", environment.readEnv("NEPTUNE_READ_ENDPOINT"),
-                           environment.readEnv("NEPTUNE_PORT")),
-             String.format("https://%s:%s", environment.readEnv("NEPTUNE_WRITE_ENDPOINT"),
-                           environment.readEnv("NEPTUNE_PORT")),
+        this(String.format("https://%s:%s/%s", environment.readEnv("NEPTUNE_READ_ENDPOINT"),
+                           environment.readEnv("NEPTUNE_PORT"), SPARQL_PATH),
+             String.format("https://%s:%s/%s", environment.readEnv("NEPTUNE_WRITE_ENDPOINT"),
+                           environment.readEnv("NEPTUNE_PORT"), SPARQL_PATH),
              environment.readEnv("QUERY_PATH"));
     }
 
