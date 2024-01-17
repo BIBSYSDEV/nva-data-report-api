@@ -78,7 +78,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     }
 
     public void delete() {
-        try(var connection = configureWriteConnection()) {
+        try (var connection = configureWriteConnection()) {
             connection.delete();
         }
     }
