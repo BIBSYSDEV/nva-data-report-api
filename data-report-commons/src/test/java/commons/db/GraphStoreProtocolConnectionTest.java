@@ -3,8 +3,10 @@ package commons.db;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import commons.formatter.ResponseFormatter;
+import nva.commons.core.Environment;
 import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
@@ -14,21 +16,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class GraphStoreProtocolConnectionTest {
+
     private static final String GSP_ENDPOINT = "/gsp";
-
-
     private FusekiServer server;
     private GraphStoreProtocolConnection dbConnection;
 
     @BeforeEach
     void setUp() {
-
         var dataSet = DatasetFactory.createTxnMem();
-        server = FusekiServer.create()
-                     .add(GSP_ENDPOINT, dataSet)
-                     .build();
-        server.start();
-        dbConnection = new GraphStoreProtocolConnection(server.serverURL());
+        initializeGraphServer(dataSet);
+        var url = server.serverURL();
+        dbConnection = new GraphStoreProtocolConnection(url, url, new Environment().readEnv("QUERY_PATH"));
     }
 
     @AfterEach
@@ -50,6 +48,13 @@ class GraphStoreProtocolConnectionTest {
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         dbConnection.logConnection();
         assertTrue(logAppender.getMessages().contains("Connection"));
+    }
+
+    private void initializeGraphServer(Dataset dataSet) {
+        server = FusekiServer.create()
+                     .add(GSP_ENDPOINT, dataSet)
+                     .build();
+        server.start();
     }
 
     private static class TestFormatter implements ResponseFormatter {

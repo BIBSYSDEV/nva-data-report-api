@@ -8,9 +8,11 @@ import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.unit.nva.stubs.FakeContext;
+import nva.commons.core.Environment;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,11 +36,10 @@ class SingleObjectDataLoaderTest {
     void setup() {
         context = new FakeContext();
         var dataSet = DatasetFactory.createTxnMem();
-        server = FusekiServer.create()
-                     .add(GSP_ENDPOINT, dataSet)
-                     .build();
-        server.start(); // Initialise server before using it!
-        dbConnection = new GraphStoreProtocolConnection(server.serverURL());
+        initializeGraphServer(dataSet);
+        var url = server.serverURL();
+        var queryPath = new Environment().readEnv("QUERY_PATH");
+        dbConnection = new GraphStoreProtocolConnection(url, url, queryPath);
         handler = new SingleObjectDataLoader(new GraphService(dbConnection));
     }
 
@@ -97,5 +98,12 @@ class SingleObjectDataLoaderTest {
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
         assertTrue(logAppender.getMessages().contains("Unknown event type: " + event.eventType()));
+    }
+
+    private void initializeGraphServer(Dataset dataSet) {
+        server = FusekiServer.create()
+                     .add(GSP_ENDPOINT, dataSet)
+                     .build();
+        server.start(); // Initialise server before using it!
     }
 }
