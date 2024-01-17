@@ -1,0 +1,16 @@
+plugins {
+    id 'nva.data.report.api.java-conventions'
+}
+
+dependencies {
+    implementation libs.nva.commons.core
+    implementation libs.bundles.jena
+    implementation libs.jena.core
+    implementation libs.bundles.logging
+    implementation libs.jena.rdfconnection
+    testImplementation libs.jena.fuseki
+}
+
+repositories {
+    mavenCentral()
+}

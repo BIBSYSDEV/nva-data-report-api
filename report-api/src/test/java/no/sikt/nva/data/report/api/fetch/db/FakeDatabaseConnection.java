@@ -1,9 +1,8 @@
 package no.sikt.nva.data.report.api.fetch.db;
 
-import java.io.ByteArrayInputStream;
+import commons.db.DatabaseConnection;
+import commons.formatter.ResponseFormatter;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import no.sikt.nva.data.report.api.fetch.formatter.ResponseFormatter;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.rdf.model.Model;
@@ -23,6 +22,11 @@ public class FakeDatabaseConnection implements DatabaseConnection {
             }
             throw new UnsupportedOperationException("The query method is unsupported, supported types: SELECT");
         }
+    }
+
+    @Override
+    public void write(String triples, Lang lang) {
+
     }
 
     public void insert(Model data) {

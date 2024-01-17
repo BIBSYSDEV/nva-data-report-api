@@ -3,14 +3,17 @@ plugins {
 }
 
 dependencies {
+    implementation(project(':data-report-commons'))
     implementation libs.guava
     implementation libs.bundles.jena
     implementation libs.nva.commons.core
     implementation libs.nva.json
     implementation libs.jackson.databind
     implementation libs.nva.commons.apigateway
-    testImplementation libs.bundles.testing
     testImplementation 'com.opencsv:opencsv:5.9'
+    testImplementation('com.github.bibsysdev:nvatestutils:1.36.12') {
+        exclude group: 'org.wiremock', module: 'wiremock'
+    }
 }
 
 repositories {

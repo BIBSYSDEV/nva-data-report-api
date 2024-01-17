@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.etl;
+package no.sikt.nva.data.report.api.etl.model;
 
 public record PersistedResourceEvent(String bucketName, String key, String eventType) {
 
