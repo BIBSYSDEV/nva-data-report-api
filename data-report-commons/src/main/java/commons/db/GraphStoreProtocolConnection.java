@@ -32,7 +32,8 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @JacocoGenerated
     private GraphStoreProtocolConnection(Environment environment) {
-        this(environment.readEnv("NEPTUNE_ENDPOINT"));
+        this(String.format("https://%s:%s", environment.readEnv("NEPTUNE_ENDPOINT"),
+                           environment.readEnv("NEPTUNE_PORT")));
     }
 
     public GraphStoreProtocolConnection(String destination) {
