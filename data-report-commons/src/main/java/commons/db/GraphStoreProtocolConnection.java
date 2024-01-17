@@ -36,10 +36,8 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @JacocoGenerated
     private GraphStoreProtocolConnection(Environment environment) {
-        this(String.format("https://%s:%s/%s", environment.readEnv("NEPTUNE_READ_ENDPOINT"),
-                           environment.readEnv("NEPTUNE_PORT"), SPARQL_PATH),
-             String.format("https://%s:%s/%s", environment.readEnv("NEPTUNE_WRITE_ENDPOINT"),
-                           environment.readEnv("NEPTUNE_PORT"), SPARQL_PATH),
+        this(constructEndPointUri(environment.readEnv("NEPTUNE_READ_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
+             constructEndPointUri(environment.readEnv("NEPTUNE_WRITE_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
              environment.readEnv("QUERY_PATH"));
     }
 
@@ -76,6 +74,11 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
             RDFDataMgr.read(model, inputStream, lang);
             connection.load(model);
         }
+    }
+
+    @JacocoGenerated
+    private static String constructEndPointUri(String neptuneEndpoint, String neptunePort) {
+        return String.format("https://%s:%s/%s", neptuneEndpoint, neptunePort, SPARQL_PATH);
     }
 
     private RDFConnection configureReadConnection() {
