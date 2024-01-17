@@ -1,6 +1,7 @@
 package commons.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import commons.formatter.ResponseFormatter;
 import nva.commons.core.Environment;
@@ -50,6 +51,16 @@ class GraphStoreProtocolConnectionTest {
         assertTrue(logAppender.getMessages().contains("Connection"));
     }
 
+    @Test
+    void shouldDelete() {
+        var triple = "<https://example.org/a> <https://example.org/b> <https://example.org/c> .";
+        dbConnection.write(triple, Lang.NTRIPLES);
+        dbConnection.delete();
+        var query = QueryFactory.create("SELECT * WHERE { ?a ?b ?c }");
+        var result = dbConnection.getResult(query, new TestFormatter());
+        assertNull(result);
+    }
+
     private void initializeGraphServer(Dataset dataSet) {
         server = FusekiServer.create()
                      .add(GSP_ENDPOINT, dataSet)
@@ -71,7 +82,7 @@ class GraphStoreProtocolConnectionTest {
                 }
                 triples.append(".");
             }
-            return triples.toString();
+            return triples.isEmpty() ? null : triples.toString();
         }
     }
 }
