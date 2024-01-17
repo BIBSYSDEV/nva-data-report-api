@@ -14,8 +14,9 @@ import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -27,13 +28,13 @@ class SingleObjectDataLoaderTest {
     private static final String RESOURCES_FOLDER = "resources";
     private static final String SOME_OPERATION = "someOperation";
     private static final String BUCKET_NAME = "notRelevant";
-    private Context context;
-    private SingleObjectDataLoader handler;
-    private FusekiServer server;
-    private GraphStoreProtocolConnection dbConnection;
+    private static Context context;
+    private static SingleObjectDataLoader handler;
+    private static FusekiServer server;
+    private static GraphStoreProtocolConnection dbConnection;
 
-    @BeforeEach
-    void setup() {
+    @BeforeAll
+    static void setup() {
         context = new FakeContext();
         var dataSet = DatasetFactory.createTxnMem();
         initializeGraphServer(dataSet);
@@ -43,9 +44,14 @@ class SingleObjectDataLoaderTest {
         handler = new SingleObjectDataLoader(new GraphService(dbConnection));
     }
 
-    @AfterEach
-    void tearDown() {
+    @AfterAll
+    static void tearDown() {
         server.stop();
+    }
+
+    @AfterEach
+    void clearDatabase() {
+        dbConnection.delete();
     }
 
     @Test
@@ -100,7 +106,7 @@ class SingleObjectDataLoaderTest {
         assertTrue(logAppender.getMessages().contains("Unknown event type: " + event.eventType()));
     }
 
-    private void initializeGraphServer(Dataset dataSet) {
+    private static void initializeGraphServer(Dataset dataSet) {
         server = FusekiServer.create()
                      .add(GSP_ENDPOINT, dataSet)
                      .build();
