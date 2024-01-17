@@ -4,10 +4,7 @@ import commons.db.GraphStoreProtocolConnection;
 
 public class GraphService {
 
-    private final GraphStoreProtocolConnection databaseConnection;
-
     public GraphService(GraphStoreProtocolConnection databaseConnection) {
-        this.databaseConnection = databaseConnection;
         databaseConnection.logConnection();
     }
 }
