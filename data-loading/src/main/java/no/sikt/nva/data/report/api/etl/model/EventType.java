@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 public enum EventType {
     UPSERT("PutObject"),
     DELETE("DeleteObject");
-
     private final String value;
 
     EventType(String value) {

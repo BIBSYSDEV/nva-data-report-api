@@ -85,7 +85,7 @@ class SingleObjectDataLoaderTest {
     void shouldLogStuff() {
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         new SingleObjectDataLoader(new GraphService(dbConnection));
-        assertTrue(logAppender.getMessages().contains("Initializing DataLoader"));
+        assertTrue(logAppender.getMessages().contains("Initializing SingleObjectDataLoader"));
     }
 
     @ParameterizedTest(name = "Should extract and log folderName {0}")
@@ -95,7 +95,7 @@ class SingleObjectDataLoaderTest {
         var event = new PersistedResourceEvent(BUCKET_NAME, key, SOME_OPERATION);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
-        assertTrue(logAppender.getMessages().contains("Object folder: " + folderName));
+        assertTrue(logAppender.getMessages().contains("object folder: " + folderName));
     }
 
     @Test
@@ -114,7 +114,7 @@ class SingleObjectDataLoaderTest {
         var event = new PersistedResourceEvent(BUCKET_NAME, key, eventType);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
-        assertTrue(logAppender.getMessages().contains("Event type: " + EventType.parse(eventType)));
+        assertTrue(logAppender.getMessages().contains("eventType: " + eventType));
     }
 
     @Test
