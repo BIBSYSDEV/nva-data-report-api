@@ -34,9 +34,9 @@ import test.TestFormatter;
 
 class SingleObjectDataLoaderTest {
 
-    public static final String NVI_CONTEXT = "https://api.dev.nva.aws.unit.no/scientific-index/context";
-    public static final String GZIP_ENDING = ".gz";
-    public static final String UPSERT_EVENT = EventType.UPSERT.getValue();
+    private static final String GZIP_ENDING = ".gz";
+    private static final String UPSERT_EVENT = EventType.UPSERT.getValue();
+    private static final String NVI_CONTEXT = "https://api.dev.nva.aws.unit.no/scientific-index/context";
     private static final String GSP_ENDPOINT = "/gsp";
     private static final String NVI_CANDIDATES_FOLDER = "nvi-candidates";
     private static final String RESOURCES_FOLDER = "resources";
@@ -73,6 +73,7 @@ class SingleObjectDataLoaderTest {
         dbConnection.delete();
     }
 
+    //TODO: Test storing in named graph
     @Test
     void shouldFetchNviCandidateFromBucketAndStoreInGraph() throws IOException {
         var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomCandidate());
@@ -156,6 +157,7 @@ class SingleObjectDataLoaderTest {
         return objectKey;
     }
 
+    //TODO: Add more data to NviCandidateIndexDocument
     private NviCandidateIndexDocument randomCandidate() {
         var identifier = UUID.randomUUID();
         return NviCandidateIndexDocument.builder()
