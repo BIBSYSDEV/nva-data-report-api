@@ -1,0 +1,16 @@
+plugins {
+    id 'nva.data.report.api.java-conventions'
+}
+
+dependencies {
+    implementation(project(':data-report-commons'))
+    implementation libs.jena.fuseki
+}
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    environment("QUERY_PATH", "gsp/sparql")
+}

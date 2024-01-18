@@ -18,4 +18,8 @@ public enum EventType {
                    .findFirst()
                    .orElseThrow(() -> new IllegalArgumentException("Unknown event type: " + candidate));
     }
+
+    public String getValue() {
+        return value;
+    }
 }

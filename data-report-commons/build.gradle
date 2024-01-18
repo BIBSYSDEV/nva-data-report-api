@@ -9,6 +9,7 @@ dependencies {
     implementation libs.bundles.logging
     implementation libs.jena.rdfconnection
     testImplementation libs.jena.fuseki
+    testImplementation(project(':data-report-test'))
 }
 
 repositories {
