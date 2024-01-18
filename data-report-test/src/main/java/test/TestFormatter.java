@@ -20,6 +20,6 @@ public final class TestFormatter implements ResponseFormatter {
             }
             triples.append(".");
         }
-        return triples.toString();
+        return triples.isEmpty() ? null : triples.toString();
     }
 }

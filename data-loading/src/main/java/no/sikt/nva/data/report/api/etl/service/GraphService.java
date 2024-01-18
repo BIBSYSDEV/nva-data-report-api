@@ -27,7 +27,6 @@ public class GraphService {
     public void convertAndStore(String resource) {
         var model = ModelFactory.createDefaultModel();
         loadDataIntoModel(model, IoUtils.stringToStream(resource));
-        RdfUtil.toNTriples(model);
         databaseConnection.write(RdfUtil.toNTriples(model), Lang.NTRIPLES);
     }
 
