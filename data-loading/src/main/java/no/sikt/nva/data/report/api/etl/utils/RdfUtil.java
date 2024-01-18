@@ -5,7 +5,10 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
-public class RdfUtil {
+public final class RdfUtil {
+
+    private RdfUtil() {
+    }
 
     public static String toNTriples(Model model) {
         StringWriter stringWriter = new StringWriter();
