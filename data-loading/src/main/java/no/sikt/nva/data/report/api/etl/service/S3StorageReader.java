@@ -1,13 +1,12 @@
 package no.sikt.nva.data.report.api.etl.service;
 
 import commons.StorageReader;
-import java.net.URI;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.paths.UnixPath;
-import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class S3StorageReader implements StorageReader<UnixPath> {
+
     private final S3Driver s3Driver;
 
     public S3StorageReader(String bucket) {
