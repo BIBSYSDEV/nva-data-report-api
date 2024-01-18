@@ -24,8 +24,9 @@ import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -41,15 +42,15 @@ class SingleObjectDataLoaderTest {
     private static final String RESOURCES_FOLDER = "resources";
     private static final String BUCKET_NAME = "notRelevant";
     private static final String HOST = "example.org";
-    private Context context;
-    private SingleObjectDataLoader handler;
-    private FusekiServer server;
-    private GraphStoreProtocolConnection dbConnection;
-    private S3Driver s3Driver;
-    private S3StorageReader storageReader;
+    private static Context context;
+    private static SingleObjectDataLoader handler;
+    private static FusekiServer server;
+    private static GraphStoreProtocolConnection dbConnection;
+    private static S3Driver s3Driver;
+    private static S3StorageReader storageReader;
 
-    @BeforeEach
-    void setup() {
+    @BeforeAll
+    static void setup() {
         context = new FakeContext();
         var dataSet = DatasetFactory.createTxnMem();
         initializeGraphServer(dataSet);
@@ -62,9 +63,14 @@ class SingleObjectDataLoaderTest {
         handler = new SingleObjectDataLoader(new GraphService(dbConnection), storageReader);
     }
 
-    @AfterEach
-    void tearDown() {
+    @AfterAll
+    static void tearDown() {
         server.stop();
+    }
+
+    @AfterEach
+    void clearDatabase() {
+        dbConnection.delete();
     }
 
     @Test
@@ -134,6 +140,13 @@ class SingleObjectDataLoaderTest {
         return identifier.toString() + GZIP_ENDING;
     }
 
+    private static void initializeGraphServer(Dataset dataSet) {
+        server = FusekiServer.create()
+                     .add(GSP_ENDPOINT, dataSet)
+                     .build();
+        server.start(); // Initialise server before using it!
+    }
+
     private UnixPath setupExistingObjectInS3(String folder) throws IOException {
         var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomCandidate());
         var objectKey = UnixPath.of(folder,
@@ -150,12 +163,5 @@ class SingleObjectDataLoaderTest {
                    .withContext(NVI_CONTEXT)
                    .withIdentifier(identifier)
                    .build();
-    }
-
-    private void initializeGraphServer(Dataset dataSet) {
-        server = FusekiServer.create()
-                     .add(GSP_ENDPOINT, dataSet)
-                     .build();
-        server.start(); // Initialise server before using it!
     }
 }

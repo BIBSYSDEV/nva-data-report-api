@@ -76,6 +76,12 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         }
     }
 
+    public void delete() {
+        try (var connection = configureWriteConnection()) {
+            connection.delete();
+        }
+    }
+
     @JacocoGenerated
     private static String constructEndPointUri(String neptuneEndpoint, String neptunePort) {
         return String.format("https://%s:%s/%s", neptuneEndpoint, neptunePort, SPARQL_PATH);
