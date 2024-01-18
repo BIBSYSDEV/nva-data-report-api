@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import commons.formatter.ResponseFormatter;
 import java.util.Random;
+import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import nva.commons.core.Environment;
 import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
@@ -31,7 +31,7 @@ class GraphStoreProtocolConnectionTest {
     @BeforeAll
     static void setUp() {
         var dataSet = DatasetFactory.createTxnMem();
-        initializeGraphServer(dataSet);
+        server = FusekiTestingServer.init(dataSet, GSP_ENDPOINT);
         var url = server.serverURL();
         dbConnection = new GraphStoreProtocolConnection(url, url, new Environment().readEnv("QUERY_PATH"));
     }
@@ -71,13 +71,6 @@ class GraphStoreProtocolConnectionTest {
         var query = QueryFactory.create("SELECT * WHERE { ?a ?b ?c }");
         var result = dbConnection.getResult(query, new TestFormatter());
         assertNull(result);
-    }
-
-    private static void initializeGraphServer(Dataset dataSet) {
-        server = FusekiServer.create()
-                     .add(GSP_ENDPOINT, dataSet)
-                     .build();
-        server.start();
     }
 
     private static class TestFormatter implements ResponseFormatter {

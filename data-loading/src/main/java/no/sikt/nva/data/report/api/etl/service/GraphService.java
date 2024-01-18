@@ -1,10 +1,10 @@
 package no.sikt.nva.data.report.api.etl.service;
 
-import commons.db.GraphStoreProtocolConnection;
+import commons.db.DatabaseConnection;
 
 public class GraphService {
 
-    public GraphService(GraphStoreProtocolConnection databaseConnection) {
+    public GraphService(DatabaseConnection databaseConnection) {
         databaseConnection.logConnection();
     }
 }
