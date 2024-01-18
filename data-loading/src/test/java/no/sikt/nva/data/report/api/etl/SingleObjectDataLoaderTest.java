@@ -113,9 +113,9 @@ class SingleObjectDataLoaderTest {
         assertTrue(logAppender.getMessages().contains("object key: " + objectKey));
     }
 
-    @Test
-    void shouldThrowIllegalArgumentExceptionIfKeyHasNoParent() {
-        var key = randomString();
+    @ParameterizedTest
+    @ValueSource(strings = {"someKeyWithOutParentFolder", ""})
+    void shouldThrowIllegalArgumentExceptionWhenKeyIsInvalid(String key) {
         var event = new PersistedResourceEvent(BUCKET_NAME, key, UPSERT_EVENT);
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
@@ -130,10 +130,11 @@ class SingleObjectDataLoaderTest {
         assertTrue(logAppender.getMessages().contains("eventType: " + eventType));
     }
 
-    @Test
-    void shouldThrowIllegalArgumentExceptionIfEventTypeIsUnknown() {
+    @ParameterizedTest
+    @ValueSource(strings = {"someUnknownEventType", ""})
+    void shouldThrowIllegalArgumentExceptionIfEventTypeIsUnknownOrBlank(String eventType) {
         var key = UnixPath.of(RESOURCES_FOLDER, randomString()).toString();
-        var event = new PersistedResourceEvent(BUCKET_NAME, key, randomString());
+        var event = new PersistedResourceEvent(BUCKET_NAME, key, eventType);
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
 

@@ -1,23 +1,25 @@
 package no.sikt.nva.data.report.api.etl.model;
 
 import static java.util.Objects.isNull;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
 
 public record PersistedResourceEvent(String bucketName, String key, String eventType) {
 
+    public void validate() {
+        validateBucketName();
+        validateKey();
+        validateEventType();
+    }
+
     @Override
+    @JacocoGenerated
     public String toString() {
         return "PersistedResourceEvent{"
                + "bucketName='" + bucketName + '\''
                + ", key='" + key + '\''
                + ", eventType='" + eventType + '\''
                + '}';
-    }
-
-    public void validate() {
-        validateBucketName();
-        validateKey();
-        validateEventType();
     }
 
     private static void validateParentFolder(PersistedResourceEvent input) {
