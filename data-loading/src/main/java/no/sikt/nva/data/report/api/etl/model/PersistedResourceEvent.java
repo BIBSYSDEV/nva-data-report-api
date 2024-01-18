@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.etl.model;
 
+import static java.util.Objects.isNull;
 import nva.commons.core.paths.UnixPath;
 
 public record PersistedResourceEvent(String bucketName, String key, String eventType) {
@@ -26,22 +27,22 @@ public record PersistedResourceEvent(String bucketName, String key, String event
     }
 
     private void validateEventType() {
-        if (eventType == null || eventType.isBlank()) {
-            throw new IllegalArgumentException("Event type cannot be null or blank");
-        }
+        isNullOrBlank(eventType, "Event type cannot be null or blank");
         EventType.parse(eventType);
     }
 
     private void validateKey() {
-        if (key == null || key.isBlank()) {
-            throw new IllegalArgumentException("Key cannot be null or blank");
-        }
+        isNullOrBlank(key, "Key cannot be null or blank");
         validateParentFolder(this);
     }
 
     private void validateBucketName() {
-        if (bucketName == null || bucketName.isBlank()) {
-            throw new IllegalArgumentException("Bucket name cannot be null or blank");
+        isNullOrBlank(bucketName, "Bucket name cannot be null or blank");
+    }
+
+    private void isNullOrBlank(String key, String message) {
+        if (isNull(key) || key.isBlank()) {
+            throw new IllegalArgumentException(message);
         }
     }
 }
