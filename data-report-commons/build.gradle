@@ -10,6 +10,7 @@ dependencies {
     implementation libs.jena.rdfconnection
     testImplementation(project(':testing-utils'))
     testImplementation libs.jena.fuseki
+    testImplementation(project(':data-report-test'))
 }
 
 repositories {

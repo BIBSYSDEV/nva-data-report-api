@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 public enum EventType {
     UPSERT("PutObject"),
     DELETE("DeleteObject");
-
     private final String value;
 
     EventType(String value) {
@@ -17,5 +16,9 @@ public enum EventType {
                    .filter(eventType -> eventType.value.equals(candidate))
                    .findFirst()
                    .orElseThrow(() -> new IllegalArgumentException("Unknown event type: " + candidate));
+    }
+
+    public String getValue() {
+        return value;
     }
 }
