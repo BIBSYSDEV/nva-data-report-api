@@ -6,8 +6,11 @@ import org.apache.jena.riot.Lang;
 
 public interface DatabaseConnection {
 
+    void logConnection();
+
     String getResult(Query query, ResponseFormatter formatter);
 
     void write(String triples, Lang lang);
 
+    void delete();
 }

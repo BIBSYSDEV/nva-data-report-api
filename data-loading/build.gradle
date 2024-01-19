@@ -18,6 +18,7 @@ dependencies {
         exclude group: 'org.wiremock', module: 'wiremock'
     }
     testImplementation libs.jena.fuseki
+    testImplementation(project(':testing-utils'))
     testImplementation group: 'org.apache.jena', name: 'apache-jena-fuseki', version: '4.10.0'
 }
 

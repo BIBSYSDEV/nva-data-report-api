@@ -3,16 +3,17 @@ package no.sikt.nva.data.report.api.etl;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
+import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
 import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.api.etl.service.GraphService;
+import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -31,13 +32,13 @@ class SingleObjectDataLoaderTest {
     private static Context context;
     private static SingleObjectDataLoader handler;
     private static FusekiServer server;
-    private static GraphStoreProtocolConnection dbConnection;
+    private static DatabaseConnection dbConnection;
 
     @BeforeAll
     static void setup() {
         context = new FakeContext();
         var dataSet = DatasetFactory.createTxnMem();
-        initializeGraphServer(dataSet);
+        server = FusekiTestingServer.init(dataSet, GSP_ENDPOINT);
         var url = server.serverURL();
         var queryPath = new Environment().readEnv("QUERY_PATH");
         dbConnection = new GraphStoreProtocolConnection(url, url, queryPath);
@@ -104,12 +105,5 @@ class SingleObjectDataLoaderTest {
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
         assertTrue(logAppender.getMessages().contains("Unknown event type: " + event.eventType()));
-    }
-
-    private static void initializeGraphServer(Dataset dataSet) {
-        server = FusekiServer.create()
-                     .add(GSP_ENDPOINT, dataSet)
-                     .build();
-        server.start(); // Initialise server before using it!
     }
 }

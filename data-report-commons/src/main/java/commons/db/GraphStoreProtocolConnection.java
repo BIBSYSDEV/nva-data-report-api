@@ -47,6 +47,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         this.queryPath = queryPath;
     }
 
+    @Override
     public void logConnection() {
         try (var connection = configureReadConnection()) {
             var model = connection.fetch();
@@ -60,7 +61,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
             if (query.isSelectType()) {
                 var solution = new ArrayList<ResultSet>();
                 connection.queryResultSet(query, solution::add);
-                return formatter.format(solution.get(0));
+                return formatter.format(solution.getFirst());
             }
             throw new UnsupportedOperationException(UNSUPPORTED_SPARQL_METHOD_MESSAGE);
         }
@@ -76,6 +77,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         }
     }
 
+    @Override
     public void delete() {
         try (var connection = configureWriteConnection()) {
             connection.delete();

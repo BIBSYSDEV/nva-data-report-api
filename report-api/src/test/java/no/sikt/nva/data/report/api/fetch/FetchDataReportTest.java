@@ -6,13 +6,14 @@ import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import commons.db.DatabaseConnection;
+import commons.db.GraphStoreProtocolConnection;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.db.FakeDatabaseConnection;
 import no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
@@ -22,26 +23,49 @@ import no.sikt.nva.data.report.api.fetch.testutils.ValidRequestSource;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationDate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
+import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.Environment;
+import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 class FetchDataReportTest {
 
-    public static final Model EMPTY_MODEL = ModelFactory.createDefaultModel();
-    private DatabaseConnection databaseConnection;
+    private static final String GSP_ENDPOINT = "/gsp";
+
+    private static FusekiServer server;
+    private static DatabaseConnection databaseConnection;
+
+    @BeforeAll
+    static void setup() {
+        var dataSet = DatasetFactory.createTxnMem();
+        server = FusekiTestingServer.init(dataSet, GSP_ENDPOINT);
+        var url = server.serverURL();
+        var queryPath = new Environment().readEnv("QUERY_PATH");
+        databaseConnection = new GraphStoreProtocolConnection(url, url, queryPath);
+    }
+
+    @AfterAll
+    static void tearDown() {
+        server.stop();
+    }
 
     @AfterEach
-    void tearDown() {
-        ((FakeDatabaseConnection) databaseConnection).flush();
+    void clearDatabase() {
+        databaseConnection.delete();
     }
 
     @ParameterizedTest()
@@ -49,7 +73,6 @@ class FetchDataReportTest {
     @ArgumentsSource(BadRequestProvider.class)
     void shouldThrowBadRequest(TestingRequest report)
         throws IOException {
-        databaseConnection = setupDatabaseConnection(EMPTY_MODEL);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var output = new ByteArrayOutputStream();
@@ -65,7 +88,7 @@ class FetchDataReportTest {
                                                      Instant.now().minus(100, ChronoUnit.DAYS)),
                                         new DatePair(new PublicationDate("2023", "10", "18"),
                                                      Instant.now().minus(100, ChronoUnit.DAYS))));
-        databaseConnection = setupDatabaseConnection(testData.getModel());
+        databaseConnection.write(toNtriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -75,6 +98,12 @@ class FetchDataReportTest {
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
         assertEquals(expected, response.getBody());
+    }
+
+    private String toNtriples(Model model) {
+        var stringWriter = new StringWriter();
+        RDFDataMgr.write(stringWriter, model, Lang.NTRIPLES);
+        return stringWriter.toString();
     }
 
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
@@ -101,11 +130,5 @@ class FetchDataReportTest {
                    .withPathParameters(request.pathParameters())
                    .withQueryParameters(request.queryParameters())
                    .build();
-    }
-
-    private DatabaseConnection setupDatabaseConnection(Model data) {
-        var databaseConnection = new FakeDatabaseConnection();
-        databaseConnection.insert(data);
-        return databaseConnection;
     }
 }

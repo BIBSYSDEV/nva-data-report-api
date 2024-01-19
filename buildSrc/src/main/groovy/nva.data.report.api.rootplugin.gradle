@@ -29,3 +29,7 @@ tasks.named('check') {
     dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
     dependsOn tasks.named('integrationTestCodeCoverageReport', JacocoReport)
 }
+
+configurations {
+    compile.exclude module: 'testing-utils'
+}

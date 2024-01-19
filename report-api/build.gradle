@@ -10,6 +10,8 @@ dependencies {
     implementation libs.nva.json
     implementation libs.jackson.databind
     implementation libs.nva.commons.apigateway
+    testImplementation libs.jena.fuseki
+    testImplementation(project(':testing-utils'))
     testImplementation 'com.opencsv:opencsv:5.9'
     testImplementation('com.github.bibsysdev:nvatestutils:1.36.12') {
         exclude group: 'org.wiremock', module: 'wiremock'
@@ -24,4 +26,5 @@ test {
     environment("ALLOWED_ORIGIN", "*")
     environment("NEPTUNE_ENDPOINT", "localhost")
     environment("NEPTUNE_PORT", "8182")
+    environment("QUERY_PATH", "gsp/sparql")
 }
