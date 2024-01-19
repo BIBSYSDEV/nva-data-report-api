@@ -3,7 +3,6 @@ package commons.db;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import commons.formatter.ResponseFormatter;
 import java.util.Random;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import nva.commons.core.Environment;
@@ -11,12 +10,12 @@ import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.riot.Lang;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import no.sikt.nva.data.report.testing.utils.TestFormatter;
 
 class GraphStoreProtocolConnectionTest {
 
@@ -25,8 +24,7 @@ class GraphStoreProtocolConnectionTest {
     private static GraphStoreProtocolConnection dbConnection;
 
     /**
-     * Tests re-use the same database. This is intentional as it is the case
-     * for the production environment;
+     * Tests re-use the same database. This is intentional as it is the case for the production environment;
      */
     @BeforeAll
     static void setUp() {
@@ -71,23 +69,5 @@ class GraphStoreProtocolConnectionTest {
         var query = QueryFactory.create("SELECT * WHERE { ?a ?b ?c }");
         var result = dbConnection.getResult(query, new TestFormatter());
         assertNull(result);
-    }
-
-    private static class TestFormatter implements ResponseFormatter {
-
-        @Override
-        public String format(ResultSet resultSet) {
-            var triples = new StringBuilder();
-            while (resultSet.hasNext()) {
-                var current = resultSet.next();
-                var vars = current.varNames();
-                while (vars.hasNext()) {
-                    var x = current.get(vars.next());
-                    triples.append("<").append(x).append("> ");
-                }
-                triples.append(".");
-            }
-            return triples.isEmpty() ? null : triples.toString();
-        }
     }
 }

@@ -5,18 +5,20 @@ plugins {
 dependencies {
     implementation(project(':data-report-commons'))
     implementation libs.nva.commons.core
+    implementation libs.nva.s3
+    implementation libs.nva.json
     implementation libs.aws.sdk2.lambda.events
     implementation libs.aws.lambda.java.core
+    implementation libs.aws.sdk2.s3
     implementation libs.bundles.logging
+    implementation libs.jackson.core
+    implementation libs.jackson.databind
+    implementation libs.jena.arq
 
-    testImplementation libs.nva.s3
-    testImplementation libs.jackson.databind
-    testImplementation libs.aws.sdk2.s3
-    testImplementation libs.nva.json
-    testImplementation libs.nva.commons.core
     testImplementation('com.github.bibsysdev:nvatestutils:1.36.12') {
         exclude group: 'org.wiremock', module: 'wiremock'
     }
+    testImplementation(project(':data-report-test'))
     testImplementation libs.jena.fuseki
     testImplementation(project(':testing-utils'))
     testImplementation group: 'org.apache.jena', name: 'apache-jena-fuseki', version: '4.10.0'
