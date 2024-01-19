@@ -1,4 +1,4 @@
-package test;
+package no.sikt.nva.data.report.testing.utils;
 
 import commons.formatter.ResponseFormatter;
 import org.apache.jena.query.ResultSet;

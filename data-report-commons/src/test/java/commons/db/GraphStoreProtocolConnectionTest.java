@@ -15,7 +15,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import test.TestFormatter;
+import no.sikt.nva.data.report.testing.utils.TestFormatter;
 
 class GraphStoreProtocolConnectionTest {
 

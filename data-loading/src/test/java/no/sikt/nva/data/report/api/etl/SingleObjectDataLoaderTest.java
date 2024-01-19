@@ -31,7 +31,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import test.TestFormatter;
+import no.sikt.nva.data.report.testing.utils.TestFormatter;
 
 class SingleObjectDataLoaderTest {
 
@@ -141,13 +141,6 @@ class SingleObjectDataLoaderTest {
 
     private static String constructFileIdentifier(UUID identifier) {
         return identifier.toString() + GZIP_ENDING;
-    }
-
-    private static void initializeGraphServer(Dataset dataSet) {
-        server = FusekiServer.create()
-                     .add(GSP_ENDPOINT, dataSet)
-                     .build();
-        server.start(); // Initialise server before using it!
     }
 
     private UnixPath setupExistingObjectInS3(String folder) throws IOException {

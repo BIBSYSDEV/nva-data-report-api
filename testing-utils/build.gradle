@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(':data-report-commons'))
     implementation libs.jena.fuseki
 }
 
