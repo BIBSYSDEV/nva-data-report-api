@@ -1,7 +1,7 @@
 package no.sikt.nva.data.report.api.etl.service;
 
 import static java.util.Objects.isNull;
-import commons.db.GraphStoreProtocolConnection;
+import commons.db.DatabaseConnection;
 import java.io.InputStream;
 import no.sikt.nva.data.report.api.etl.utils.RdfUtil;
 import nva.commons.core.JacocoGenerated;
@@ -17,9 +17,9 @@ public class GraphService {
 
     public static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(GraphService.class);
 
-    private final GraphStoreProtocolConnection databaseConnection;
+    private final DatabaseConnection databaseConnection;
 
-    public GraphService(GraphStoreProtocolConnection databaseConnection) {
+    public GraphService(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
         this.databaseConnection.logConnection();
     }

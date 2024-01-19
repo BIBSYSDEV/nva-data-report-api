@@ -4,6 +4,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
+import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
 import java.io.IOException;
 import java.util.UUID;
@@ -14,6 +15,7 @@ import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.testutils.model.nvi.IndexDocumentWithConsumptionAttributes;
 import no.sikt.nva.data.report.api.etl.testutils.model.nvi.NviCandidateIndexDocument;
 import no.unit.nva.s3.S3Driver;
+import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.Environment;
@@ -21,7 +23,6 @@ import nva.commons.core.paths.UnixPath;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
 import org.apache.jena.fuseki.main.FusekiServer;
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.junit.jupiter.api.AfterAll;
@@ -45,7 +46,7 @@ class SingleObjectDataLoaderTest {
     private static Context context;
     private static SingleObjectDataLoader handler;
     private static FusekiServer server;
-    private static GraphStoreProtocolConnection dbConnection;
+    private static DatabaseConnection dbConnection;
     private static S3Driver s3Driver;
     private static S3StorageReader storageReader;
 
@@ -53,7 +54,7 @@ class SingleObjectDataLoaderTest {
     static void setup() {
         context = new FakeContext();
         var dataSet = DatasetFactory.createTxnMem();
-        initializeGraphServer(dataSet);
+        server = FusekiTestingServer.init(dataSet, GSP_ENDPOINT);
         var url = server.serverURL();
         var queryPath = new Environment().readEnv("QUERY_PATH");
         dbConnection = new GraphStoreProtocolConnection(url, url, queryPath);
