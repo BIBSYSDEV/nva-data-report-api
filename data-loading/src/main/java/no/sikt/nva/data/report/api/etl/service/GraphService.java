@@ -3,6 +3,7 @@ package no.sikt.nva.data.report.api.etl.service;
 import static java.util.Objects.isNull;
 import commons.db.DatabaseConnection;
 import java.io.InputStream;
+import java.net.URI;
 import no.sikt.nva.data.report.api.etl.utils.RdfUtil;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
@@ -24,10 +25,14 @@ public class GraphService {
         this.databaseConnection.logConnection();
     }
 
-    public void convertAndStore(String resource) {
+    public void persist(URI graph, String resource) {
+        databaseConnection.write(graph, toNtriples(resource), Lang.NTRIPLES);
+    }
+
+    private static String toNtriples(String resource) {
         var model = ModelFactory.createDefaultModel();
         loadDataIntoModel(model, IoUtils.stringToStream(resource));
-        databaseConnection.write(RdfUtil.toNTriples(model), Lang.NTRIPLES);
+        return RdfUtil.toNTriples(model);
     }
 
     @JacocoGenerated

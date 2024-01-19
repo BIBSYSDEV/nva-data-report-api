@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import commons.StorageReader;
 import commons.db.GraphStoreProtocolConnection;
+import java.net.URI;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
@@ -47,7 +48,8 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     private void storeObject(UnixPath objectKey) {
         var blob = storageReader.read(objectKey);
         var resource = attempt(() -> unwrap(blob)).orElseThrow();
-        graphService.convertAndStore(resource);
+        var graph = URI.create("https://example.org/" + objectKey.getLastPathElement());
+        graphService.persist(graph, resource);
     }
 
     private void logInput(PersistedResourceEvent input) {

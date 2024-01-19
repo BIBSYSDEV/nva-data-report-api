@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -30,6 +31,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
@@ -49,6 +51,8 @@ class FetchDataReportTest {
     private static FusekiServer server;
     private static DatabaseConnection databaseConnection;
 
+    private static final URI GRAPH = URI.create("https://example.org/graph");
+
     @BeforeAll
     static void setup() {
         var dataSet = DatasetFactory.createTxnMem();
@@ -65,7 +69,12 @@ class FetchDataReportTest {
 
     @AfterEach
     void clearDatabase() {
-        databaseConnection.delete();
+        try {
+            databaseConnection.delete(GRAPH);
+        } catch (Exception e) {
+            // Necessary to avoid case where we hve already deleted the graph
+            catchExpectedExceptionsExceptHttpException(e);
+        }
     }
 
     @ParameterizedTest()
@@ -88,7 +97,7 @@ class FetchDataReportTest {
                                                      Instant.now().minus(100, ChronoUnit.DAYS)),
                                         new DatePair(new PublicationDate("2023", "10", "18"),
                                                      Instant.now().minus(100, ChronoUnit.DAYS))));
-        databaseConnection.write(toNtriples(testData.getModel()), Lang.NTRIPLES);
+        databaseConnection.write(GRAPH, toNtriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -130,5 +139,11 @@ class FetchDataReportTest {
                    .withPathParameters(request.pathParameters())
                    .withQueryParameters(request.queryParameters())
                    .build();
+    }
+
+    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
+        if (!(e instanceof HttpException)) {
+            throw new RuntimeException(e);
+        }
     }
 }

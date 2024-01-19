@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
 import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
+import java.net.URI;
 import java.io.IOException;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.model.EventType;
@@ -22,6 +23,7 @@ import nva.commons.core.Environment;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
@@ -50,6 +52,8 @@ class SingleObjectDataLoaderTest {
     private static S3Driver s3Driver;
     private static S3StorageReader storageReader;
 
+    private URI graph;
+
     @BeforeAll
     static void setup() {
         context = new FakeContext();
@@ -71,7 +75,12 @@ class SingleObjectDataLoaderTest {
 
     @AfterEach
     void clearDatabase() {
-        dbConnection.delete();
+        try {
+            dbConnection.delete(graph);
+        } catch (Exception e) {
+            // Necessary to avoid case where we hve already deleted the graph
+            catchExpectedExceptionsExceptHttpException(e);
+        }
     }
 
     //TODO: Test storing in named graph
@@ -81,10 +90,11 @@ class SingleObjectDataLoaderTest {
         var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
                                     constructFileIdentifier(candidateDocument.consumptionAttributes()
                                                                 .documentIdentifier()));
+        graph = URI.create("https://example.org/" + objectKey.getLastPathElement());
         s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue());
         handler.handleRequest(event, context);
-        var query = QueryFactory.create("SELECT * WHERE { ?a ?b ?c }");
+        var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
         var result = dbConnection.getResult(query, new TestFormatter());
         //TODO: Create expected triple and compare with result
         assertTrue(result.contains(candidateDocument.indexDocument().identifier().toString()));
@@ -160,5 +170,11 @@ class SingleObjectDataLoaderTest {
                    .withContext(NVI_CONTEXT)
                    .withIdentifier(identifier)
                    .build();
+    }
+
+    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
+        if (!(e instanceof HttpException)) {
+            throw new RuntimeException(e);
+        }
     }
 }

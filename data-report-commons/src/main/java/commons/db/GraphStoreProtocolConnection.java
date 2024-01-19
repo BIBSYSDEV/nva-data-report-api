@@ -2,11 +2,14 @@ package commons.db;
 
 import commons.formatter.ResponseFormatter;
 import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -68,19 +71,33 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     }
 
     @Override
-    public void write(String triples, Lang lang) {
-        var inputStream = new ByteArrayInputStream(triples.getBytes(StandardCharsets.UTF_8));
+    public String fetch(URI graph) {
         try (var connection = configureWriteConnection()) {
-            var model = ModelFactory.createDefaultModel();
-            RDFDataMgr.read(model, inputStream, lang);
-            connection.load(model);
+            var data = connection.fetch(graph.toString());
+            var stringWriter = new StringWriter();
+            RDFDataMgr.write(stringWriter, data, Lang.NTRIPLES);
+            return stringWriter.toString();
+        } catch (Exception e) {
+            throw filterExceptionToResend(e);
         }
     }
 
     @Override
-    public void delete() {
+    public void write(URI graph, String triples, Lang lang) {
+        var inputStream = new ByteArrayInputStream(triples.getBytes(StandardCharsets.UTF_8));
         try (var connection = configureWriteConnection()) {
-            connection.delete();
+            var model = ModelFactory.createDefaultModel();
+            RDFDataMgr.read(model, inputStream, lang);
+            connection.load(graph.toString(), model);
+        }
+    }
+
+    @Override
+    public void delete(URI graph) {
+        try (var connection = configureWriteConnection()) {
+            connection.delete(graph.toString());
+        } catch (Exception e) {
+            throw new HttpException(e);
         }
     }
 
@@ -105,5 +122,14 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
                    .destination(endpoint)
                    .gspEndpoint(GSP_PATH)
                    .httpClient(HttpClient.newHttpClient());
+    }
+
+    private static RuntimeException filterExceptionToResend(Exception e) {
+        if (e instanceof HttpException httpException) {
+            return new HttpException(httpException.getStatusCode(), httpException.getStatusLine(),
+                                     httpException.getResponse());
+        } else {
+            return new RuntimeException(e);
+        }
     }
 }
