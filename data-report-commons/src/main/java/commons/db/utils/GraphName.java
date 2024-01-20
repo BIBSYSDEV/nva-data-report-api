@@ -4,7 +4,7 @@ import java.net.URI;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.core.paths.UriWrapper;
 
-public class GraphName {
+public final class GraphName {
 
     public static final char EXTENSION_DELIMITER = '.';
     public static final String NT_EXTENSION = ".nt";
