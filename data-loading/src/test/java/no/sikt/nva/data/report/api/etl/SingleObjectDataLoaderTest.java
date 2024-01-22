@@ -93,7 +93,7 @@ class SingleObjectDataLoaderTest {
                                     constructFileIdentifier(candidateDocument.consumptionAttributes()
                                                                 .documentIdentifier()));
         graph = GraphName.newBuilder()
-                    .withBase(URI.create("https://example.org"))
+                    .withBase("example.org")
                     .fromUnixPath(objectKey)
                     .build()
                     .toUri();

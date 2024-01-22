@@ -9,17 +9,17 @@ public final class GraphName {
     public static final char EXTENSION_DELIMITER = '.';
     public static final String NT_EXTENSION = ".nt";
     private final UnixPath unixPath;
-    private final URI baseUri;
+    private final String host;
 
-    private GraphName(URI baseUri, UnixPath unixPath) {
-        this.baseUri = baseUri;
+    private GraphName(String host, UnixPath unixPath) {
+        this.host = host;
         this.unixPath = unixPath;
     }
 
     public URI toUri() {
         var type = getType(unixPath);
         var name = getName(unixPath);
-        return UriWrapper.fromUri(baseUri)
+        return UriWrapper.fromHost(host)
                    .addChild(type, name)
                    .getUri();
     }
@@ -39,11 +39,11 @@ public final class GraphName {
 
     public static class GraphNameBuilder {
 
-        private URI baseUri;
+        private String host;
         private UnixPath unixPath;
 
-        public GraphNameBuilder withBase(URI baseUri) {
-            this.baseUri = baseUri;
+        public GraphNameBuilder withBase(String host) {
+            this.host = host;
             return this;
         }
 
@@ -53,7 +53,7 @@ public final class GraphName {
         }
 
         public GraphName build() {
-            return new GraphName(baseUri, unixPath);
+            return new GraphName(host, unixPath);
         }
     }
 }

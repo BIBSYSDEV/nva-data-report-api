@@ -8,10 +8,10 @@ import commons.StorageReader;
 import commons.db.GraphStoreProtocolConnection;
 import commons.db.utils.GraphName;
 
-import java.net.URI;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
+import no.sikt.nva.data.report.api.etl.utils.BasePath;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
@@ -51,7 +51,7 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         var blob = storageReader.read(objectKey);
         var resource = attempt(() -> unwrap(blob)).orElseThrow();
         var graph = GraphName.newBuilder()
-                        .withBase(URI.create("https://example.org"))
+                        .withBase(BasePath.basePath())
                         .fromUnixPath(objectKey)
                         .build()
                         .toUri();
