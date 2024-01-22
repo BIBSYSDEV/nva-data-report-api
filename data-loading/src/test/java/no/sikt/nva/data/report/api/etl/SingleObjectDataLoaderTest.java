@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
 import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
+import commons.db.utils.GraphName;
+
 import java.net.URI;
 import java.io.IOException;
 import java.util.UUID;
@@ -90,7 +92,11 @@ class SingleObjectDataLoaderTest {
         var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
                                     constructFileIdentifier(candidateDocument.consumptionAttributes()
                                                                 .documentIdentifier()));
-        graph = URI.create("https://example.org/" + objectKey.getLastPathElement());
+        graph = GraphName.newBuilder()
+                    .withBase(URI.create("https://example.org"))
+                    .fromUnixPath(objectKey)
+                    .build()
+                    .toUri();
         s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue());
         handler.handleRequest(event, context);
