@@ -7,6 +7,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import commons.StorageReader;
 import commons.db.GraphStoreProtocolConnection;
 import commons.db.utils.GraphName;
+
 import java.net.URI;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.api.etl.service.GraphService;
