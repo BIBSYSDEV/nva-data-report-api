@@ -393,10 +393,8 @@ Resources:
       GroupName: !Sub "${ProjectName}-lambda-security-group"
       GroupDescription: Access from AWS Lambda to Amazon Neptune
       SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: '-1'
       VpcId: !Ref VPC
       Tags:
         - Key: Project
@@ -487,6 +485,30 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref PrivateSubnet1
+
+  PrivateRouteTableLambdaAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref LambdaSubnet1
+
+  S3GatewayEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: com.amazonaws.eu-west-1.s3
+      RouteTableIds:
+        - !Ref PrivateRouteTable
+      VpcEndpointType: Gateway
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:Get*'
+              - 's3:List*'
+            Resource: '*'
 
 #### OUTPUTS ####
 Outputs:
