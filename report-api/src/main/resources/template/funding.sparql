@@ -8,6 +8,7 @@ SELECT DISTINCT
     ?fundingId
     ?fundingName
 WHERE {
+  GRAPH ?g {
     ?uri a :Publication ;
                     :modifiedDate ?modifiedDate ;
                     :identifier ?publicationIdentifier ;
@@ -21,4 +22,5 @@ WHERE {
     BIND(STR(?label) AS ?fundingName)
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+  }
 } ORDER BY ?publicationId LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

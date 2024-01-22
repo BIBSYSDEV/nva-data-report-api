@@ -1,6 +1,7 @@
 package commons.db;
 
 import commons.formatter.ResponseFormatter;
+import java.net.URI;
 import org.apache.jena.query.Query;
 import org.apache.jena.riot.Lang;
 
@@ -10,7 +11,9 @@ public interface DatabaseConnection {
 
     String getResult(Query query, ResponseFormatter formatter);
 
-    void write(String triples, Lang lang);
+    String fetch(URI graph);
 
-    void delete();
+    void write(URI graph, String triples, Lang lang);
+
+    void delete(URI graph);
 }

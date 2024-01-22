@@ -13,10 +13,11 @@ SELECT DISTINCT
     ?departmentId
     ?groupId
 WHERE {
-  ?uri a :Publication ;
-                  :identifier ?publicationIdentifier ;
-                  :modifiedDate ?modifiedDate ;
-                  :entityDescription/:contributor ?contributor .
+  GRAPH ?g {
+    ?uri a :Publication ;
+         :identifier ?publicationIdentifier ;
+         :modifiedDate ?modifiedDate ;
+         :entityDescription/:contributor ?contributor .
     ?contributor :identity ?personId ;
                  :affiliation ?affiliationUri .
 
@@ -57,4 +58,5 @@ WHERE {
     FILTER(!ISBLANK(?personId))
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+  }
 } ORDER BY ?publicationId LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
