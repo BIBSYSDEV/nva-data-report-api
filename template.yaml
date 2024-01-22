@@ -393,10 +393,8 @@ Resources:
       GroupName: !Sub "${ProjectName}-lambda-security-group"
       GroupDescription: Access from AWS Lambda to Amazon Neptune
       SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: '-1'
       VpcId: !Ref VPC
       Tags:
         - Key: Project
