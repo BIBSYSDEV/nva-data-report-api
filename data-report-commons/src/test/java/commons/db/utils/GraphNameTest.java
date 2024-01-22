@@ -1,7 +1,6 @@
 package commons.db.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.net.URI;
 import java.util.stream.Stream;
 import nva.commons.core.paths.UnixPath;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +10,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class GraphNameTest {
 
-    public static final String GRAPH_NAME_TEMPLATE = "%s/%s/%s.nt";
+    public static final String GRAPH_NAME_TEMPLATE = "https://%s/%s/%s.nt";
     public static final String PATH_DELIMITER = "/";
     public static final char FILE_EXTENSION_DELIMITER = '.';
 
@@ -28,20 +27,20 @@ public class GraphNameTest {
     @DisplayName("Should create named graph uri from s3 uri")
     @MethodSource("s3UriProvider")
     void shouldCreateGraphNameFromS3Uri(UnixPath unixPath) {
-        var baseUri = URI.create("https://example.org");
+        var host = "example.org";
         var graphName = GraphName.newBuilder()
-                            .withBase(baseUri)
+                            .withBase(host)
                             .fromUnixPath(unixPath)
                             .build()
                             .toUri();
-        var expected = createExpected(baseUri, unixPath);
+        var expected = createExpected(host, unixPath);
         assertEquals(expected, graphName.toString());
     }
 
-    private String createExpected(URI baseUri, UnixPath uri) {
+    private String createExpected(String host, UnixPath uri) {
         var uriParts = uri.toString().split(PATH_DELIMITER);
         return String.format(GRAPH_NAME_TEMPLATE,
-                             baseUri,
+                             host,
                              typePart(uriParts),
                              namePart(uriParts));
     }

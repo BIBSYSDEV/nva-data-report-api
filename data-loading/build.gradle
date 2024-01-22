@@ -29,5 +29,6 @@ repositories {
 }
 
 test {
-    environment("QUERY_PATH", "gsp/sparql")
+    environment('QUERY_PATH', 'gsp/sparql')
+    environment('API_HOST', 'example.org')
 }
