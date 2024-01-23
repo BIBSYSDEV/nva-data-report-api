@@ -511,6 +511,35 @@ Resources:
               - 's3:List*'
             Resource: '*'
 
+  ApiGatewayEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: com.amazonaws.eu-west-1.execute-api
+      VpcEndpointType: Interface
+      SubnetIds:
+        - !Ref LambdaSubnet1
+        - !Ref LambdaSubnet2
+      SecurityGroupIds:
+        - !Ref ApiGatewayEndpointSecurityGroup
+      PrivateDnsEnabled: true
+
+  ApiGatewayEndpointSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for VPC Endpoint
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
 #### OUTPUTS ####
 Outputs:
   VpcId:
