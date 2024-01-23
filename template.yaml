@@ -540,14 +540,6 @@ Resources:
           ToPort: 443
           CidrIp: 0.0.0.0/0
 
-  Route:
-    Type: 'AWS::EC2::Route'
-    DependsOn: ApiGatewayEndpoint
-    Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      VpcEndpointId: !Ref ApiGatewayEndpoint
-
 #### OUTPUTS ####
 Outputs:
   VpcId:
