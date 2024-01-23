@@ -81,445 +81,445 @@ Globals:
 
 Resources:
 
-  # ---- SQS ----
-  DataReportPersistedResourceDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
-  DataLoadingDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
-
-  # ---- Logging ----
-
-  ApiAccessLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/lambda/${FetchDataReportHandler}'
-      RetentionInDays: 5
-
-  DataLoadingLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/lambda/${DataLoadingHandler}'
-      RetentionInDays: 5
-  # ---- Lambda ----
-
-  LambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: [ lambda.amazonaws.com ]
-            Action: [ 'sts:AssumeRole' ]
-      Policies:
-        - PolicyName: readFromS3
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:Get*
-                  - s3:List*
-                  - events:*
-                Resource: '*'
-        - PolicyName: queuePolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - sqs:ReceiveMessage
-                  - sqs:DeleteMessage
-                  - sqs:SendMessage
-                  - sqs:GetQueueAttributes
-                Resource:
-                  - !GetAtt DataLoadingDLQ.Arn
-        - PolicyName: writeLog
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - PolicyName: invokeFunction
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - lambda:InvokeFunction
-                Resource: '*'
-        - PolicyName: deployToVpnPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ec2:DescribeNetworkInterfaces
-                  - ec2:CreateNetworkInterface
-                  - ec2:DeleteNetworkInterface
-                  - ec2:DescribeInstances
-                  - ec2:AttachNetworkInterface
-                Resource: '*'
-
-  DefaultLambdaPermissions:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub DefaultLambdaPermissions-${AWS::StackName}
-      Roles:
-        - !Ref LambdaRole
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - lambda:InvokeFunction
-            Resource: "*"
-
-  InvokeLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !GetAtt DataLoadingHandler.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 'events.amazonaws.com'
-      SourceArn: !GetAtt PersistedResourcesEventRule.Arn
-
-  #============================= Roles ==========================================================
-  DataReportApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
-      StageName: Prod
-      EndpointConfiguration:
-        Type: REGIONAL
-      DefinitionBody:
-        'Fn::Transform':
-          Name: AWS::Include
-          Parameters:
-            Location: ./docs/openapi.yaml
-
-  ApiPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref FetchDataReportHandler
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${DataReportApi}/prod/GET/report"
-
-  #===========================BasePathMappings========================================================
-  BasePathMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath: !If
-        - WithSuffix
-        - !Sub ${CustomDomainBasePath}-${Suffix}
-        - !Sub ${CustomDomainBasePath}
-      DomainName: !Ref ApiDomain
-      RestApiId: !Ref DataReportApi
-      Stage: !Ref DataReportApi.Stage
-
-  #===========================EventBridge Rule========================================================
-  PersistedResourcesEventRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Description: "Trigger on create and delete events for S3 bucket persisted-resources"
-      EventPattern:
-        source:
-          - "aws.s3"
-        detail-type:
-          - "Object Created"
-          - "Object Deleted"
-        detail:
-          bucket:
-            name:
-              - !Ref ResourcesBucket
-          object:
-            key:
-              - prefix: !Ref ResourcesPrefix
-              - prefix: !Ref NviCandidatesPrefix
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt DataLoadingHandler.Arn
-          Id: "DataLoadingHandler"
-          InputTransformer:
-            InputPathsMap:
-              bucketName: "$.detail.bucket.name"
-              key: "$.detail.object.key"
-              eventType: "$.detail.reason"
-            InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "eventType": <eventType>}'
-          DeadLetterConfig:
-            Arn: !GetAtt DataReportPersistedResourceDLQ.Arn
-          RetryPolicy:
-            MaximumRetryAttempts: 3
-
-  # ---- Handler ----
-  FetchDataReportHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: report-api
-      Policies:
-        - VPCAccessPolicy: { }
-      Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
-      Role: !GetAtt LambdaRole.Arn
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /{type}
-            Method: get
-            RestApiId: !Ref DataReportApi
-
-  DataLoadingHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: data-loading
-      Policies:
-        - VPCAccessPolicy: { }
-      Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
-      Role: !GetAtt LambdaRole.Arn
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
-          BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
-          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt DataLoadingDLQ.Arn
-
-  # ---- Amazon Neptune ----
-  # Two instance Amazon Neptune cluster, using default
-  # parameter groups
-  NeptuneCluster:
-    Type: AWS::Neptune::DBCluster
-    Properties:
-      DBClusterIdentifier: !Ref ProjectName
-      DBSubnetGroupName: !Ref NeptuneSubnets
-      VpcSecurityGroupIds:
-        - !Ref NeptuneSecurityGroup
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-cluster"
-        - Key: Project
-          Value: !Ref ProjectName
-      ServerlessScalingConfiguration:
-        MaxCapacity: 128
-        MinCapacity: 2.5
-
-  NeptuneInstance1:
-    Type: AWS::Neptune::DBInstance
-    Properties:
-      DBClusterIdentifier: !Ref NeptuneCluster
-      DBInstanceClass: !Ref NeptuneInstanceClass
-      DBInstanceIdentifier: !Sub "${ProjectName}-neptune-1"
-      DBSubnetGroupName: !Ref NeptuneSubnets
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-instance-1"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  NeptuneInstance2:
-    Type: AWS::Neptune::DBInstance
-    Properties:
-      DBClusterIdentifier: !Ref NeptuneCluster
-      DBInstanceClass: !Ref NeptuneInstanceClass
-      DBInstanceIdentifier: !Sub "${ProjectName}-neptune-2"
-      DBSubnetGroupName: !Ref NeptuneSubnets
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-instance-2"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  NeptuneSubnets:
-    Type: AWS::Neptune::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: !Sub "${ProjectName} Subnet Group"
-      DBSubnetGroupName: !Sub "${ProjectName}-subnet-group"
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-subnet-group"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  NeptuneSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    # DependsOn: LambdaSecurityGroup
-    Properties:
-      GroupName: !Sub "${ProjectName}-neptune-security-group"
-      GroupDescription: Allow access to Amazon Neptune from Lambda
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 8182
-          ToPort: 8182
-          SourceSecurityGroupId: !Ref LambdaSecurityGroup
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Project
-          Value: !Ref ProjectName
-
-  # --- Lambda ----
-
-  LambdaSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: !Sub "${ProjectName}-lambda-security-group"
-      GroupDescription: Access from AWS Lambda to Amazon Neptune
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: '-1'
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Project
-          Value: !Ref ProjectName
-
-  # ---- Networking Resources ----
-  # A VPC with two public subnets and two private
-  # subnets along with an internet gateway.
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-vpc"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 0
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private1', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-private-subnet-1"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 1
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private2', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-private-subnet-2"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  LambdaSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 0
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda1', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-lambda-subnet-1"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  LambdaSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 1
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda2', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-lambda-subnet-2"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  PrivateRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-
-  PrivateRouteTable1Association:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet1
-
-  PrivateRouteTableLambdaAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref LambdaSubnet1
-
-  S3GatewayEndpoint:
-    Type: 'AWS::EC2::VPCEndpoint'
-    Properties:
-      VpcId: !Ref VPC
-      ServiceName: com.amazonaws.eu-west-1.s3
-      RouteTableIds:
-        - !Ref PrivateRouteTable
-      VpcEndpointType: Gateway
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal: '*'
-            Action:
-              - 's3:Get*'
-              - 's3:List*'
-            Resource: '*'
+  ## ---- SQS ----
+  #DataReportPersistedResourceDLQ:
+  #  Type: AWS::SQS::Queue
+  #  Properties:
+  #    MessageRetentionPeriod: 1209600 #14 days
+  #DataLoadingDLQ:
+  #  Type: AWS::SQS::Queue
+  #  Properties:
+  #    MessageRetentionPeriod: 1209600 #14 days
+  #
+  ## ---- Logging ----
+  #
+  #ApiAccessLogGroup:
+  #  Type: AWS::Logs::LogGroup
+  #  Properties:
+  #    LogGroupName: !Sub '/aws/lambda/${FetchDataReportHandler}'
+  #    RetentionInDays: 5
+  #
+  #DataLoadingLogGroup:
+  #  Type: AWS::Logs::LogGroup
+  #  Properties:
+  #    LogGroupName: !Sub '/aws/lambda/${DataLoadingHandler}'
+  #    RetentionInDays: 5
+  ## ---- Lambda ----
+  #
+  #LambdaRole:
+  #  Type: AWS::IAM::Role
+  #  Properties:
+  #    AssumeRolePolicyDocument:
+  #      Version: 2012-10-17
+  #      Statement:
+  #        - Effect: Allow
+  #          Principal:
+  #            Service: [ lambda.amazonaws.com ]
+  #          Action: [ 'sts:AssumeRole' ]
+  #    Policies:
+  #      - PolicyName: readFromS3
+  #        PolicyDocument:
+  #          Version: 2012-10-17
+  #          Statement:
+  #            - Effect: Allow
+  #              Action:
+  #                - s3:Get*
+  #                - s3:List*
+  #                - events:*
+  #              Resource: '*'
+  #      - PolicyName: queuePolicy
+  #        PolicyDocument:
+  #          Version: 2012-10-17
+  #          Statement:
+  #            - Effect: Allow
+  #              Action:
+  #                - sqs:ReceiveMessage
+  #                - sqs:DeleteMessage
+  #                - sqs:SendMessage
+  #                - sqs:GetQueueAttributes
+  #              Resource:
+  #                - !GetAtt DataLoadingDLQ.Arn
+  #      - PolicyName: writeLog
+  #        PolicyDocument:
+  #          Version: 2012-10-17
+  #          Statement:
+  #            - Effect: Allow
+  #              Action:
+  #                - logs:CreateLogGroup
+  #                - logs:CreateLogStream
+  #                - logs:PutLogEvents
+  #              Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+  #      - PolicyName: invokeFunction
+  #        PolicyDocument:
+  #          Version: 2012-10-17
+  #          Statement:
+  #            - Effect: Allow
+  #              Action:
+  #                - lambda:InvokeFunction
+  #              Resource: '*'
+  #      - PolicyName: deployToVpnPolicy
+  #        PolicyDocument:
+  #          Version: 2012-10-17
+  #          Statement:
+  #            - Effect: Allow
+  #              Action:
+  #                - ec2:DescribeNetworkInterfaces
+  #                - ec2:CreateNetworkInterface
+  #                - ec2:DeleteNetworkInterface
+  #                - ec2:DescribeInstances
+  #                - ec2:AttachNetworkInterface
+  #              Resource: '*'
+  #
+  #DefaultLambdaPermissions:
+  #  Type: AWS::IAM::Policy
+  #  Properties:
+  #    PolicyName: !Sub DefaultLambdaPermissions-${AWS::StackName}
+  #    Roles:
+  #      - !Ref LambdaRole
+  #    PolicyDocument:
+  #      Version: '2012-10-17'
+  #      Statement:
+  #        - Effect: Allow
+  #          Action:
+  #            - logs:CreateLogGroup
+  #            - logs:CreateLogStream
+  #            - logs:PutLogEvents
+  #            - lambda:InvokeFunction
+  #          Resource: "*"
+  #
+  #InvokeLambdaPermission:
+  #  Type: AWS::Lambda::Permission
+  #  Properties:
+  #    FunctionName: !GetAtt DataLoadingHandler.Arn
+  #    Action: 'lambda:InvokeFunction'
+  #    Principal: 'events.amazonaws.com'
+  #    SourceArn: !GetAtt PersistedResourcesEventRule.Arn
+  #
+  ##============================= Roles ==========================================================
+  #DataReportApi:
+  #  Type: AWS::Serverless::Api
+  #  Properties:
+  #    AccessLogSetting:
+  #      DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+  #      Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+  #    StageName: Prod
+  #    EndpointConfiguration:
+  #      Type: REGIONAL
+  #    DefinitionBody:
+  #      'Fn::Transform':
+  #        Name: AWS::Include
+  #        Parameters:
+  #          Location: ./docs/openapi.yaml
+  #
+  #ApiPermission:
+  #  Type: AWS::Lambda::Permission
+  #  Properties:
+  #    Action: lambda:InvokeFunction
+  #    FunctionName: !Ref FetchDataReportHandler
+  #    Principal: apigateway.amazonaws.com
+  #    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${DataReportApi}/prod/GET/report"
+  #
+  ##===========================BasePathMappings========================================================
+  #BasePathMapping:
+  #  Type: AWS::ApiGateway::BasePathMapping
+  #  Properties:
+  #    BasePath: !If
+  #      - WithSuffix
+  #      - !Sub ${CustomDomainBasePath}-${Suffix}
+  #      - !Sub ${CustomDomainBasePath}
+  #    DomainName: !Ref ApiDomain
+  #    RestApiId: !Ref DataReportApi
+  #    Stage: !Ref DataReportApi.Stage
+  #
+  ##===========================EventBridge Rule========================================================
+  #PersistedResourcesEventRule:
+  #  Type: AWS::Events::Rule
+  #  Properties:
+  #    Description: "Trigger on create and delete events for S3 bucket persisted-resources"
+  #    EventPattern:
+  #      source:
+  #        - "aws.s3"
+  #      detail-type:
+  #        - "Object Created"
+  #        - "Object Deleted"
+  #      detail:
+  #        bucket:
+  #          name:
+  #            - !Ref ResourcesBucket
+  #        object:
+  #          key:
+  #            - prefix: !Ref ResourcesPrefix
+  #            - prefix: !Ref NviCandidatesPrefix
+  #    State: ENABLED
+  #    Targets:
+  #      - Arn: !GetAtt DataLoadingHandler.Arn
+  #        Id: "DataLoadingHandler"
+  #        InputTransformer:
+  #          InputPathsMap:
+  #            bucketName: "$.detail.bucket.name"
+  #            key: "$.detail.object.key"
+  #            eventType: "$.detail.reason"
+  #          InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "eventType": <eventType>}'
+  #        DeadLetterConfig:
+  #          Arn: !GetAtt DataReportPersistedResourceDLQ.Arn
+  #        RetryPolicy:
+  #          MaximumRetryAttempts: 3
+  #
+  ## ---- Handler ----
+  #FetchDataReportHandler:
+  #  Type: AWS::Serverless::Function
+  #  Properties:
+  #    CodeUri: report-api
+  #    Policies:
+  #      - VPCAccessPolicy: { }
+  #    Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
+  #    Role: !GetAtt LambdaRole.Arn
+  #    Timeout: 600
+  #    MemorySize: 1536
+  #    AutoPublishAlias: live
+  #    Environment:
+  #      Variables:
+  #        ALLOWED_ORIGIN: '*'
+  #    Events:
+  #      ApiEvent:
+  #        Type: Api
+  #        Properties:
+  #          Path: /{type}
+  #          Method: get
+  #          RestApiId: !Ref DataReportApi
+  #
+  #DataLoadingHandler:
+  #  Type: AWS::Serverless::Function
+  #  Properties:
+  #    CodeUri: data-loading
+  #    Policies:
+  #      - VPCAccessPolicy: { }
+  #    Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
+  #    Role: !GetAtt LambdaRole.Arn
+  #    Timeout: 600
+  #    MemorySize: 1536
+  #    AutoPublishAlias: live
+  #    Environment:
+  #      Variables:
+  #        BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
+  #        BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
+  #        EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
+  #    EventInvokeConfig:
+  #      DestinationConfig:
+  #        OnFailure:
+  #          Type: SQS
+  #          Destination: !GetAtt DataLoadingDLQ.Arn
+  #
+  ## ---- Amazon Neptune ----
+  ## Two instance Amazon Neptune cluster, using default
+  ## parameter groups
+  #NeptuneCluster:
+  #  Type: AWS::Neptune::DBCluster
+  #  Properties:
+  #    DBClusterIdentifier: !Ref ProjectName
+  #    DBSubnetGroupName: !Ref NeptuneSubnets
+  #    VpcSecurityGroupIds:
+  #      - !Ref NeptuneSecurityGroup
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-neptune-cluster"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #    ServerlessScalingConfiguration:
+  #      MaxCapacity: 128
+  #      MinCapacity: 2.5
+  #
+  #NeptuneInstance1:
+  #  Type: AWS::Neptune::DBInstance
+  #  Properties:
+  #    DBClusterIdentifier: !Ref NeptuneCluster
+  #    DBInstanceClass: !Ref NeptuneInstanceClass
+  #    DBInstanceIdentifier: !Sub "${ProjectName}-neptune-1"
+  #    DBSubnetGroupName: !Ref NeptuneSubnets
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-neptune-instance-1"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #NeptuneInstance2:
+  #  Type: AWS::Neptune::DBInstance
+  #  Properties:
+  #    DBClusterIdentifier: !Ref NeptuneCluster
+  #    DBInstanceClass: !Ref NeptuneInstanceClass
+  #    DBInstanceIdentifier: !Sub "${ProjectName}-neptune-2"
+  #    DBSubnetGroupName: !Ref NeptuneSubnets
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-neptune-instance-2"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #NeptuneSubnets:
+  #  Type: AWS::Neptune::DBSubnetGroup
+  #  Properties:
+  #    DBSubnetGroupDescription: !Sub "${ProjectName} Subnet Group"
+  #    DBSubnetGroupName: !Sub "${ProjectName}-subnet-group"
+  #    SubnetIds:
+  #      - !Ref PrivateSubnet1
+  #      - !Ref PrivateSubnet2
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-neptune-subnet-group"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #NeptuneSecurityGroup:
+  #  Type: AWS::EC2::SecurityGroup
+  #  # DependsOn: LambdaSecurityGroup
+  #  Properties:
+  #    GroupName: !Sub "${ProjectName}-neptune-security-group"
+  #    GroupDescription: Allow access to Amazon Neptune from Lambda
+  #    SecurityGroupIngress:
+  #      - IpProtocol: tcp
+  #        FromPort: 8182
+  #        ToPort: 8182
+  #        SourceSecurityGroupId: !Ref LambdaSecurityGroup
+  #    VpcId: !Ref VPC
+  #    Tags:
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  ## --- Lambda ----
+  #
+  #LambdaSecurityGroup:
+  #  Type: AWS::EC2::SecurityGroup
+  #  Properties:
+  #    GroupName: !Sub "${ProjectName}-lambda-security-group"
+  #    GroupDescription: Access from AWS Lambda to Amazon Neptune
+  #    SecurityGroupEgress:
+  #      - CidrIp: 0.0.0.0/0
+  #        IpProtocol: '-1'
+  #    VpcId: !Ref VPC
+  #    Tags:
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  ## ---- Networking Resources ----
+  ## A VPC with two public subnets and two private
+  ## subnets along with an internet gateway.
+  #VPC:
+  #  Type: AWS::EC2::VPC
+  #  Properties:
+  #    EnableDnsSupport: true
+  #    EnableDnsHostnames: true
+  #    CidrBlock: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-vpc"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #PrivateSubnet1:
+  #  Type: AWS::EC2::Subnet
+  #  Properties:
+  #    AvailabilityZone:
+  #      Fn::Select:
+  #        - 0
+  #        - Fn::GetAZs: !Ref AWS::Region
+  #    VpcId: !Ref VPC
+  #    CidrBlock: !FindInMap [ 'SubnetConfig', 'Private1', 'CIDR' ]
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-private-subnet-1"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #PrivateSubnet2:
+  #  Type: AWS::EC2::Subnet
+  #  Properties:
+  #    AvailabilityZone:
+  #      Fn::Select:
+  #        - 1
+  #        - Fn::GetAZs: !Ref AWS::Region
+  #    VpcId: !Ref VPC
+  #    CidrBlock: !FindInMap [ 'SubnetConfig', 'Private2', 'CIDR' ]
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-private-subnet-2"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #LambdaSubnet1:
+  #  Type: AWS::EC2::Subnet
+  #  Properties:
+  #    AvailabilityZone:
+  #      Fn::Select:
+  #        - 0
+  #        - Fn::GetAZs: !Ref AWS::Region
+  #    VpcId: !Ref VPC
+  #    CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda1', 'CIDR' ]
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-lambda-subnet-1"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #LambdaSubnet2:
+  #  Type: AWS::EC2::Subnet
+  #  Properties:
+  #    AvailabilityZone:
+  #      Fn::Select:
+  #        - 1
+  #        - Fn::GetAZs: !Ref AWS::Region
+  #    VpcId: !Ref VPC
+  #    CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda2', 'CIDR' ]
+  #    Tags:
+  #      - Key: Name
+  #        Value: !Sub "${ProjectName}-lambda-subnet-2"
+  #      - Key: Project
+  #        Value: !Ref ProjectName
+  #
+  #PrivateRouteTable:
+  #  Type: AWS::EC2::RouteTable
+  #  Properties:
+  #    VpcId: !Ref VPC
+  #
+  #PrivateRouteTable1Association:
+  #  Type: AWS::EC2::SubnetRouteTableAssociation
+  #  Properties:
+  #    RouteTableId: !Ref PrivateRouteTable
+  #    SubnetId: !Ref PrivateSubnet1
+  #
+  #PrivateRouteTableLambdaAssociation:
+  #  Type: AWS::EC2::SubnetRouteTableAssociation
+  #  Properties:
+  #    RouteTableId: !Ref PrivateRouteTable
+  #    SubnetId: !Ref LambdaSubnet1
+  #
+  #S3GatewayEndpoint:
+  #  Type: 'AWS::EC2::VPCEndpoint'
+  #  Properties:
+  #    VpcId: !Ref VPC
+  #    ServiceName: com.amazonaws.eu-west-1.s3
+  #    RouteTableIds:
+  #      - !Ref PrivateRouteTable
+  #    VpcEndpointType: Gateway
+  #    PolicyDocument:
+  #      Version: '2012-10-17'
+  #      Statement:
+  #        - Effect: Allow
+  #          Principal: '*'
+  #          Action:
+  #            - 's3:Get*'
+  #            - 's3:List*'
+  #          Resource: '*'
 
 #### OUTPUTS ####
-Outputs:
-  VpcId:
-    Description: VPC ID
-    Value: !Ref VPC
-
-  NeptuneClusterEndpoint:
-    Description: Endpoint for Neptune Cluster
-    Value: !GetAtt NeptuneCluster.Endpoint
-
-  NeptuneClusterReadEndpoint:
-    Description: Read endpoint for Neptune Cluster
-    Value: !GetAtt NeptuneCluster.ReadEndpoint
+#Outputs:
+#  VpcId:
+#    Description: VPC ID
+#    Value: !Ref VPC
+#
+#  NeptuneClusterEndpoint:
+#    Description: Endpoint for Neptune Cluster
+#    Value: !GetAtt NeptuneCluster.Endpoint
+#
+#  NeptuneClusterReadEndpoint:
+#    Description: Read endpoint for Neptune Cluster
+#    Value: !GetAtt NeptuneCluster.ReadEndpoint
