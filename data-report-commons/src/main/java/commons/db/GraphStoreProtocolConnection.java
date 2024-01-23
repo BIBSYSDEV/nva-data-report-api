@@ -88,7 +88,9 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         try (var connection = configureWriteConnection()) {
             var model = ModelFactory.createDefaultModel();
             RDFDataMgr.read(model, inputStream, lang);
+            LOGGER.info("Writing model to graph: {}", graph);
             connection.load(graph.toString(), model);
+            LOGGER.info("Successfully wrote model to graph: {}", graph);
         }
     }
 

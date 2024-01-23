@@ -26,10 +26,13 @@ public class GraphService {
     }
 
     public void persist(URI graph, String resource) {
-        databaseConnection.write(graph, toNtriples(resource), Lang.NTRIPLES);
+        var nTriples = toNTriples(resource);
+        LOGGER.info("Writing nTriples to graph: {}", nTriples);
+        databaseConnection.write(graph, nTriples, Lang.NTRIPLES);
+        LOGGER.info("Successfully wrote nTriples to graph: {}", graph);
     }
 
-    private static String toNtriples(String resource) {
+    private static String toNTriples(String resource) {
         var model = ModelFactory.createDefaultModel();
         loadDataIntoModel(model, IoUtils.stringToStream(resource));
         return RdfUtil.toNTriples(model);
