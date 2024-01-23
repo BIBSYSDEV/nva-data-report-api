@@ -52,6 +52,6 @@ public class GraphService {
 
     @JacocoGenerated
     private static void logInvalidJsonLdInput(Exception exception) {
-        LOGGER.warn("Invalid JSON LD input encountered: ", exception);
+        LOGGER.error("Invalid JSON LD input encountered: ", exception);
     }
 }
