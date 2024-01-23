@@ -81,16 +81,16 @@ Globals:
 
 Resources:
 
-  ## ---- SQS ----
-  #DataReportPersistedResourceDLQ:
-  #  Type: AWS::SQS::Queue
-  #  Properties:
-  #    MessageRetentionPeriod: 1209600 #14 days
-  #DataLoadingDLQ:
-  #  Type: AWS::SQS::Queue
-  #  Properties:
-  #    MessageRetentionPeriod: 1209600 #14 days
-  #
+  # ---- SQS ----
+  DataReportPersistedResourceDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600 #14 days
+  DataLoadingDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600 #14 days
+
   ## ---- Logging ----
   #
   #ApiAccessLogGroup:
