@@ -13,7 +13,7 @@ public final class DocumentUnwrapper {
     public static final String JSON_PTR_BODY = "/body";
     public static final String CONTEXT_NODE = "@context";
     public static final String JSON_PTR_CONTEXT = "/@context";
-    public static final String CANDIDATE = "candidate";
+    public static final String SCIENTIFIC_INDEX = "scientific-index";
     public static final String NVI_CONTEXT_JSONLD = "nvi_context.jsonld";
     public static final String NVA_CONTEXT_JSONLD = "nva_context.jsonld";
     public static final String API_HOST_PLACEHOLDER = "__API_HOST__";
@@ -32,7 +32,7 @@ public final class DocumentUnwrapper {
 
     private static JsonNode getReplacementContext(JsonNode jsonld) throws JsonProcessingException {
         var originalContext = jsonld.at(JSON_PTR_CONTEXT).asText();
-        var contextFile = originalContext.contains(CANDIDATE)
+        var contextFile = originalContext.contains(SCIENTIFIC_INDEX)
                               ? NVI_CONTEXT_JSONLD
                               : NVA_CONTEXT_JSONLD;
         return dtoObjectMapper.readTree(getContext(contextFile));
