@@ -533,3 +533,7 @@ Outputs:
   NeptuneClusterReadEndpoint:
     Description: Read endpoint for Neptune Cluster
     Value: !GetAtt NeptuneCluster.ReadEndpoint
+
+  NeptuneClusterSparqlEndpoint:
+    Description: SPARQL endpoint for Neptune Cluster
+    Value: !GetAtt NeptuneCluster.SparqlEndpoint
