@@ -191,9 +191,8 @@ class SingleObjectDataLoaderTest {
     /**
      * This method adds the named graph URI in the deletion pool for post-test removal. This is
      * necessary since we add the graph to a database and potentially return multiple graphs
-     * if a query is too broad. For example, {@code SELECT * WHERE {GRAPH ?g { ?s ?p ?o } } },
-     * rather than the specific {@code SELECT {GRAPH <https://…> { ?s ?p ?o } }
-     * @param objectKey The key of the file being inserted from S3.
+     * if a query is too broad. For example, where the SPARQL query has GRAPH ?g rather than
+     * a specific named graph.
      */
     private void registerGraphForPostTestDeletion(UnixPath objectKey) {
         graph = GraphName.newBuilder()
