@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.etl;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -92,11 +93,7 @@ class SingleObjectDataLoaderTest {
         var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
                                     constructFileIdentifier(candidateDocument.consumptionAttributes()
                                                                 .documentIdentifier()));
-        graph = GraphName.newBuilder()
-                    .withBase("example.org")
-                    .fromUnixPath(objectKey)
-                    .build()
-                    .toUri();
+        registerGraphForPostTestDeletion(objectKey);
         s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue());
         handler.handleRequest(event, context);
@@ -104,6 +101,36 @@ class SingleObjectDataLoaderTest {
         var result = dbConnection.getResult(query, new TestFormatter());
         //TODO: Create expected triple and compare with result
         assertTrue(result.contains(candidateDocument.indexDocument().identifier().toString()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "https://example.org/defaults-to-nva",
+        "https://api.dev.nva.aws.unit.no/publication/context"
+    })
+    void shouldReplaceContextWhenJsonLdIsConsumed(String contextUri) throws IOException {
+        var json = """
+            { "body": {
+                "@context": "__REPLACE__",
+                "id": "https://example.org/a",
+                "type": "ExampleData",
+                "labels": { "en": "Example data" }
+              }
+            }
+            """.replace("__REPLACE__", contextUri);
+        var identifier = UUID.randomUUID();
+        var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
+                                    constructFileIdentifier(identifier));
+        registerGraphForPostTestDeletion(objectKey);
+        s3Driver.insertFile(objectKey, json);
+        var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue());
+        handler.handleRequest(event, context);
+        var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
+        var result = dbConnection.getResult(query, new TestFormatter());
+        var expected = String.format("""
+            <https://example.org/a> <https://example.org/ontology/publication#label> "Example data"@en <https://example.org/nvi-candidates/%s.nt> .
+            <https://example.org/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/ontology/publication#ExampleData> <https://example.org/nvi-candidates/%s.nt> .""", identifier, identifier);
+        assertEquals(expected, result);
     }
 
     @Test
@@ -124,6 +151,7 @@ class SingleObjectDataLoaderTest {
     @ValueSource(strings = {RESOURCES_FOLDER, NVI_CANDIDATES_FOLDER})
     void shouldExtractAndLogObjectKey(String folderName) throws IOException {
         var objectKey = setupExistingObjectInS3(folderName);
+        registerGraphForPostTestDeletion(objectKey);
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), UPSERT_EVENT);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
@@ -141,10 +169,26 @@ class SingleObjectDataLoaderTest {
     @ValueSource(strings = {"PutObject", "DeleteObject"})
     void shouldExtractAndLogOperationType(String eventType) throws IOException {
         var objectKey = setupExistingObjectInS3(NVI_CANDIDATES_FOLDER);
+        registerGraphForPostTestDeletion(objectKey);
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), eventType);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
         assertTrue(logAppender.getMessages().contains("eventType: " + eventType));
+    }
+
+    /**
+     * This method adds the named graph URI in the deletion pool for post-test removal. This is
+     * necessary since we add the graph to a database and potentially return multiple graphs
+     * if a query is too broad. For example, SELECT * WHERE {GRAPH ?g { ?s ?p ?o }},
+     * rather than the specific SELECT {GRAPH <https://…> { ?s ?p ?o }
+     * @param objectKey The key of the file being inserted from S3.
+     */
+    private void registerGraphForPostTestDeletion(UnixPath objectKey) {
+        graph = GraphName.newBuilder()
+                   .withBase("example.org")
+                   .fromUnixPath(objectKey)
+                   .build()
+                   .toUri();
     }
 
     @ParameterizedTest
