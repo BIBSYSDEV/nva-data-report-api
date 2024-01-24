@@ -136,7 +136,7 @@ Resources:
                 Action:
                   - neptune-db:*
                 Resource:
-                  - !GetAtt NeptuneCluster.Arn
+                  - !Sub 'arn:aws:neptune-db:${AWS::Region}:${AWS::AccountId}:cluster:${ProjectName}/*'
         - PolicyName: queuePolicy
           PolicyDocument:
             Version: 2012-10-17
