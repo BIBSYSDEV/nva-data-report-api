@@ -91,6 +91,8 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
             LOGGER.info("Writing model to graph: {}", graph);
             connection.load(graph.toString(), model);
             LOGGER.info("Successfully wrote model to graph: {}", graph);
+        } catch (Exception e) {
+            throw filterExceptionToResend(e);
         }
     }
 
