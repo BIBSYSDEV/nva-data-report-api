@@ -39,8 +39,8 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @JacocoGenerated
     private GraphStoreProtocolConnection(Environment environment) {
-        this(constructEndPointUri(environment.readEnv("NEPTUNE_READ_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
-             constructEndPointUri(environment.readEnv("NEPTUNE_WRITE_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
+        this(constructEndPointUri(environment.readEnv("NEPTUNE_WRITE_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
+             constructEndPointUri(environment.readEnv("NEPTUNE_READ_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
              environment.readEnv("QUERY_PATH"));
     }
 
@@ -72,7 +72,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @Override
     public String fetch(URI graph) {
-        try (var connection = configureWriteConnection()) {
+        try (var connection = configureReadConnection()) {
             var data = connection.fetch(graph.toString());
             var stringWriter = new StringWriter();
             RDFDataMgr.write(stringWriter, data, Lang.NTRIPLES);
