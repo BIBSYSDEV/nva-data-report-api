@@ -45,7 +45,10 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
              environment.readEnv("QUERY_PATH"), environment.readEnv("NEPTUNE_SPARQL_ENDPOINT"));
     }
 
-    public GraphStoreProtocolConnection(String writeEndpoint, String readEndpoint, String queryPath, String sparqlEndpoint) {
+    public GraphStoreProtocolConnection(String writeEndpoint,
+                                        String readEndpoint,
+                                        String queryPath,
+                                        String sparqlEndpoint) {
         this.writeEndpoint = writeEndpoint;
         this.readEndpoint = readEndpoint;
         this.queryPath = queryPath;
