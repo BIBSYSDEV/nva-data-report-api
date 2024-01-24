@@ -128,6 +128,15 @@ Resources:
                   - s3:List*
                   - events:*
                 Resource: '*'
+        - PolicyName: neptuneAccessPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - neptune-db:*
+                Resource:
+                  - !GetAtt NeptuneCluster.Arn
         - PolicyName: queuePolicy
           PolicyDocument:
             Version: 2012-10-17
