@@ -26,7 +26,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphStoreProtocolConnection.class);
     private static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
                                                                     + " SELECT";
-    private static final String GSP_PATH = "gsp";
+    private static final String GSP_ENDPOINT = "gsp/";
     private static final String SPARQL_PATH = "sparql";
     private final String writeEndpoint;
     private final String readEndpoint;
@@ -122,7 +122,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     private RDFConnectionRemoteBuilder getRdfConnectionRemoteBuilder(String endpoint) {
         return RDFConnectionRemote.newBuilder()
                    .destination(endpoint)
-                   .gspEndpoint(GSP_PATH)
+                   .gspEndpoint(GSP_ENDPOINT)
                    .httpClient(HttpClient.newHttpClient());
     }
 
