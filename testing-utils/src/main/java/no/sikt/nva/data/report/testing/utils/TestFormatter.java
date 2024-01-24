@@ -7,6 +7,7 @@ import org.apache.jena.query.ResultSet;
 public final class TestFormatter implements ResponseFormatter {
 
     public TestFormatter() {
+        // Simple object constructor.
     }
 
     @Override
@@ -20,17 +21,23 @@ public final class TestFormatter implements ResponseFormatter {
                 if (x.isLiteral()) {
                     triples.append('"')
                         .append(x.asLiteral().getValue())
-                        .append('"')
-                        .append('@')
+                        .append("\"@")
                         .append(x.asLiteral().getLanguage())
                         .append(' ');
                 } else {
                     triples.append("<").append(x).append("> ");
                 }
             }
-            triples.append(".").append(System.lineSeparator());
+            triples.append('.').append(System.lineSeparator());
         }
-        return triples.isEmpty() ? null : triples.toString().lines().sorted(this::compare).collect(Collectors.joining(System.lineSeparator()));
+        return triples.isEmpty()
+                   ? null
+                   : createSemiDeterministicOrderingOfTriples(triples);
+    }
+
+    private String createSemiDeterministicOrderingOfTriples(StringBuilder triples) {
+        return triples.toString().lines().sorted(this::compare)
+                   .collect(Collectors.joining(System.lineSeparator()));
     }
 
     private int compare(String s1, String s2) {

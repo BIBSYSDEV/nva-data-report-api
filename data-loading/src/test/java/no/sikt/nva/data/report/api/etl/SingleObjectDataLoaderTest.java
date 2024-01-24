@@ -91,11 +91,14 @@ class SingleObjectDataLoaderTest {
     void shouldFetchNviCandidateFromBucketAndStoreInGraph() throws IOException {
         var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomCandidate());
         var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
-                                    constructFileIdentifier(candidateDocument.consumptionAttributes()
+                                    constructFileIdentifier(candidateDocument
+                                                                .consumptionAttributes()
                                                                 .documentIdentifier()));
         registerGraphForPostTestDeletion(objectKey);
         s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
-        var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue());
+        var event = new PersistedResourceEvent(BUCKET_NAME,
+                                               objectKey.toString(),
+                                               EventType.UPSERT.getValue());
         handler.handleRequest(event, context);
         var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
         var result = dbConnection.getResult(query, new TestFormatter());
@@ -123,13 +126,22 @@ class SingleObjectDataLoaderTest {
                                     constructFileIdentifier(identifier));
         registerGraphForPostTestDeletion(objectKey);
         s3Driver.insertFile(objectKey, json);
-        var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue());
+        var event = new PersistedResourceEvent(BUCKET_NAME,
+                                               objectKey.toString(),
+                                               EventType.UPSERT.getValue());
         handler.handleRequest(event, context);
         var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
         var result = dbConnection.getResult(query, new TestFormatter());
-        var expected = String.format("""
-            <https://example.org/a> <https://example.org/ontology/publication#label> "Example data"@en <https://example.org/nvi-candidates/%s.nt> .
-            <https://example.org/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/ontology/publication#ExampleData> <https://example.org/nvi-candidates/%s.nt> .""", identifier, identifier);
+        var expected = String.format("<https://example.org/a> "
+                                     + "<https://example.org/ontology/publication#label> "
+                                     + "\"Example data\"@en "
+                                     + "<https://example.org/nvi-candidates/%s.nt> ."
+                                     + System.lineSeparator()
+                                     + "<https://example.org/a> "
+                                     + "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+                                     + "<https://example.org/ontology/publication#ExampleData> "
+                                     + "<https://example.org/nvi-candidates/%s.nt> .",
+                                     identifier, identifier);
         assertEquals(expected, result);
     }
 
@@ -179,8 +191,8 @@ class SingleObjectDataLoaderTest {
     /**
      * This method adds the named graph URI in the deletion pool for post-test removal. This is
      * necessary since we add the graph to a database and potentially return multiple graphs
-     * if a query is too broad. For example, SELECT * WHERE {GRAPH ?g { ?s ?p ?o }},
-     * rather than the specific SELECT {GRAPH <https://…> { ?s ?p ?o }
+     * if a query is too broad. For example, {@code SELECT * WHERE {GRAPH ?g { ?s ?p ?o } } },
+     * rather than the specific {@code SELECT {GRAPH <https://…> { ?s ?p ?o } }
      * @param objectKey The key of the file being inserted from S3.
      */
     private void registerGraphForPostTestDeletion(UnixPath objectKey) {
@@ -206,7 +218,8 @@ class SingleObjectDataLoaderTest {
     private UnixPath setupExistingObjectInS3(String folder) throws IOException {
         var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomCandidate());
         var objectKey = UnixPath.of(folder,
-                                    constructFileIdentifier(candidateDocument.consumptionAttributes()
+                                    constructFileIdentifier(candidateDocument
+                                                                .consumptionAttributes()
                                                                 .documentIdentifier()));
         s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
         return objectKey;
