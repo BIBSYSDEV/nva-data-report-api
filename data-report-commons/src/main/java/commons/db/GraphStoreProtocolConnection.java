@@ -108,6 +108,15 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         return String.format("https://%s:%s/%s", neptuneEndpoint, neptunePort, SPARQL_PATH);
     }
 
+    private static RuntimeException filterExceptionToResend(Exception e) {
+        if (e instanceof HttpException httpException) {
+            return new HttpException(httpException.getStatusCode(), httpException.getStatusLine(),
+                                     httpException.getResponse());
+        } else {
+            return new RuntimeException(e);
+        }
+    }
+
     private RDFConnection configureReadConnection() {
         return getRdfConnectionRemoteBuilder(endpoint)
                    .queryEndpoint(queryPath)
@@ -124,14 +133,5 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
                    .destination(endpoint)
                    .gspEndpoint(GSP_ENDPOINT)
                    .httpClient(HttpClient.newHttpClient());
-    }
-
-    private static RuntimeException filterExceptionToResend(Exception e) {
-        if (e instanceof HttpException httpException) {
-            return new HttpException(httpException.getStatusCode(), httpException.getStatusLine(),
-                                     httpException.getResponse());
-        } else {
-            return new RuntimeException(e);
-        }
     }
 }

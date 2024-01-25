@@ -76,7 +76,7 @@ Globals:
       Variables:
         NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
         API_HOST: !Ref ApiDomain
-        QUERY_PATH: "query"
+        QUERY_PATH: ""
         NEPTUNE_PORT: 8182
 
 Resources:
