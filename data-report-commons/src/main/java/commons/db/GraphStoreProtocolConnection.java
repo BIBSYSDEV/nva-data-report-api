@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 public class GraphStoreProtocolConnection implements DatabaseConnection {
 
+    public static final String NONE = "none";
+    public static final String EMPTY_STRING = "";
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphStoreProtocolConnection.class);
     private static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
                                                                     + " SELECT";
@@ -118,8 +120,9 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     }
 
     private RDFConnection configureReadConnection() {
+        var path = NONE.equalsIgnoreCase(queryPath) ? EMPTY_STRING : queryPath;
         return getRdfConnectionRemoteBuilder(endpoint)
-                   .queryEndpoint(queryPath)
+                   .queryEndpoint(path)
                    .build();
     }
 
