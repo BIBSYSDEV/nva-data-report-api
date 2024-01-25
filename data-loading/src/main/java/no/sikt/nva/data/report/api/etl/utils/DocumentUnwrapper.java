@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Path;
-import nva.commons.core.Environment;
 import nva.commons.core.ioutils.IoUtils;
 
 public final class DocumentUnwrapper {
@@ -16,8 +15,6 @@ public final class DocumentUnwrapper {
     public static final String SCIENTIFIC_INDEX = "scientific-index";
     public static final String NVI_CONTEXT_JSONLD = "nvi_context.jsonld";
     public static final String NVA_CONTEXT_JSONLD = "nva_context.jsonld";
-    public static final String API_HOST_PLACEHOLDER = "__API_HOST__";
-    public static final String API_HOST = "API_HOST";
 
     private DocumentUnwrapper() {
     }
@@ -39,7 +36,6 @@ public final class DocumentUnwrapper {
     }
 
     private static String getContext(String contextFile) {
-        return IoUtils.stringFromResources(Path.of(contextFile))
-                   .replace(API_HOST_PLACEHOLDER, new Environment().readEnv(API_HOST));
+        return IoUtils.stringFromResources(Path.of(contextFile));
     }
 }

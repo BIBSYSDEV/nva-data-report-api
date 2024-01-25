@@ -133,13 +133,13 @@ class SingleObjectDataLoaderTest {
         var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
         var result = dbConnection.getResult(query, new TestFormatter());
         var expected = String.format("<https://example.org/a> "
-                                     + "<https://example.org/ontology/publication#label> "
+                                     + "<https://nva.sikt.no/ontology/publication#label> "
                                      + "\"Example data\"@en "
                                      + "<https://example.org/nvi-candidates/%s.nt> ."
                                      + System.lineSeparator()
                                      + "<https://example.org/a> "
                                      + "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
-                                     + "<https://example.org/ontology/publication#ExampleData> "
+                                     + "<https://nva.sikt.no/ontology/publication#ExampleData> "
                                      + "<https://example.org/nvi-candidates/%s.nt> .",
                                      identifier, identifier);
         assertEquals(expected, result);
