@@ -60,3 +60,4 @@ WHERE {
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
   }
 } ORDER BY ?publicationId LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+LIMIT 10
