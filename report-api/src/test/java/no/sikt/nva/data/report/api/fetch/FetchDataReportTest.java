@@ -126,6 +126,7 @@ class FetchDataReportTest {
             case FUNDING -> test.getFundingResponseData();
             case IDENTIFIER -> test.getIdentifierResponseData();
             case PUBLICATION -> test.getPublicationResponseData();
+            case EVERYTHING -> "";
         };
 
         return TEXT_CSV.equals(responseType)
