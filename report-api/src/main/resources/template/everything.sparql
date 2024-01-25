@@ -1,8 +1,5 @@
 SELECT * WHERE {
   GRAPH ?g {
-    <https://api.sandbox.nva.aws.unit.no/publication/018cf89df717-ce2ed2b7-0719-442d-b490-96238fcdfae0> ?p ?o .
-    OPTIONAL { ?o ?p2 ?o2 . }
-    OPTIONAL { ?o2 ?p3 ?o3 . }
-    OPTIONAL { ?o3 ?p4 ?o4 . }
+    ?s ?p ?o .
   }
 } LIMIT 1000
