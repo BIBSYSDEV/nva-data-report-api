@@ -76,7 +76,6 @@ Globals:
       Variables:
         NEPTUNE_WRITE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
         NEPTUNE_READ_ENDPOINT: !GetAtt NeptuneCluster.ReadEndpoint
-        NEPTUNE_SPARQL_ENDPOINT: !GetAtt NeptuneCluster.SparqlEndpoint
         API_HOST: !Ref ApiDomain
         QUERY_PATH: "query"
         NEPTUNE_PORT: 8182
@@ -534,7 +533,3 @@ Outputs:
   NeptuneClusterReadEndpoint:
     Description: Read endpoint for Neptune Cluster
     Value: !GetAtt NeptuneCluster.ReadEndpoint
-
-  NeptuneClusterSparqlEndpoint:
-    Description: SPARQL endpoint for Neptune Cluster
-    Value: !GetAtt NeptuneCluster.SparqlEndpoint

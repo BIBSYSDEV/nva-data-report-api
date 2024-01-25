@@ -64,7 +64,7 @@ class SingleObjectDataLoaderTest {
         server = FusekiTestingServer.init(dataSet, GSP_ENDPOINT);
         var url = server.serverURL();
         var queryPath = new Environment().readEnv("QUERY_PATH");
-        dbConnection = new GraphStoreProtocolConnection(url, url, queryPath, url);
+        dbConnection = new GraphStoreProtocolConnection(url, url, queryPath);
         var fakeS3Client = new FakeS3Client();
         s3Driver = new S3Driver(fakeS3Client, BUCKET_NAME);
         storageReader = new S3StorageReader(fakeS3Client, BUCKET_NAME);

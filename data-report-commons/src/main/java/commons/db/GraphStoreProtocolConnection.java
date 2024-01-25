@@ -31,7 +31,6 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     private final String writeEndpoint;
     private final String readEndpoint;
     private final String queryPath;
-    private final String sparqlEndpoint;
 
     @JacocoGenerated
     public GraphStoreProtocolConnection() {
@@ -42,17 +41,13 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     private GraphStoreProtocolConnection(Environment environment) {
         this(constructEndPointUri(environment.readEnv("NEPTUNE_WRITE_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
              constructEndPointUri(environment.readEnv("NEPTUNE_READ_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
-             environment.readEnv("QUERY_PATH"), environment.readEnv("NEPTUNE_SPARQL_ENDPOINT"));
+             environment.readEnv("QUERY_PATH"));
     }
 
-    public GraphStoreProtocolConnection(String writeEndpoint,
-                                        String readEndpoint,
-                                        String queryPath,
-                                        String sparqlEndpoint) {
+    public GraphStoreProtocolConnection(String writeEndpoint, String readEndpoint, String queryPath) {
         this.writeEndpoint = writeEndpoint;
         this.readEndpoint = readEndpoint;
         this.queryPath = queryPath;
-        this.sparqlEndpoint = sparqlEndpoint;
     }
 
     @Override
@@ -92,7 +87,6 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         var inputStream = new ByteArrayInputStream(triples.getBytes(StandardCharsets.UTF_8));
         try (var connection = configureWriteConnection()) {
             var model = ModelFactory.createDefaultModel();
-            LOGGER.info("SPARQL endpoint: {}", sparqlEndpoint);
             RDFDataMgr.read(model, inputStream, lang);
             LOGGER.info("Writing model to graph: {}", graph);
             connection.load(graph.toString(), model);
