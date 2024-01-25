@@ -74,8 +74,7 @@ Globals:
         - !Ref LambdaSubnet2
     Environment:
       Variables:
-        NEPTUNE_WRITE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
-        NEPTUNE_READ_ENDPOINT: !GetAtt NeptuneCluster.ReadEndpoint
+        NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
         API_HOST: !Ref ApiDomain
         QUERY_PATH: "query"
         NEPTUNE_PORT: 8182

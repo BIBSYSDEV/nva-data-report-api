@@ -59,7 +59,7 @@ class FetchDataReportTest {
         server = FusekiTestingServer.init(dataSet, GSP_ENDPOINT);
         var url = server.serverURL();
         var queryPath = new Environment().readEnv("QUERY_PATH");
-        databaseConnection = new GraphStoreProtocolConnection(url, url, queryPath);
+        databaseConnection = new GraphStoreProtocolConnection(url, queryPath);
     }
 
     @AfterAll

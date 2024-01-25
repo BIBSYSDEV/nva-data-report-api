@@ -28,8 +28,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
                                                                     + " SELECT";
     private static final String GSP_ENDPOINT = "gsp/";
     private static final String SPARQL_PATH = "sparql";
-    private final String writeEndpoint;
-    private final String readEndpoint;
+    private final String endpoint;
     private final String queryPath;
 
     @JacocoGenerated
@@ -39,14 +38,13 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     @JacocoGenerated
     private GraphStoreProtocolConnection(Environment environment) {
-        this(constructEndPointUri(environment.readEnv("NEPTUNE_WRITE_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
-             constructEndPointUri(environment.readEnv("NEPTUNE_READ_ENDPOINT"), environment.readEnv("NEPTUNE_PORT")),
+        this(constructEndPointUri(environment.readEnv("NEPTUNE_ENDPOINT"),
+                                  environment.readEnv("NEPTUNE_PORT")),
              environment.readEnv("QUERY_PATH"));
     }
 
-    public GraphStoreProtocolConnection(String writeEndpoint, String readEndpoint, String queryPath) {
-        this.writeEndpoint = writeEndpoint;
-        this.readEndpoint = readEndpoint;
+    public GraphStoreProtocolConnection(String endpoint, String queryPath) {
+        this.endpoint = endpoint;
         this.queryPath = queryPath;
     }
 
@@ -54,7 +52,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     public void logConnection() {
         try (var connection = configureReadConnection()) {
             var model = connection.fetch();
-            LOGGER.info("Connection to {} successful, model size: {}", writeEndpoint, model.size());
+            LOGGER.info("Connection to {} successful, model size: {}", endpoint, model.size());
         }
     }
 
@@ -111,13 +109,13 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     }
 
     private RDFConnection configureReadConnection() {
-        return getRdfConnectionRemoteBuilder(readEndpoint)
+        return getRdfConnectionRemoteBuilder(endpoint)
                    .queryEndpoint(queryPath)
                    .build();
     }
 
     private RDFConnection configureWriteConnection() {
-        return getRdfConnectionRemoteBuilder(writeEndpoint)
+        return getRdfConnectionRemoteBuilder(endpoint)
                    .build();
     }
 
