@@ -37,13 +37,13 @@
     "approvalStatus" : {
       "@type" : "@vocab",
       "@context" : {
-        "@vocab" : "https://__API_HOST__/ontology/publication#"
+        "@vocab" : "https://nva.sikt.no/ontology/publication#"
       }
     },
     "approvedBy" : {
       "@type" : "@vocab",
       "@context" : {
-        "@vocab" : "https://__API_HOST__/ontology/approvals-body#"
+        "@vocab" : "https://nva.sikt.no/ontology/approvals-body#"
       }
     },
     "architectureOutput" : {
@@ -127,7 +127,7 @@
     "nameType" : {
       "@type" : "@vocab",
       "@context" : {
-        "@vocab" : "https://__API_HOST__/ontology/publication#"
+        "@vocab" : "https://nva.sikt.no/ontology/publication#"
       }
     },
     "projects" : {
@@ -149,7 +149,7 @@
     "role" : {
       "@type" : "@vocab",
       "@context" : {
-        "@vocab" : "https://__API_HOST__/ontology/publication#"
+        "@vocab" : "https://nva.sikt.no/ontology/publication#"
       }
     },
     "source" : {
@@ -158,7 +158,7 @@
     "status" : {
       "@type" : "@vocab",
       "@context" : {
-        "@vocab" : "https://__API_HOST__/ontology/publication#"
+        "@vocab" : "https://nva.sikt.no/ontology/publication#"
       }
     },
     "subjects" : {
