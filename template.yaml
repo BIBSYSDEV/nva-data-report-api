@@ -66,6 +66,7 @@ Globals:
   Function:
     Runtime: java21
     MemorySize: 1536
+    ReservedConcurrentExecutions: 25
     VpcConfig:
       SecurityGroupIds:
         - !Ref LambdaSecurityGroup
