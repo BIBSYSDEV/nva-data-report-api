@@ -23,6 +23,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     public static final String NONE = "none";
     public static final String EMPTY_STRING = "";
+    public static final int HTTP_NOT_FOUND = 404;
     private static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
                                                                     + " SELECT";
     private static final String GSP_ENDPOINT = "gsp/";
@@ -95,8 +96,9 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         }
     }
 
-    private static boolean isNotFoundException(Exception e) {
-        return e instanceof HttpException httpException && httpException.getStatusCode() == 404;
+    private static boolean isNotFoundException(Exception exception) {
+        return exception instanceof HttpException httpException
+               && httpException.getStatusCode() == HTTP_NOT_FOUND;
     }
 
     @JacocoGenerated
