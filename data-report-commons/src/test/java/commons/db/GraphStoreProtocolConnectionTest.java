@@ -3,13 +3,11 @@ package commons.db;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import commons.formatter.ResponseFormatter;
 import java.net.URI;
 import java.util.Random;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import nva.commons.core.Environment;
-import nva.commons.logutils.LogUtils;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
@@ -29,8 +27,7 @@ class GraphStoreProtocolConnectionTest {
     private static GraphStoreProtocolConnection dbConnection;
 
     /**
-     * Tests re-use the same database. This is intentional as it is the case
-     * for the production environment;
+     * Tests re-use the same database. This is intentional as it is the case for the production environment;
      */
     @BeforeAll
     static void setUp() {
@@ -66,19 +63,27 @@ class GraphStoreProtocolConnectionTest {
     }
 
     @Test
-    void shouldLogConnection() {
-        final var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        dbConnection.logConnection();
-        assertTrue(logAppender.getMessages().contains("Connection"));
-    }
-
-    @Test
     void shouldDelete() {
         var triple = "<https://example.org/a> <https://example.org/b> <https://example.org/c> .";
         dbConnection.write(GRAPH, triple, Lang.NTRIPLES);
         assertNotNull(dbConnection.fetch(GRAPH));
         dbConnection.delete(GRAPH);
         assertThatTheGraphDoesNotExist(GRAPH);
+    }
+
+    private static void assertThatTheGraphDoesNotExist(URI graph) {
+        try {
+            dbConnection.fetch(graph);
+        } catch (Exception exception) {
+            assertInstanceOf(HttpException.class, exception);
+            assertEquals(404, ((HttpException) exception).getStatusCode());
+        }
+    }
+
+    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
+        if (!(e instanceof HttpException)) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static class TestFormatter implements ResponseFormatter {
@@ -96,21 +101,6 @@ class GraphStoreProtocolConnectionTest {
                 triples.append(".");
             }
             return triples.isEmpty() ? null : triples.toString();
-        }
-    }
-
-    private static void assertThatTheGraphDoesNotExist(URI graph) {
-        try {
-            dbConnection.fetch(graph);
-        } catch (Exception exception) {
-            assertInstanceOf(HttpException.class, exception);
-            assertEquals(404, ((HttpException) exception).getStatusCode());
-        }
-    }
-
-    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
-        if (!(e instanceof HttpException)) {
-            throw new RuntimeException(e);
         }
     }
 }

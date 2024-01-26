@@ -48,15 +48,12 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
 
     private void storeObject(UnixPath objectKey) {
         var blob = storageReader.read(objectKey);
-        LOGGER.info("Fetched object with key: {}", objectKey);
         var resource = attempt(() -> unwrap(blob)).orElseThrow();
-        LOGGER.info("Unwrapped object with key: {}", objectKey);
         var graph = GraphName.newBuilder()
                         .withBase(BasePath.basePath())
                         .fromUnixPath(objectKey)
                         .build()
                         .toUri();
-        LOGGER.info("Graph name: {}", graph);
         graphService.persist(graph, resource);
         LOGGER.info("Persisted object with key: {} in graph: {}", objectKey, graph);
     }

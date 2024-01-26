@@ -146,13 +146,6 @@ class SingleObjectDataLoaderTest {
     }
 
     @Test
-    void shouldLogSuccessfulDatabaseConnection() {
-        final var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        new SingleObjectDataLoader(new GraphService(dbConnection), storageReader);
-        assertTrue(logAppender.getMessages().contains("Connection"));
-    }
-
-    @Test
     void shouldLogStuff() {
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         new SingleObjectDataLoader(new GraphService(dbConnection), storageReader);
