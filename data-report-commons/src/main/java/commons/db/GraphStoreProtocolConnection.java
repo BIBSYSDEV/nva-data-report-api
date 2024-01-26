@@ -18,14 +18,11 @@ import org.apache.jena.rdfconnection.RDFConnectionRemote;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     public static final String NONE = "none";
     public static final String EMPTY_STRING = "";
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraphStoreProtocolConnection.class);
     private static final String UNSUPPORTED_SPARQL_METHOD_MESSAGE = "The query method is unsupported, supported types:"
                                                                     + " SELECT";
     private static final String GSP_ENDPOINT = "gsp/";
@@ -48,14 +45,6 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     public GraphStoreProtocolConnection(String endpoint, String queryPath) {
         this.endpoint = endpoint;
         this.queryPath = queryPath;
-    }
-
-    @Override
-    public void logConnection() {
-        try (var connection = configureReadConnection()) {
-            var model = connection.fetch();
-            LOGGER.info("Connection to {} successful, model size: {}", endpoint, model.size());
-        }
     }
 
     @Override
@@ -88,9 +77,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         try (var connection = configureWriteConnection()) {
             var model = ModelFactory.createDefaultModel();
             RDFDataMgr.read(model, inputStream, lang);
-            LOGGER.info("Writing model to graph: {}", graph);
             connection.load(graph.toString(), model);
-            LOGGER.info("Successfully wrote model to graph: {}", graph);
         } catch (Exception e) {
             throw filterExceptionToResend(e);
         }

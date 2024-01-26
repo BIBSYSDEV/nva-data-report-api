@@ -7,8 +7,6 @@ import org.apache.jena.riot.Lang;
 
 public interface DatabaseConnection {
 
-    void logConnection();
-
     String getResult(Query query, ResponseFormatter formatter);
 
     String fetch(URI graph);

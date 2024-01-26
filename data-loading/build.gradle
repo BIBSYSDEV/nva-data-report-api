@@ -18,7 +18,6 @@ dependencies {
     testImplementation('com.github.bibsysdev:nvatestutils:1.36.12') {
         exclude group: 'org.wiremock', module: 'wiremock'
     }
-    testImplementation(project(':data-report-test'))
     testImplementation libs.jena.fuseki
     testImplementation(project(':testing-utils'))
     testImplementation group: 'org.apache.jena', name: 'apache-jena-fuseki', version: '4.10.0'

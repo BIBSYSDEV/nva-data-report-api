@@ -22,17 +22,11 @@ public class GraphService {
 
     public GraphService(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
-        this.databaseConnection.logConnection();
     }
 
     public void persist(URI graph, String resource) {
         var nTriples = toNTriples(resource);
-        LOGGER.info("Writing nTriples to graph: {}", nTriples);
         databaseConnection.write(graph, nTriples, Lang.NTRIPLES);
-        LOGGER.info("Successfully wrote nTriples to graph: {}", graph);
-        LOGGER.info("Fetching graph: {}", graph);
-        var result = databaseConnection.fetch(graph);
-        LOGGER.info("Successfully fetched graph: {}. Result {}", graph, result);
     }
 
     private static String toNTriples(String resource) {
