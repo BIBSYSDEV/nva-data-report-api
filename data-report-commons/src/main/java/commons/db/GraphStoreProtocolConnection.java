@@ -88,8 +88,15 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         try (var connection = configureWriteConnection()) {
             connection.delete(graph.toString());
         } catch (Exception e) {
+            if (isNotFoundException(e)) {
+                return;
+            }
             throw new HttpException(e);
         }
+    }
+
+    private static boolean isNotFoundException(Exception e) {
+        return e instanceof HttpException httpException && httpException.getStatusCode() == 404;
     }
 
     @JacocoGenerated
