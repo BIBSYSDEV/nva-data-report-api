@@ -8,9 +8,8 @@ import com.amazonaws.services.lambda.runtime.Context;
 import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
 import commons.db.utils.GraphName;
-
-import java.net.URI;
 import java.io.IOException;
+import java.net.URI;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
@@ -18,8 +17,9 @@ import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.testutils.model.nvi.IndexDocumentWithConsumptionAttributes;
 import no.sikt.nva.data.report.api.etl.testutils.model.nvi.NviCandidateIndexDocument;
-import no.unit.nva.s3.S3Driver;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
+import no.sikt.nva.data.report.testing.utils.TestFormatter;
+import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.Environment;
@@ -36,7 +36,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import no.sikt.nva.data.report.testing.utils.TestFormatter;
 
 class SingleObjectDataLoaderTest {
 
@@ -86,24 +85,25 @@ class SingleObjectDataLoaderTest {
         }
     }
 
-    //TODO: Test storing in named graph
     @Test
-    void shouldFetchNviCandidateFromBucketAndStoreInGraph() throws IOException {
+    void shouldFetchResourceFromBucketAndStoreInNamedGraph() throws IOException {
         var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomCandidate());
         var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
                                     constructFileIdentifier(candidateDocument
                                                                 .consumptionAttributes()
                                                                 .documentIdentifier()));
-        registerGraphForPostTestDeletion(objectKey);
+        var expectedNamedGraph = registerGraphForPostTestDeletion(objectKey);
         s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
         var event = new PersistedResourceEvent(BUCKET_NAME,
                                                objectKey.toString(),
                                                EventType.UPSERT.getValue());
         handler.handleRequest(event, context);
-        var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
-        var result = dbConnection.getResult(query, new TestFormatter());
-        //TODO: Create expected triple and compare with result
-        assertTrue(result.contains(candidateDocument.indexDocument().identifier().toString()));
+        var identifier = candidateDocument.indexDocument().identifier().toString();
+        var expectedTriple = String.format("<" + UriWrapper.fromHost(HOST).addChild(identifier).toString() + "> "
+                                           + "<https://nva.sikt.no/ontology/publication#identifier> "
+                                           + "\"" + identifier + "\"" + " .");
+        var result = dbConnection.fetch(expectedNamedGraph);
+        assertTrue(result.contains(expectedTriple));
     }
 
     @ParameterizedTest
@@ -181,20 +181,6 @@ class SingleObjectDataLoaderTest {
         assertTrue(logAppender.getMessages().contains("eventType: " + eventType));
     }
 
-    /**
-     * This method adds the named graph URI in the deletion pool for post-test removal. This is
-     * necessary since we add the graph to a database and potentially return multiple graphs
-     * if a query is too broad. For example, where the SPARQL query has GRAPH ?g rather than
-     * a specific named graph.
-     */
-    private void registerGraphForPostTestDeletion(UnixPath objectKey) {
-        graph = GraphName.newBuilder()
-                   .withBase("example.org")
-                   .fromUnixPath(objectKey)
-                   .build()
-                   .toUri();
-    }
-
     @ParameterizedTest
     @ValueSource(strings = {"someUnknownEventType", ""})
     void shouldThrowIllegalArgumentExceptionIfEventTypeIsUnknownOrBlank(String eventType) {
@@ -205,6 +191,26 @@ class SingleObjectDataLoaderTest {
 
     private static String constructFileIdentifier(UUID identifier) {
         return identifier.toString() + GZIP_ENDING;
+    }
+
+    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
+        if (!(e instanceof HttpException)) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * This method adds the named graph URI in the deletion pool for post-test removal. This is necessary since we add
+     * the graph to a database and potentially return multiple graphs if a query is too broad. For example, where the
+     * SPARQL query has GRAPH ?g rather than a specific named graph.
+     */
+    private URI registerGraphForPostTestDeletion(UnixPath objectKey) {
+        graph = GraphName.newBuilder()
+                    .withBase("example.org")
+                    .fromUnixPath(objectKey)
+                    .build()
+                    .toUri();
+        return graph;
     }
 
     private UnixPath setupExistingObjectInS3(String folder) throws IOException {
@@ -225,11 +231,5 @@ class SingleObjectDataLoaderTest {
                    .withContext(NVI_CONTEXT)
                    .withIdentifier(identifier)
                    .build();
-    }
-
-    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
-        if (!(e instanceof HttpException)) {
-            throw new RuntimeException(e);
-        }
     }
 }
