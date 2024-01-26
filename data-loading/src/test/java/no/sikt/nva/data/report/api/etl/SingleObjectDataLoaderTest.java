@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.etl;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -15,8 +16,8 @@ import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
+import no.sikt.nva.data.report.api.etl.testutils.model.nvi.IndexDocument;
 import no.sikt.nva.data.report.api.etl.testutils.model.nvi.IndexDocumentWithConsumptionAttributes;
-import no.sikt.nva.data.report.api.etl.testutils.model.nvi.NviCandidateIndexDocument;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import no.sikt.nva.data.report.testing.utils.TestFormatter;
 import no.unit.nva.s3.S3Driver;
@@ -87,23 +88,34 @@ class SingleObjectDataLoaderTest {
 
     @Test
     void shouldFetchResourceFromBucketAndStoreInNamedGraph() throws IOException {
-        var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomCandidate());
-        var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
-                                    constructFileIdentifier(candidateDocument
-                                                                .consumptionAttributes()
-                                                                .documentIdentifier()));
+        var indexDocument = IndexDocumentWithConsumptionAttributes.from(randomIndexDocument());
+        var objectKey = constructObjectKey(indexDocument);
         var expectedNamedGraph = registerGraphForPostTestDeletion(objectKey);
-        s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
-        var event = new PersistedResourceEvent(BUCKET_NAME,
-                                               objectKey.toString(),
-                                               EventType.UPSERT.getValue());
+        s3Driver.insertFile(objectKey, indexDocument.toJsonString());
+        var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
-        var identifier = candidateDocument.indexDocument().identifier().toString();
+        var identifier = indexDocument.indexDocument().identifier().toString();
         var expectedTriple = String.format("<" + UriWrapper.fromHost(HOST).addChild(identifier).toString() + "> "
                                            + "<https://nva.sikt.no/ontology/publication#identifier> "
                                            + "\"" + identifier + "\"" + " .");
         var result = dbConnection.fetch(expectedNamedGraph);
         assertTrue(result.contains(expectedTriple));
+    }
+
+    @Test
+    void shouldUpdateNamedGraphWithNewDataOnPutEvent() throws IOException {
+        var indexDocument = IndexDocumentWithConsumptionAttributes.from(randomIndexDocument());
+        var expectedNamedGraph = setupExistingResourceInGraph(indexDocument);
+        var updatedIndexDocument = IndexDocumentWithConsumptionAttributes.from(
+            indexDocument.indexDocument().copy().withSomeProperty("someUpdatedValue").build());
+        var objectKey = constructObjectKey(updatedIndexDocument);
+        s3Driver.insertFile(objectKey, updatedIndexDocument.toJsonString());
+        handler.handleRequest(createUpsertEvent(objectKey), context);
+        var result = dbConnection.fetch(expectedNamedGraph);
+        var expectedPropertyTriple = generatePropertyTriple(indexDocument);
+        assertTrue(result.contains(expectedPropertyTriple));
+        var oldPropertyValue = generatePropertyTriple(indexDocument);
+        assertFalse(result.contains(oldPropertyValue));
     }
 
     @ParameterizedTest
@@ -126,9 +138,7 @@ class SingleObjectDataLoaderTest {
                                     constructFileIdentifier(identifier));
         registerGraphForPostTestDeletion(objectKey);
         s3Driver.insertFile(objectKey, json);
-        var event = new PersistedResourceEvent(BUCKET_NAME,
-                                               objectKey.toString(),
-                                               EventType.UPSERT.getValue());
+        var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
         var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
         var result = dbConnection.getResult(query, new TestFormatter());
@@ -189,6 +199,19 @@ class SingleObjectDataLoaderTest {
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
 
+    private static UnixPath constructObjectKey(IndexDocumentWithConsumptionAttributes updatedIndexDocument) {
+        return UnixPath.of(NVI_CANDIDATES_FOLDER,
+                           constructFileIdentifier(updatedIndexDocument
+                                                       .consumptionAttributes()
+                                                       .documentIdentifier()));
+    }
+
+    private static PersistedResourceEvent createUpsertEvent(UnixPath objectKey) {
+        return new PersistedResourceEvent(BUCKET_NAME,
+                                          objectKey.toString(),
+                                          EventType.UPSERT.getValue());
+    }
+
     private static String constructFileIdentifier(UUID identifier) {
         return identifier.toString() + GZIP_ENDING;
     }
@@ -197,6 +220,24 @@ class SingleObjectDataLoaderTest {
         if (!(e instanceof HttpException)) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String generatePropertyTriple(IndexDocumentWithConsumptionAttributes updatedIndexDocument) {
+        return String.format("<" + UriWrapper.fromHost(HOST)
+                                       .addChild(updatedIndexDocument.indexDocument().identifier().toString())
+                                       .toString() + "> "
+                             + "<https://nva.sikt.no/ontology/publication#someProperty> "
+                             + "\"" + updatedIndexDocument.indexDocument().someProperty() + "\"" + " .");
+    }
+
+    private URI setupExistingResourceInGraph(IndexDocumentWithConsumptionAttributes candidateDocument)
+        throws IOException {
+        var objectKey = constructObjectKey(candidateDocument);
+        registerGraphForPostTestDeletion(objectKey);
+        s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
+        var event = createUpsertEvent(objectKey);
+        handler.handleRequest(event, context);
+        return graph;
     }
 
     /**
@@ -214,22 +255,21 @@ class SingleObjectDataLoaderTest {
     }
 
     private UnixPath setupExistingObjectInS3(String folder) throws IOException {
-        var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomCandidate());
-        var objectKey = UnixPath.of(folder,
-                                    constructFileIdentifier(candidateDocument
-                                                                .consumptionAttributes()
-                                                                .documentIdentifier()));
+        var candidateDocument = IndexDocumentWithConsumptionAttributes.from(randomIndexDocument());
+        var objectKey = UnixPath.of(folder, constructFileIdentifier(candidateDocument
+                                                                        .consumptionAttributes()
+                                                                        .documentIdentifier()));
         s3Driver.insertFile(objectKey, candidateDocument.toJsonString());
         return objectKey;
     }
 
-    //TODO: Add more data to NviCandidateIndexDocument
-    private NviCandidateIndexDocument randomCandidate() {
+    private IndexDocument randomIndexDocument() {
         var identifier = UUID.randomUUID();
-        return NviCandidateIndexDocument.builder()
+        return IndexDocument.builder()
                    .withId(UriWrapper.fromHost(HOST).addChild(identifier.toString()).getUri())
                    .withContext(NVI_CONTEXT)
                    .withIdentifier(identifier)
+                   .withSomeProperty(randomString())
                    .build();
     }
 }
