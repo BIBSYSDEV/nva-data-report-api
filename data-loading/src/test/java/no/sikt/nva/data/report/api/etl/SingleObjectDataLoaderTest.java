@@ -112,8 +112,8 @@ class SingleObjectDataLoaderTest {
         s3Driver.insertFile(objectKey, updatedIndexDocument.toJsonString());
         handler.handleRequest(createUpsertEvent(objectKey), context);
         var result = dbConnection.fetch(expectedNamedGraph);
-        var expectedPropertyTriple = generatePropertyTriple(indexDocument);
-        assertTrue(result.contains(expectedPropertyTriple));
+        var expectedUpdatedPropertyTriple = generatePropertyTriple(updatedIndexDocument);
+        assertTrue(result.contains(expectedUpdatedPropertyTriple));
         var oldPropertyValue = generatePropertyTriple(indexDocument);
         assertFalse(result.contains(oldPropertyValue));
     }
