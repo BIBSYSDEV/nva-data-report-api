@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.dbtools;
 
+import static no.sikt.nva.data.report.dbtools.ResetAction.ACTION_INITIATE_DATABASE_RESET;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import no.sikt.nva.data.report.dbtools.exception.DatabaseResetRequestException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ public class DatabaseResetHandler implements RequestStreamHandler {
     public static final String NEPTUNE_SYSTEM_TEMPLATE = "https://%s:%s/system";
     public static final String NEPTUNE_ENDPOINT = "NEPTUNE_ENDPOINT";
     public static final String NEPTUNE_PORT = "NEPTUNE_PORT";
+    public static final int HTTP_OK = 200;
     private final HttpClient httpClient;
     private final Environment environment;
 
@@ -36,24 +39,29 @@ public class DatabaseResetHandler implements RequestStreamHandler {
     }
 
     @Override
-    public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) throws IOException {
-        var resetAction = ResetAction.ACTION_INITIATE_DATABASE_RESET;
-        var httpRequest = HttpRequest.newBuilder()
-                              .POST(BodyPublishers.ofString(resetAction))
-                              .header(CONTENT_TYPE, "application/json")
-                              .uri(getUri())
-                              .build();
+    public void handleRequest(InputStream inputStream,
+                              OutputStream outputStream,
+                              Context context) throws IOException {
         try {
-            var response = httpClient.send(httpRequest, BodyHandlers.ofString());
-            if (response.statusCode() == 200) {
+            var response = httpClient.send(buildHttpRequest(), BodyHandlers.ofString());
+            if (response.statusCode() == HTTP_OK) {
                 logger.info("Successfully submitted reset request");
             } else {
-                throw new RuntimeException("The request failed");
+                logger.error("Request failed, received status from upstream {}", response.statusCode());
+                throw new DatabaseResetRequestException();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
+    }
+
+    private HttpRequest buildHttpRequest() {
+        return HttpRequest.newBuilder()
+                   .POST(BodyPublishers.ofString(ACTION_INITIATE_DATABASE_RESET))
+                   .header(CONTENT_TYPE, "application/json")
+                   .uri(getUri())
+                   .build();
     }
 
     private URI getUri() {
