@@ -59,13 +59,6 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
         }
     }
 
-    private static ResultSet transactionalQuery(Query query, RDFConnection connection) {
-        return Txn.calculateRead(connection, () -> {
-            var resultSet = connection.query(query).execSelect();
-            return ResultSetFactory.copyResults(resultSet);
-        });
-    }
-
     @Override
     public String fetch(URI graph) {
         try (var connection = configureReadConnection()) {
@@ -100,6 +93,13 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
             }
             throw new HttpException(e);
         }
+    }
+
+    private static ResultSet transactionalQuery(Query query, RDFConnection connection) {
+        return Txn.calculateRead(connection, () -> {
+            var resultSet = connection.query(query).execSelect();
+            return ResultSetFactory.copyResults(resultSet);
+        });
     }
 
     private static boolean isNotFoundException(Exception exception) {
