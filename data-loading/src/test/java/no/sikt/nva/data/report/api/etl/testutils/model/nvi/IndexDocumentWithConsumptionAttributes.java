@@ -7,13 +7,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
 public record IndexDocumentWithConsumptionAttributes(
-    @JsonProperty(BODY) NviCandidateIndexDocument indexDocument,
+    @JsonProperty(BODY) IndexDocument indexDocument,
     @JsonProperty(CONSUMPTION_ATTRIBUTES) ConsumptionAttributes consumptionAttributes) {
 
     private static final String CONSUMPTION_ATTRIBUTES = "consumptionAttributes";
     private static final String BODY = "body";
 
-    public static IndexDocumentWithConsumptionAttributes from(NviCandidateIndexDocument document) {
+    public static IndexDocumentWithConsumptionAttributes from(IndexDocument document) {
         return new IndexDocumentWithConsumptionAttributes(
             document, ConsumptionAttributes.from(document.identifier()));
     }

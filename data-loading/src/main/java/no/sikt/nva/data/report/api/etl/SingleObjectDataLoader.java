@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.etl;
 
+import static no.sikt.nva.data.report.api.etl.model.EventType.UPSERT;
 import static no.sikt.nva.data.report.api.etl.utils.DocumentUnwrapper.unwrap;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -7,6 +8,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import commons.StorageReader;
 import commons.db.GraphStoreProtocolConnection;
 import commons.db.utils.GraphName;
+import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
@@ -36,13 +38,18 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         this.storageReader = storageReader;
     }
 
-    //TODO: Handle different event types
     //TODO: Handle failures
     @Override
     public Void handleRequest(PersistedResourceEvent input, Context context) {
         input.validate();
         logInput(input);
-        storeObject(UnixPath.of(input.key()));
+        var eventType = EventType.parse(input.eventType());
+        if (UPSERT.equals(eventType)) {
+            storeObject(UnixPath.of(input.key()));
+        } else {
+            //TODO: Handle delete
+            return null;
+        }
         return null;
     }
 

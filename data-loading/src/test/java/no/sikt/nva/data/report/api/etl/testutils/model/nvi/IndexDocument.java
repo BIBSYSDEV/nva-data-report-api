@@ -2,19 +2,26 @@ package no.sikt.nva.data.report.api.etl.testutils.model.nvi;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.net.URI;
 import java.util.UUID;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonSerialize
-@JsonTypeName("NviCandidate")
-public record NviCandidateIndexDocument(@JsonProperty(CONTEXT) String context,
-                                        URI id,
-                                        UUID identifier) {
+public record IndexDocument(@JsonProperty(CONTEXT) String context,
+                            URI id,
+                            UUID identifier,
+                            String someProperty) {
 
     private static final String CONTEXT = "@context";
+
+    public Builder copy() {
+        return builder()
+                   .withContext(context)
+                   .withId(id)
+                   .withIdentifier(identifier)
+                   .withSomeProperty(someProperty);
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -25,6 +32,7 @@ public record NviCandidateIndexDocument(@JsonProperty(CONTEXT) String context,
         private String context;
         private URI id;
         private UUID identifier;
+        private String someProperty;
 
         private Builder() {
         }
@@ -44,8 +52,13 @@ public record NviCandidateIndexDocument(@JsonProperty(CONTEXT) String context,
             return this;
         }
 
-        public NviCandidateIndexDocument build() {
-            return new NviCandidateIndexDocument(context, id, identifier);
+        public Builder withSomeProperty(String someProperty) {
+            this.someProperty = someProperty;
+            return this;
+        }
+
+        public IndexDocument build() {
+            return new IndexDocument(context, id, identifier, someProperty);
         }
     }
 }

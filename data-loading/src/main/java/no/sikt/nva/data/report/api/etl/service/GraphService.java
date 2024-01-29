@@ -26,6 +26,7 @@ public class GraphService {
 
     public void persist(URI graph, String resource) {
         var nTriples = toNTriples(resource);
+        databaseConnection.delete(graph);
         databaseConnection.write(graph, nTriples, Lang.NTRIPLES);
     }
 
