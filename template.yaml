@@ -320,6 +320,18 @@ Resources:
             Type: SQS
             Destination: !GetAtt DataLoadingDLQ.Arn
 
+  ResetDatabaseButton:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: database-tools
+      Policies:
+        - VPCAccessPolicy: { }
+      Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
   # parameter groups
