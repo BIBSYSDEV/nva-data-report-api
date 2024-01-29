@@ -6,18 +6,19 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionRemote;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.system.Txn;
 
 public class GraphStoreProtocolConnection implements DatabaseConnection {
 
@@ -52,12 +53,17 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     public String getResult(Query query, ResponseFormatter formatter) {
         try (var connection = configureReadConnection()) {
             if (query.isSelectType()) {
-                var solution = new ArrayList<ResultSet>();
-                connection.queryResultSet(query, solution::add);
-                return formatter.format(solution.getFirst());
+                return formatter.format(transactionalQuery(query, connection));
             }
             throw new UnsupportedOperationException(UNSUPPORTED_SPARQL_METHOD_MESSAGE);
         }
+    }
+
+    private static ResultSet transactionalQuery(Query query, RDFConnection connection) {
+        return Txn.calculateRead(connection, () -> {
+            var resultSet = connection.query(query).execSelect();
+            return ResultSetFactory.copyResults(resultSet);
+        });
     }
 
     @Override
