@@ -14,6 +14,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
@@ -107,6 +109,40 @@ class FetchDataReportTest {
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
         assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    void shouldRetrieveManyHits() throws IOException, BadRequestException {
+        var testData = new TestData(getRandomTestList());
+        databaseConnection.write(GRAPH, toNtriples(testData.getModel()), Lang.NTRIPLES);
+        var service = new QueryService(databaseConnection);
+        var handler = new FetchDataReport(service);
+        var request = new TestingRequest(
+            TEXT_CSV.toString(),
+            "affiliation",
+            "2026-01-01T03:02:11Z",
+            "1998-01-01T05:09:32Z",
+            "0",
+            "100"
+        );
+        var input = generateHandlerRequest(request);
+        var output = new ByteArrayOutputStream();
+        handler.handleRequest(input, output, new FakeContext());
+        var response = GatewayResponse.fromOutputStream(output, String.class);
+        assertEquals(200, response.getStatusCode());
+        var expected = getExpected(request, testData);
+        assertEquals(expected, response.getBody());
+    }
+
+    private List<DatePair> getRandomTestList() {
+        int i = 20;
+        var pairs = new ArrayList<DatePair>();
+        while (i > 0) {
+            pairs.add(new DatePair(new PublicationDate("2024", "02", "02"),
+                                   Instant.now().minus(100, ChronoUnit.DAYS)));
+            i--;
+        }
+        return pairs;
     }
 
     private String toNtriples(Model model) {
