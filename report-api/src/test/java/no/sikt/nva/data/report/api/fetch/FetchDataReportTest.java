@@ -22,7 +22,7 @@ import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
 import no.sikt.nva.data.report.api.fetch.testutils.TestingRequest;
 import no.sikt.nva.data.report.api.fetch.testutils.ValidRequestSource;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationDate;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
@@ -162,6 +162,7 @@ class FetchDataReportTest {
             case FUNDING -> test.getFundingResponseData();
             case IDENTIFIER -> test.getIdentifierResponseData();
             case PUBLICATION -> test.getPublicationResponseData();
+            case NVI -> test.getNviResponseData();
         };
 
         return TEXT_CSV.equals(responseType)

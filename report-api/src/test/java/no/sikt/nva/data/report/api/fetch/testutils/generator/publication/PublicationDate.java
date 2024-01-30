@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
 import java.util.List;
 import java.util.Objects;

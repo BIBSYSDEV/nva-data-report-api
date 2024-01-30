@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.FundingGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.FundingSourceGenerator;

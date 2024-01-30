@@ -9,7 +9,8 @@ public enum ReportType {
     CONTRIBUTOR("contributor"),
     FUNDING("funding"),
     IDENTIFIER("identifier"),
-    PUBLICATION("publication");
+    PUBLICATION("publication"),
+    NVI("nvi");
 
     public static final String DELIMITER = ", ";
     public static final String BAD_REQUEST_MESSAGE_TEMPLATE = "Bad request. Acceptable report types: %s";
@@ -26,6 +27,10 @@ public enum ReportType {
                    .orElseThrow(ReportType::getBadRequest);
     }
 
+    public String getType() {
+        return type;
+    }
+
     private static BadRequestException getBadRequest() {
         var message = String.format(BAD_REQUEST_MESSAGE_TEMPLATE, getValidReportTypes());
         return new BadRequestException(message);
@@ -35,9 +40,5 @@ public enum ReportType {
         return Arrays.stream(values())
                    .map(ReportType::getType)
                    .collect(Collectors.joining(DELIMITER));
-    }
-
-    public String getType() {
-        return type;
     }
 }

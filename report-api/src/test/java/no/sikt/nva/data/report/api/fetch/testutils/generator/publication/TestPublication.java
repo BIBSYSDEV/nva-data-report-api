@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.PERSON_BASE_URI;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
