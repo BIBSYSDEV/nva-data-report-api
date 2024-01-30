@@ -14,7 +14,7 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 
-public class Nquads {
+public final class Nquads {
 
     private static final String PATH_SEPARATOR = "/";
     private final DatasetGraph graph;
