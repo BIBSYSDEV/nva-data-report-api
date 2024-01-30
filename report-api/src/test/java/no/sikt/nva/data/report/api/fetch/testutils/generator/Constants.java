@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public class Constants {
 
+    public static final String ONTOLOGY_BASE_URI = "https://nva.sikt.no/ontology/publication#";
     private static final String BASE_URI = "https://example.org/";
     public static final String PUBLICATION_BASE_URI = BASE_URI + "publication/";
     public static final String PERSON_BASE_URI = BASE_URI + "person/";
@@ -12,7 +13,7 @@ public class Constants {
     private static final String VERIFIED_FUNDING = BASE_URI + "verified-funding/nfr/";
     private static final String PUBLISHER_BASE_URI = BASE_URI + "publication-channels-v2/publisher/";
     private static final String JOURNAL_BASE_URI = BASE_URI + "publication-channels-v2/journal/";
-    public static final String ONTOLOGY_BASE_URI = "https://nva.sikt.no/ontology/publication#";
+    private static final String YEAR_PATH = "/2023";
 
     private Constants() {
     }
@@ -34,7 +35,7 @@ public class Constants {
     }
 
     public static String journalUri(UUID localName) {
-        return JOURNAL_BASE_URI + localName;
+        return JOURNAL_BASE_URI + localName + YEAR_PATH;
     }
 
     public static String publicationUri(UUID localName) {
