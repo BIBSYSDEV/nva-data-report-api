@@ -42,7 +42,13 @@ WHERE {
                         :name ?channelName ;
                         :scientificValue ?channelLevel .
 
-    BIND(REPLACE(STR(?publicationContext), "^.*/([^/]*)$", "$1") AS ?channelIdentifier)
+    BIND(IRI(?publicationContext) AS ?iri)
+    BIND(STRAFTER(str(?iri), '/') AS ?temp1)
+    BIND(STRAFTER(str(?temp1), '/') AS ?temp2)
+    BIND(STRAFTER(str(?temp2), '/') AS ?base)
+    BIND(STRAFTER(str(?base), '/') AS ?customPath)
+    BIND(STRAFTER(str(?customPath), '/') AS ?identifier)
+    BIND(STRBEFORE(str(?identifier), '/') AS ?channelIdentifier)
     BIND(STR(?channelTypeId) AS ?channelType)
     ?reference :publicationInstance ?instance .
     ?instance a ?instanceType .
