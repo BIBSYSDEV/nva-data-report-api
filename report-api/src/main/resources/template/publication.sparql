@@ -43,12 +43,11 @@ WHERE {
                         :scientificValue ?channelLevel .
 
     BIND(IRI(?publicationContext) AS ?iri)
-    BIND(STRAFTER(str(?iri), '/') AS ?temp1)
-    BIND(STRAFTER(str(?temp1), '/') AS ?temp2)
-    BIND(STRAFTER(str(?temp2), '/') AS ?base)
+    BIND(STRAFTER(str(?iri), '//') AS ?url)
+    BIND(STRAFTER(str(?url), '/') AS ?base)
     BIND(STRAFTER(str(?base), '/') AS ?customPath)
-    BIND(STRAFTER(str(?customPath), '/') AS ?identifier)
-    BIND(STRBEFORE(str(?identifier), '/') AS ?channelIdentifier)
+    BIND(STRAFTER(str(?customPath), '/') AS ?lastTwoPathElements)
+    BIND(STRBEFORE(str(?lastTwoPathElements), '/') AS ?channelIdentifier)
     BIND(STR(?channelTypeId) AS ?channelType)
     ?reference :publicationInstance ?instance .
     ?instance a ?instanceType .
