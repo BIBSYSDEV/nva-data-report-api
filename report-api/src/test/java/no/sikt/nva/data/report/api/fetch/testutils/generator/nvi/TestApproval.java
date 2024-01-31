@@ -10,7 +10,7 @@ public record TestApproval(String institutionId,
         return new Builder();
     }
 
-    private enum ApprovalStatus {
+    public enum ApprovalStatus {
 
         PENDING("Pending"),
         APPROVED("Approved"),

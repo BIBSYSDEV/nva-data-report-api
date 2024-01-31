@@ -1,6 +1,5 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
