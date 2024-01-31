@@ -14,15 +14,14 @@ SELECT DISTINCT
         :modifiedDate ?modifiedDate ;
         :publicationDetails ?publicationId .
 
-      ?publicationId :contributor ?contributorUri .
-      ?contributorUri :isNviContributor ?isNviContributor .
+      ?publicationId :contributor ?contributorId .
+      ?contributorId :isNviContributor ?isNviContributor .
       FILTER(?isNviContributor = true)
-      BIND(REPLACE(STR(?contributorUri), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
+      BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
 
-      ?contributorUri :affiliation ?affiliationUri .
-      ?affiliationUri :isNviAffiliation ?isNviAffiliation .
+      ?contributorId :affiliation ?affiliationId .
+      ?affiliationId :isNviAffiliation ?isNviAffiliation .
       FILTER(?isNviAffiliation = true)
-      BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?affiliationId)
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)

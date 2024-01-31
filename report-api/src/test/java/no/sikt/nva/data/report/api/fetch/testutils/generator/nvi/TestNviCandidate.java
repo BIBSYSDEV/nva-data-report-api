@@ -49,7 +49,7 @@ public record TestNviCandidate(String identifier,
                                              TestAffiliation affiliation) {
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
-            .append(extractLastPathElement(affiliation.id())).append(DELIMITER)
+            .append(affiliation.id()).append(DELIMITER)
             .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionId
             .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionPoints
             .append(EMPTY_STRING)//TODO: InstitutionApprovalStatus
