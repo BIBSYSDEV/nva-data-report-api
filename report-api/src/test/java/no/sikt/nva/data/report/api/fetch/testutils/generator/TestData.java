@@ -1,12 +1,16 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestAffiliation;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestChannel;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestContributor;
@@ -137,7 +141,7 @@ public class TestData {
     }
 
     private static TestPublication generatePublication(PublicationDate date, Instant modifiedDate) {
-        UUID identifier = UUID.randomUUID();
+        var identifier = UUID.randomUUID();
         return new TestPublication()
                    .withModifiedDate(modifiedDate)
                    .withPublicationDate(date)
@@ -149,10 +153,6 @@ public class TestData {
                    .withPublicationCategory("AcademicArticle")
                    .withPublicationDate(date)
                    .withChannel(generateChannel());
-    }
-
-    private TestNviCandidate generateNviCandidate(PublicationDate publicationDate, Instant modifiedDate) {
-        return null;
     }
 
     private static TestChannel generateChannel() {
@@ -185,6 +185,35 @@ public class TestData {
         return new TestOrganization(Constants.organizationUri("10.1.1.2"), "My university");
     }
 
+    private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
+        return TestNviCandidate.builder()
+                   .withModifiedDate(modifiedDate)
+                   .withPublicationDetails(generatePublicationDetails())
+                   .build();
+    }
+
+    private TestPublicationDetails generatePublicationDetails() {
+        return TestPublicationDetails.builder()
+                   .withId(randomUri().toString())
+                   .withContributors(List.of(generateNviContributor()))
+                   .build();
+    }
+
+    private TestNviContributor generateNviContributor() {
+        return TestNviContributor.builder()
+                   .withId(randomUri().toString())
+                   .withIsNviContributor(true)
+                   .withAffiliations(List.of(generateNviAffiliation()))
+                   .build();
+    }
+
+    private TestAffiliation generateNviAffiliation() {
+        return TestAffiliation.builder()
+                   .withIsNviAffiliation(true)
+                   .withId(randomUri().toString())
+                   .build();
+    }
+
     private void generateModel(List<TestPublication> testData) {
         testData.stream()
             .map(TestPublication::generateModel)
@@ -203,7 +232,7 @@ public class TestData {
     private List<TestNviCandidate> generateNviData(List<DatePair> dates) {
         var dataSet = new ArrayList<TestNviCandidate>();
         for (DatePair date : dates) {
-            var data = generateNviCandidate(date.publicationDate, date.modifiedDate);
+            var data = generateNviCandidate(date.modifiedDate);
             dataSet.add(data);
         }
         return dataSet;
@@ -212,6 +241,7 @@ public class TestData {
     private int sortByPublicationUri(TestPublication a, TestPublication b) {
         return a.getPublicationUri().compareTo(b.getPublicationUri());
     }
+
     public record DatePair(PublicationDate publicationDate, Instant modifiedDate) {
 
     }

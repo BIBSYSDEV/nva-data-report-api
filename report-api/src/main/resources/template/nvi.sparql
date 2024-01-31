@@ -1,0 +1,8 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT * WHERE {
+  GRAPH ?g {
+    ?s ?p ?o .
+  }
+} LIMIT __PAGE_SIZE__
