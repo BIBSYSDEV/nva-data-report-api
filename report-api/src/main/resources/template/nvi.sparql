@@ -12,16 +12,18 @@ SELECT DISTINCT
     GRAPH ?g {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
-        :publicationDetails ?publicationId .
+        :publicationDetails ?publicationUri .
+      BIND(STR(?publicationUri) AS ?publicationId)
 
-      ?publicationId :contributor ?contributorId .
+      ?publicationUri :contributor ?contributorId .
       ?contributorId :isNviContributor ?isNviContributor .
       FILTER(?isNviContributor = true)
       BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
 
-      ?contributorId :affiliation ?affiliationId .
-      ?affiliationId :isNviAffiliation ?isNviAffiliation .
+      ?contributorId :affiliation ?affiliationUri .
+      ?affiliationUri :isNviAffiliation ?isNviAffiliation .
       FILTER(?isNviAffiliation = true)
+      BIND(STR(?affiliationUri) AS ?affiliationId)
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
