@@ -10,16 +10,21 @@ SELECT DISTINCT
   ?institutionApprovalStatus
   WHERE {
     GRAPH ?g {
-      ?publicationUri a :PublicationDetails .
-      BIND(STR(?publicationUri) AS ?publicationId) .
+      ?candidate a :NviCandidate ;
+        :modifiedDate ?modifiedDate ;
+        :publicationDetails ?publicationId .
 
-      ?publicationUri :contributor ?contributorUri .
-      #TODO: Check contributor type
-      #TODO: Check contributor is nviContributor
+      ?publicationId :contributor ?contributorUri .
+      ?contributorUri :isNviContributor ?isNviContributor .
+      FILTER(?isNviContributor = true)
       BIND(REPLACE(STR(?contributorUri), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
 
       ?contributorUri :affiliation ?affiliationUri .
-      #TODO: Check affiliation is nviAffiliation
+      ?affiliationUri :isNviAffiliation ?isNviAffiliation .
+      FILTER(?isNviAffiliation = true)
       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?affiliationId)
+
+      FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+      FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
   }
 } LIMIT __PAGE_SIZE__
