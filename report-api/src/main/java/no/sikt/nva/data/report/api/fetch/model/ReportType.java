@@ -9,8 +9,7 @@ public enum ReportType {
     CONTRIBUTOR("contributor"),
     FUNDING("funding"),
     IDENTIFIER("identifier"),
-    PUBLICATION("publication"),
-    EVERYTHING("everything");
+    PUBLICATION("publication");
 
     public static final String DELIMITER = ", ";
     public static final String BAD_REQUEST_MESSAGE_TEMPLATE = "Bad request. Acceptable report types: %s";

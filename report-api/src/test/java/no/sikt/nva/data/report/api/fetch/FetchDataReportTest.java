@@ -99,7 +99,7 @@ class FetchDataReportTest {
                                                      Instant.now().minus(100, ChronoUnit.DAYS)),
                                         new DatePair(new PublicationDate("2023", "10", "18"),
                                                      Instant.now().minus(100, ChronoUnit.DAYS))));
-        databaseConnection.write(GRAPH, toNtriples(testData.getModel()), Lang.NTRIPLES);
+        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -114,7 +114,7 @@ class FetchDataReportTest {
     @Test
     void shouldRetrieveManyHits() throws IOException, BadRequestException {
         var testData = new TestData(getRandomTestList());
-        databaseConnection.write(GRAPH, toNtriples(testData.getModel()), Lang.NTRIPLES);
+        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var request = new TestingRequest(
@@ -145,7 +145,7 @@ class FetchDataReportTest {
         return pairs;
     }
 
-    private String toNtriples(Model model) {
+    private String toTriples(Model model) {
         var stringWriter = new StringWriter();
         RDFDataMgr.write(stringWriter, model, Lang.NTRIPLES);
         return stringWriter.toString();
@@ -162,7 +162,6 @@ class FetchDataReportTest {
             case FUNDING -> test.getFundingResponseData();
             case IDENTIFIER -> test.getIdentifierResponseData();
             case PUBLICATION -> test.getPublicationResponseData();
-            case EVERYTHING -> "";
         };
 
         return TEXT_CSV.equals(responseType)

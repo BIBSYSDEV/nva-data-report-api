@@ -1,5 +1,0 @@
-SELECT * WHERE {
-  GRAPH ?g {
-    ?s ?p ?o .
-  }
-} LIMIT __PAGE_SIZE__
