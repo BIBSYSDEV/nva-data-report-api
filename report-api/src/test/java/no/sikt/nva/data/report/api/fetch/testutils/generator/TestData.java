@@ -67,7 +67,7 @@ public class TestData {
                                                                     CONTRIBUTOR_SEQUENCE_NUMBER, CONTRIBUTOR_ROLE);
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
                                                                    FUNDING_SOURCE, FUNDING_ID);
-    private static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
+    private static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID,
                                                             CONTRIBUTOR_IDENTIFIER,
                                                             AFFILIATION_ID, INSTITUTION_ID, INSTITUTION_POINTS,
                                                             INSTITUTION_APPROVAL_STATUS);

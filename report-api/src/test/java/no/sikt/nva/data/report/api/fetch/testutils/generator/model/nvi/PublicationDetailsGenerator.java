@@ -17,9 +17,9 @@ public class PublicationDetailsGenerator extends TripleBasedBuilder {
     private final Model model;
     private final Resource subject;
 
-    public PublicationDetailsGenerator() {
+    public PublicationDetailsGenerator(String id) {
         this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource();
+        this.subject = model.createResource(id);
         model.add(subject, TYPE, PUBLICATION_DETAILS);
     }
 

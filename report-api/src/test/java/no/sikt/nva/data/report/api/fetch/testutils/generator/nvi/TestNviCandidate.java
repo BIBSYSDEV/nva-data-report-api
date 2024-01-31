@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.time.Instant;
 import java.util.List;
@@ -29,7 +30,7 @@ public record TestNviCandidate(String identifier,
     }
 
     public Model generateModel() {
-        var publicationDetails = new PublicationDetailsGenerator();
+        var publicationDetails = new PublicationDetailsGenerator(randomUri().toString());
         publicationDetails().contributors().stream()
             .map(TestNviContributor::toModel)
             .forEach(publicationDetails::withNviContributor);
@@ -47,7 +48,6 @@ public record TestNviCandidate(String identifier,
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestAffiliation affiliation) {
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
-            .append(extractLastPathElement(publicationDetails().id())).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(extractLastPathElement(affiliation.id())).append(DELIMITER)
             .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionId
