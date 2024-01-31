@@ -59,6 +59,7 @@ paths:
           'https://api.nva.unit.no/scopes/backend',
           'https://api.nva.unit.no/scopes/frontend',
           'aws.cognito.signin.user.admin',
+          'https://api.nva.unit.no/scopes/third-party/reporting-read'
         ]
       x-amazon-apigateway-integration:
         uri:
@@ -165,3 +166,4 @@ components:
         type: cognito_user_pools
         providerARNs:
           - Ref: CognitoAuthorizerArn
+          - Ref: ExternalCognitoAuthorizerArn
