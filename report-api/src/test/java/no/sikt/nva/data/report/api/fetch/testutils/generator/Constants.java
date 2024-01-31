@@ -8,6 +8,7 @@ public class Constants {
     private static final String BASE_URI = "https://example.org/";
     public static final String PUBLICATION_BASE_URI = BASE_URI + "publication/";
     public static final String PERSON_BASE_URI = BASE_URI + "person/";
+    public static final String NVI_CANDIDATE_BASE_URI = BASE_URI + "scientific-index/candidate/";
     public static final String ORGANIZATION_BASE_URI = BASE_URI + "organization/";
     public static final String FUNDING_SOURCE_BASE_URI = BASE_URI + "funding/";
     private static final String VERIFIED_FUNDING = BASE_URI + "verified-funding/nfr/";

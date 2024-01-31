@@ -1,7 +1,13 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.NviAffiliationGenerator;
+
 public record TestAffiliation(String id,
                               boolean isNviAffiliation) {
+
+    public NviAffiliationGenerator toModel() {
+        return new NviAffiliationGenerator(id);
+    }
 
     public static Builder builder() {
         return new Builder();

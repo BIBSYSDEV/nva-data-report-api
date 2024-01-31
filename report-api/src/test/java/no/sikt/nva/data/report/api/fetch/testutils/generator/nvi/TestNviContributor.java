@@ -1,10 +1,18 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import java.util.List;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.NviContributorGenerator;
 
 public record TestNviContributor(String id,
                                  boolean isNviContributor,
                                  List<TestAffiliation> affiliations) {
+
+    public NviContributorGenerator toModel() {
+        var contributor = new NviContributorGenerator(id);
+        affiliations.stream().map(TestAffiliation::toModel)
+            .forEach(contributor::withAffiliation);
+        return contributor;
+    }
 
     public static Builder builder() {
         return new Builder();

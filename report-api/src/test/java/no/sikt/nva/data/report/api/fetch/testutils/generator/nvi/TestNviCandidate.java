@@ -3,12 +3,15 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.time.Instant;
 import java.util.List;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
 import nva.commons.core.paths.UriWrapper;
+import org.apache.jena.rdf.model.Model;
 
-public record TestNviCandidate(List<TestApproval> approvals,
+public record TestNviCandidate(String identifier,
                                Instant modifiedDate,
                                TestPublicationDetails publicationDetails,
-                               String identifier) {
+                               List<TestApproval> approvals) {
 
     public static final String DELIMITER = ",";
     public static final String EMPTY_STRING = "";
@@ -23,6 +26,16 @@ public record TestNviCandidate(List<TestApproval> approvals,
             .filter(TestNviContributor::isNviContributor)
             .forEach(contributor -> generateExpectedNviResponse(stringBuilder, contributor));
         return stringBuilder.toString();
+    }
+
+    public Model generateModel() {
+        var publicationDetails = new PublicationDetailsGenerator();
+        publicationDetails().contributors().stream()
+            .map(TestNviContributor::toModel)
+            .forEach(publicationDetails::withNviContributor);
+        var nviCandidate = new CandidateGenerator(identifier, modifiedDate.toString())
+                               .withPublicationDetails(publicationDetails);
+        return nviCandidate.build();
     }
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor) {
@@ -78,7 +91,7 @@ public record TestNviCandidate(List<TestApproval> approvals,
         }
 
         public TestNviCandidate build() {
-            return new TestNviCandidate(approvals, modifiedDate, publicationDetails, identifier);
+            return new TestNviCandidate(identifier, modifiedDate, publicationDetails, approvals);
         }
     }
 }

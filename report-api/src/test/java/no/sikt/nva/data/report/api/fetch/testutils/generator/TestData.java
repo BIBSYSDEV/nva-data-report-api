@@ -80,7 +80,8 @@ public class TestData {
         this.model = ModelFactory.createDefaultModel();
         this.publicationTestData = generatePublicationData(dates);
         this.nviTestData = generateNviData(dates);
-        generateModel(publicationTestData);
+        addPublicationDataToModel(publicationTestData);
+        addNviDataToModel(nviTestData);
     }
 
     public Model getModel() {
@@ -187,6 +188,7 @@ public class TestData {
 
     private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
         return TestNviCandidate.builder()
+                   .withIdentifier(UUID.randomUUID().toString())
                    .withModifiedDate(modifiedDate)
                    .withPublicationDetails(generatePublicationDetails())
                    .build();
@@ -214,9 +216,15 @@ public class TestData {
                    .build();
     }
 
-    private void generateModel(List<TestPublication> testData) {
+    private void addPublicationDataToModel(List<TestPublication> testData) {
         testData.stream()
             .map(TestPublication::generateModel)
+            .forEach(model::add);
+    }
+
+    private void addNviDataToModel(List<TestNviCandidate> testData) {
+        testData.stream()
+            .map(TestNviCandidate::generateModel)
             .forEach(model::add);
     }
 
