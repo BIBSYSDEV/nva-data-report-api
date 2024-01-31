@@ -135,6 +135,7 @@ public class TestData {
 
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NVI_HEADERS) + CRLF.getString();
+        nviTestData.sort(this::sortByPublicationUri);
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedNviResponse)
                          .collect(Collectors.joining());
@@ -211,8 +212,8 @@ public class TestData {
 
     private TestAffiliation generateNviAffiliation() {
         return TestAffiliation.builder()
-                   .withIsNviAffiliation(true)
                    .withId(randomUri().toString())
+                   .withIsNviAffiliation(true)
                    .build();
     }
 
@@ -248,6 +249,10 @@ public class TestData {
 
     private int sortByPublicationUri(TestPublication a, TestPublication b) {
         return a.getPublicationUri().compareTo(b.getPublicationUri());
+    }
+
+    private int sortByPublicationUri(TestNviCandidate a, TestNviCandidate b) {
+        return a.publicationDetails().id().compareTo(b.publicationDetails().id());
     }
 
     public record DatePair(PublicationDate publicationDate, Instant modifiedDate) {
