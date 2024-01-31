@@ -22,9 +22,9 @@ import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
 import no.sikt.nva.data.report.api.fetch.testutils.TestingRequest;
 import no.sikt.nva.data.report.api.fetch.testutils.ValidRequestSource;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
@@ -49,11 +49,9 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 class FetchDataReportTest {
 
     private static final String GSP_ENDPOINT = "/gsp";
-
+    private static final URI GRAPH = URI.create("https://example.org/graph");
     private static FusekiServer server;
     private static DatabaseConnection databaseConnection;
-
-    private static final URI GRAPH = URI.create("https://example.org/graph");
 
     @BeforeAll
     static void setup() {
@@ -96,9 +94,9 @@ class FetchDataReportTest {
     @ArgumentsSource(ValidRequestSource.class)
     void shouldReturnFormattedResult(TestingRequest request) throws IOException, BadRequestException {
         var testData = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
-                                                     Instant.now().minus(100, ChronoUnit.DAYS)),
-                                        new DatePair(new PublicationDate("2023", "10", "18"),
-                                                     Instant.now().minus(100, ChronoUnit.DAYS))));
+                                                         Instant.now().minus(100, ChronoUnit.DAYS)),
+                                            new DatePair(new PublicationDate("2023", "10", "18"),
+                                                         Instant.now().minus(100, ChronoUnit.DAYS))));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
@@ -132,6 +130,20 @@ class FetchDataReportTest {
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
         assertEquals(expected, response.getBody());
+    }
+
+    private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
+        return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
+                   .withHeaders(request.acceptHeader())
+                   .withPathParameters(request.pathParameters())
+                   .withQueryParameters(request.queryParameters())
+                   .build();
+    }
+
+    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
+        if (!(e instanceof HttpException)) {
+            throw new RuntimeException(e);
+        }
     }
 
     private List<DatePair> getRandomTestList() {
@@ -168,19 +180,5 @@ class FetchDataReportTest {
         return TEXT_CSV.equals(responseType)
                    ? data
                    : ExpectedCsvFormatter.generateTable(data);
-    }
-
-    private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
-        return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
-                   .withHeaders(request.acceptHeader())
-                   .withPathParameters(request.pathParameters())
-                   .withQueryParameters(request.queryParameters())
-                   .build();
-    }
-
-    private static void catchExpectedExceptionsExceptHttpException(Exception e) {
-        if (!(e instanceof HttpException)) {
-            throw new RuntimeException(e);
-        }
     }
 }
