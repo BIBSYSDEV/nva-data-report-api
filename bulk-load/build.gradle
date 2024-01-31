@@ -1,0 +1,11 @@
+plugins {
+    id 'nva.data.report.api.java-conventions'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation libs.bundles.jena
+}
