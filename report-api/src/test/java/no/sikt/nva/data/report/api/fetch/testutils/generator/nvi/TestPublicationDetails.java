@@ -4,9 +4,9 @@ import java.util.List;
 
 public record TestPublicationDetails(String id, List<TestNviContributor> contributors) {
 
-      public static Builder builder() {
-          return new Builder();
-      }
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public static final class Builder {
 
@@ -15,6 +15,7 @@ public record TestPublicationDetails(String id, List<TestNviContributor> contrib
 
         private Builder() {
         }
+
         public Builder withId(String id) {
             this.id = id;
             return this;

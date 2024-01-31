@@ -10,7 +10,8 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class NviAffiliationGenerator extends TripleBasedBuilder {
 
-    private static final Property IS_NVI_AFFILIATION = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "isNviAffiliation");
+    private static final Property IS_NVI_AFFILIATION = new PropertyImpl(Constants.ONTOLOGY_BASE_URI,
+                                                                        "isNviAffiliation");
 
     private final Model model;
     private final Resource subject;
