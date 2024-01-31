@@ -1,6 +1,5 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.time.Instant;
 import java.util.List;
@@ -30,7 +29,7 @@ public record TestNviCandidate(String identifier,
     }
 
     public Model generateModel() {
-        var publicationDetails = new PublicationDetailsGenerator(randomUri().toString());
+        var publicationDetails = new PublicationDetailsGenerator(publicationDetails().id());
         publicationDetails().contributors().stream()
             .map(TestNviContributor::toModel)
             .forEach(publicationDetails::withNviContributor);
