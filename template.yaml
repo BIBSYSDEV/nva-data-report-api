@@ -45,6 +45,10 @@ Parameters:
     Type: String
     Description: Prefix for nvi-candidate files in persisted-resources bucket
     Default: nvi-candidates/
+  LoaderBucketName:
+    Type: 'String'
+    Default: "loader-input-files"
+    Description: Name of bucket for input NQuads files
 
 Mappings:
   SubnetConfig:
@@ -324,6 +328,24 @@ Resources:
             Type: SQS
             Destination: !GetAtt DataLoadingDLQ.Arn
 
+  BulkDataLoader:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bulk-load
+      Policies:
+        - VPCAccessPolicy: { }
+      Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          LOADER_BUCKET: !Ref LoaderBucketName
+          NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
+          NEPTUNE_PORT: 8182
+          LOADER_IAM_ROLE: !Get ReadAndListBucketPolicy.Arn
+
+
   ResetDatabaseButton:
     Type: AWS::Serverless::Function
     Properties:
@@ -535,6 +557,42 @@ Resources:
               - 's3:Get*'
               - 's3:List*'
             Resource: '*'
+
+    #---- Buckets ----
+  LoaderBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${LoaderBucketName}-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteContentAfter3Days
+            Status: Enabled
+            ExpirationInDays: 3
+
+    #---- Role for Neptune load ----
+
+  ReadAndListBucketPolicy:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ rds.amazonaws.com ]
+            Action: [ 'sts:AssumeRole' ]
+      Policies:
+        - PolicyName: listGetS3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get*
+                  - s3:List*
+                Resource: !Get LoaderBucket.Arn
+
 
 #### OUTPUTS ####
 Outputs:
