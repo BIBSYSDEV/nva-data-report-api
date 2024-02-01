@@ -328,6 +328,7 @@ Resources:
             Type: SQS
             Destination: !GetAtt DataLoadingDLQ.Arn
 
+
   BulkDataLoader:
     Type: AWS::Serverless::Function
     Properties:
@@ -344,6 +345,7 @@ Resources:
           NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
           NEPTUNE_PORT: 8182
           LOADER_IAM_ROLE: !Get ReadAndListBucketPolicy.Arn
+          AWS_REGION: !Ref AWS::Region
 
 
   ResetDatabaseButton:
