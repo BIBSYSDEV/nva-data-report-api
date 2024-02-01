@@ -1,8 +1,8 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.ContributorGenerator;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.RoleGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.ContributorGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.RoleGenerator;
 
 public class TestContributor {
     private String contributorRole;

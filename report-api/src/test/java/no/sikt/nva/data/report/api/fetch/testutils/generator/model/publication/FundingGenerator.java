@@ -1,9 +1,10 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator.model;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication;
 
 import static java.util.Objects.nonNull;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublicationGenerator.IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.PublicationGenerator.IDENTIFIER;
 import java.util.concurrent.ThreadLocalRandom;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;

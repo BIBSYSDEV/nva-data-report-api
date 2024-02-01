@@ -1,8 +1,8 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
 import static java.util.Objects.isNull;
 import java.util.Optional;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.OrganizationGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.OrganizationGenerator;
 
 public class TestOrganization {
 

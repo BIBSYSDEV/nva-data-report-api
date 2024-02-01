@@ -1,9 +1,9 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
 import java.util.UUID;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.JournalGenerator;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublicationContext;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublisherGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.JournalGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.PublicationContext;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.PublisherGenerator;
 
 public class TestChannel {
 

@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.testutils.generator.publication;
 
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.PERSON_BASE_URI;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
@@ -6,11 +6,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.EntityDescriptionGenerator;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublicationDateGenerator;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublicationGenerator;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.PublicationInstanceGenerator;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.ReferenceGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.EntityDescriptionGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.PublicationDateGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.PublicationGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.PublicationInstanceGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.ReferenceGenerator;
 import org.apache.jena.rdf.model.Model;
 
 public class TestPublication {

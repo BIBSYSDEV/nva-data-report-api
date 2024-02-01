@@ -133,6 +133,28 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "10"
                          )
                 )
+            ),
+            Arguments.of(
+                Named.of("nvi — text/csv", new TestingRequest(
+                             TEXT_CSV.toString(),
+                             "nvi",
+                             "2024-01-01",
+                             "1998-01-01",
+                             "0",
+                             "10"
+                         )
+                )
+            ),
+            Arguments.of(
+                Named.of("nvi — text/plain", new TestingRequest(
+                             TEXT_PLAIN.toString(),
+                             "nvi",
+                             "2024-01-01",
+                             "1998-01-01",
+                             "0",
+                             "10"
+                         )
+                )
             )
         );
     }
