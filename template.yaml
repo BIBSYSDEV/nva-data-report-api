@@ -366,6 +366,8 @@ Resources:
   NeptuneCluster:
     Type: AWS::Neptune::DBCluster
     Properties:
+      AssociatedRoles:
+        - RoleArn: !GetAtt ReadAndListBucketPolicy.Arn
       DBClusterIdentifier: !Ref ProjectName
       DBSubnetGroupName: !Ref NeptuneSubnets
       VpcSecurityGroupIds:
