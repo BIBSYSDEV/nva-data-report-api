@@ -341,7 +341,7 @@ Resources:
       AutoPublishAlias: live
       Environment:
         Variables:
-          LOADER_BUCKET: !Ref LoaderBucketName
+          LOADER_BUCKET: !Sub s3://${LoaderBucket}
           NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
           NEPTUNE_PORT: 8182
           LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
