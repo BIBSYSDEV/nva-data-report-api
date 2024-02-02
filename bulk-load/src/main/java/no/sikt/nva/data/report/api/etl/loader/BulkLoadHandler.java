@@ -10,8 +10,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import no.sikt.nva.data.report.api.etl.loader.LoaderSpec.Builder;
 import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +28,11 @@ public class BulkLoadHandler implements RequestStreamHandler {
     public static final String LOADER_BUCKET = "LOADER_BUCKET";
     public static final int HTTP_OK = 200;
     private final HttpClient httpClient;
+
+    @JacocoGenerated
+    public BulkLoadHandler() {
+        this.httpClient = HttpClient.newHttpClient();
+    }
 
     public BulkLoadHandler(HttpClient httpClient) {
         this.httpClient = httpClient;
@@ -60,7 +65,7 @@ public class BulkLoadHandler implements RequestStreamHandler {
     }
 
     private static String createLoaderSpec(Environment environment) {
-        return new Builder()
+        return new LoaderSpec.Builder()
                    .withSource(getLoaderSpecSource(environment))
                    .withFormat(Format.NQUADS)
                    .withFailOnError(true)

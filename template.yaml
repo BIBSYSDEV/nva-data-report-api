@@ -344,7 +344,7 @@ Resources:
           LOADER_BUCKET: !Ref LoaderBucketName
           NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
           NEPTUNE_PORT: 8182
-          LOADER_IAM_ROLE: !Get ReadAndListBucketPolicy.Arn
+          LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
           AWS_REGION: !Ref AWS::Region
 
 
@@ -593,7 +593,7 @@ Resources:
                 Action:
                   - s3:Get*
                   - s3:List*
-                Resource: !Get LoaderBucket.Arn
+                Resource: !GetAtt LoaderBucket.Arn
 
 
 #### OUTPUTS ####
