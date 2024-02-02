@@ -15,8 +15,7 @@ public record LoaderSpec(URI source,
     @Override
     public String toString() {
         return String.format("""
-                                 {
-                                 "source": "%s",
+                                 {"source": "%s",
                                  "format": "%s",
                                  "iamRoleArn": "%s",
                                  "region": "%s",
@@ -24,8 +23,9 @@ public record LoaderSpec(URI source,
                                  "parallelism": "%s",
                                  "updateSingleCardinalityProperties": "%s",
                                  "queueRequest": "%s",
-                                 "dependencies": [],
-                                 }""", source, format.toString(), iamRoleArn, region,
+                                 "dependencies": []
+                                 }
+                                 """, source, format.toString(), iamRoleArn, region,
                              booleanString(failOnError), parallelism.toString(),
                              booleanString(updateSingleCardinalityProperties),
                              booleanString(queueRequest));
