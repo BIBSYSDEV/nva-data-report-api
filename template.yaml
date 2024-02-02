@@ -345,7 +345,7 @@ Resources:
           NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
           NEPTUNE_PORT: 8182
           LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
-          AWS_REGION: !Ref AWS::Region
+          AWS_REGION_NAME: !Ref AWS::Region
 
 
   ResetDatabaseButton:
