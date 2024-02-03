@@ -99,12 +99,14 @@ public class BulkLoadHandler implements RequestStreamHandler {
     }
 
     private URI createLogRequestUri(Environment environment, ErrorLogRequest errorLogRequest) {
-        return URI.create(String.format(ERROR_LOG_URI_TEMPLATE,
+        var uri = URI.create(String.format(ERROR_LOG_URI_TEMPLATE,
                                         environment.readEnv(NEPTUNE_ENDPOINT),
                                         environment.readEnv(NEPTUNE_PORT),
                                         errorLogRequest.loadId().toString(),
                                         errorLogRequest.page(),
                                         errorLogRequest.errorsPerPage()));
+        logger.info(uri.toString());
+        return uri;
     }
 
     private static URI createUri(Environment environment) {
