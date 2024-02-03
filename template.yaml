@@ -538,6 +538,12 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref PrivateSubnet1
 
+  PrivateRouteTable2Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+
   PrivateRouteTableLambdaAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
