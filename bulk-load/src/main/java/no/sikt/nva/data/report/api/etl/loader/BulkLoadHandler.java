@@ -68,14 +68,15 @@ public class BulkLoadHandler implements RequestStreamHandler {
     private void executeLogRequest(ErrorLogRequest errorLogRequest) {
         var response = attempt(() -> httpClient.send(createLogRequest(errorLogRequest),
                                                      BodyHandlers.ofString())).orElseThrow();
-        var responseBody = response.body();
+        var responseBody = attempt(() -> JsonUtils.dtoObjectMapper
+                                             .writeValueAsString(response.body()))
+                               .orElseThrow();
         if (response.statusCode() == HTTP_OK) {
             logger.info("Logs for loadId {}: {}", errorLogRequest.loadId(), responseBody);
         } else {
             logger.error("Log request failed for loadId {}: {}",
                          errorLogRequest.loadId(),
-                         attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(responseBody))
-                             .orElseThrow());
+                         responseBody);
         }
     }
 

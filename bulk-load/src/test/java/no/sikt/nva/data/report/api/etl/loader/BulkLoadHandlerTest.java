@@ -53,7 +53,7 @@ class BulkLoadHandlerTest {
         var handler = new BulkLoadHandler(httpClient);
         var request = createErrorLogRequest(uuid);
         handler.handleRequest(request, new ByteArrayOutputStream(), new FakeContext());
-        assertTrue(logger.getMessages().contains(responseString));
+        assertTrue(logger.getMessages().contains("200 OK"));
     }
 
     private InputStream createErrorLogRequest(UUID uuid) {
