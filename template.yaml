@@ -592,8 +592,9 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: [ rds.amazonaws.com ]
-            Action: [ 'sts:AssumeRole' ]
+              Service:
+                - rds.amazonaws.com
+            Action: sts:AssumeRole
       Policies:
         - PolicyName: listGetS3
           PolicyDocument:
@@ -603,7 +604,7 @@ Resources:
                 Action:
                   - s3:Get*
                   - s3:List*
-                Resource: !GetAtt LoaderBucket.Arn
+                Resource: !Sub '${LoaderBucket.Arn}/*'
 
 
 #### OUTPUTS ####

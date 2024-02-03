@@ -68,9 +68,7 @@ public class BulkLoadHandler implements RequestStreamHandler {
     private void executeLogRequest(ErrorLogRequest errorLogRequest) {
         var response = attempt(() -> httpClient.send(createLogRequest(errorLogRequest),
                                                      BodyHandlers.ofString())).orElseThrow();
-        var responseBody = attempt(() -> JsonUtils.dtoObjectMapper
-                                             .writeValueAsString(response.body()))
-                               .orElseThrow();
+        var responseBody = response.body();
         if (response.statusCode() == HTTP_OK) {
             logger.info("Logs for loadId {}: {}", errorLogRequest.loadId(), responseBody);
         } else {
@@ -99,14 +97,12 @@ public class BulkLoadHandler implements RequestStreamHandler {
     }
 
     private URI createLogRequestUri(Environment environment, ErrorLogRequest errorLogRequest) {
-        var uri = URI.create(String.format(ERROR_LOG_URI_TEMPLATE,
+        return URI.create(String.format(ERROR_LOG_URI_TEMPLATE,
                                         environment.readEnv(NEPTUNE_ENDPOINT),
                                         environment.readEnv(NEPTUNE_PORT),
                                         errorLogRequest.loadId().toString(),
                                         errorLogRequest.page(),
                                         errorLogRequest.errorsPerPage()));
-        logger.info(uri.toString());
-        return uri;
     }
 
     private static URI createUri(Environment environment) {
