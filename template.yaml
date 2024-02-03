@@ -381,7 +381,7 @@ Resources:
         MaxCapacity: 128
         MinCapacity: 2.5
       EnableCloudwatchLogsExports:
-        - error
+        - audit
 
   NeptuneInstance1:
     Type: AWS::Neptune::DBInstance
