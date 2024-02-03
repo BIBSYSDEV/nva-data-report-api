@@ -74,7 +74,8 @@ public class BulkLoadHandler implements RequestStreamHandler {
         } else {
             logger.error("Log request failed for loadId {}: {}",
                          errorLogRequest.loadId(),
-                         responseBody);
+                         attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(responseBody))
+                             .orElseThrow());
         }
     }
 
