@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.etl.loader;
 
+import static java.util.Objects.isNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -10,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -27,6 +29,8 @@ public class BulkLoadHandler implements RequestStreamHandler {
     public static final String AWS_REGION = "AWS_REGION_NAME";
     public static final String LOADER_BUCKET = "LOADER_BUCKET";
     public static final int HTTP_OK = 200;
+    private static final String ERROR_LOG_URI_TEMPLATE = "https://%s:%s/loader/%s?details=true"
+                                                         + "&errors=true&page=%d&errorsPerPage=%d";
     private final HttpClient httpClient;
 
     @JacocoGenerated
@@ -40,12 +44,36 @@ public class BulkLoadHandler implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) {
-        var response = attempt(() -> httpClient.send(createRequest(), BodyHandlers.ofString())).orElseThrow();
+        if (isNull(inputStream)) {
+            executeLoadOperation();
+        } else {
+            var errorLogRequest = attempt(() -> JsonUtils.dtoObjectMapper
+                                      .readValue(inputStream, ErrorLogRequest.class)).orElseThrow();
+            executeLogRequest(errorLogRequest);
+        }
+    }
+
+    private void executeLoadOperation() {
+        var response = attempt(() -> httpClient.send(createRequest(), BodyHandlers.ofString()))
+                           .orElseThrow();
         var responseBody = response.body();
         if (response.statusCode() == HTTP_OK) {
             logger.info("Successfully initiated load: {}", responseBody);
         } else {
             logger.error("Loading failed: {}", responseBody);
+        }
+    }
+
+    private void executeLogRequest(ErrorLogRequest errorLogRequest) {
+        var response = attempt(() -> httpClient.send(createLogRequest(errorLogRequest),
+                                                     BodyHandlers.ofString())).orElseThrow();
+        var responseBody = response.body();
+        if (response.statusCode() == HTTP_OK) {
+            logger.info("Logs for loadId {}: {}", errorLogRequest.loadId(), responseBody);
+        } else {
+            logger.error("Log request failed for loadId {}: {}",
+                         errorLogRequest.loadId(),
+                         responseBody);
         }
     }
 
@@ -56,6 +84,24 @@ public class BulkLoadHandler implements RequestStreamHandler {
                    .header(CONTENT_TYPE, APPLICATION_JSON)
                    .uri(createUri(environment))
                    .build();
+    }
+
+    private HttpRequest createLogRequest(ErrorLogRequest errorLogRequest) {
+        var environment = new Environment();
+        return HttpRequest.newBuilder()
+                   .POST(BodyPublishers.ofString(createLoaderSpec(environment)))
+                   .header(CONTENT_TYPE, APPLICATION_JSON)
+                   .uri(createLogRequestUri(environment, errorLogRequest))
+                   .build();
+    }
+
+    private URI createLogRequestUri(Environment environment, ErrorLogRequest errorLogRequest) {
+        return URI.create(String.format(ERROR_LOG_URI_TEMPLATE,
+                                        environment.readEnv(NEPTUNE_ENDPOINT),
+                                        environment.readEnv(NEPTUNE_PORT),
+                                        errorLogRequest.loadId().toString(),
+                                        errorLogRequest.page(),
+                                        errorLogRequest.errorsPerPage()));
     }
 
     private static URI createUri(Environment environment) {

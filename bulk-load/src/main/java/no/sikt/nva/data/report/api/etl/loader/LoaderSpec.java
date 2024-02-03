@@ -46,6 +46,7 @@ public record LoaderSpec(URI source,
         private Parallelism parallelism;
         private boolean updateSingleCardinalityProperties;
         private boolean queueRequest;
+
         public Builder() {
             // Default constructor.
         }
