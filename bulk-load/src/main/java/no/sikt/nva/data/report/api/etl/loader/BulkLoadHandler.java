@@ -14,6 +14,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.ioutils.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,11 +45,12 @@ public class BulkLoadHandler implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) {
-        if (isNull(inputStream)) {
+        var input = IoUtils.streamToString(inputStream);
+        if (isNull(input) || input.isEmpty()) {
             executeLoadOperation();
         } else {
             var errorLogRequest = attempt(() -> JsonUtils.dtoObjectMapper
-                                      .readValue(inputStream, ErrorLogRequest.class)).orElseThrow();
+                                      .readValue(input, ErrorLogRequest.class)).orElseThrow();
             executeLogRequest(errorLogRequest);
         }
     }

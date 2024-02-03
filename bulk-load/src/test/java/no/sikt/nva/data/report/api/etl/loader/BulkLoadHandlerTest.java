@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +26,8 @@ class BulkLoadHandlerTest {
         var responseString = createSuccessResponseString();
         var httpClient = setUpSuccessfulHttpResponse(responseString);
         var handler = new BulkLoadHandler(httpClient);
-        handler.handleRequest(null, new ByteArrayOutputStream(), new FakeContext());
+        handler.handleRequest(new ByteArrayInputStream("".getBytes()), new ByteArrayOutputStream(),
+                              new FakeContext());
         assertTrue(logger.getMessages().contains(responseString));
     }
 
@@ -35,7 +37,8 @@ class BulkLoadHandlerTest {
         var responseString = createFailingResponseString();
         var httpClient = setUpFailingHttpResponse(responseString);
         var handler = new BulkLoadHandler(httpClient);
-        handler.handleRequest(null, new ByteArrayOutputStream(), new FakeContext());
+        handler.handleRequest(new ByteArrayInputStream("".getBytes()), new ByteArrayOutputStream(),
+                              new FakeContext());
         assertTrue(logger.getMessages().contains(responseString));
     }
 
