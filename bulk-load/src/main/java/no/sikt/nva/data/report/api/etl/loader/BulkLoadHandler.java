@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.etl.loader;
 
+import static java.util.Objects.isNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -44,11 +45,12 @@ public class BulkLoadHandler implements RequestStreamHandler {
     @Override
     public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) {
         var errorLogRequest = attempt(() -> JsonUtils.dtoObjectMapper
-                                                .readValue(inputStream, ErrorLogRequest.class));
-        if (errorLogRequest.isFailure()) {
+                                                .readValue(inputStream, ErrorLogRequest.class))
+                                  .orElseThrow();
+        if (isNull(errorLogRequest.loadId())) {
             executeLoadOperation();
         } else {
-            executeLogRequest(errorLogRequest.orElseThrow());
+            executeLogRequest(errorLogRequest);
         }
     }
 

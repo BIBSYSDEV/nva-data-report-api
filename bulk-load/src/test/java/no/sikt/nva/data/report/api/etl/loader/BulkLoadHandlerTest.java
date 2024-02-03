@@ -26,7 +26,8 @@ class BulkLoadHandlerTest {
         var responseString = createSuccessResponseString();
         var httpClient = setUpSuccessfulHttpResponse(responseString);
         var handler = new BulkLoadHandler(httpClient);
-        handler.handleRequest(new ByteArrayInputStream("".getBytes()), new ByteArrayOutputStream(),
+        handler.handleRequest(new ByteArrayInputStream("{}".getBytes()),
+                              new ByteArrayOutputStream(),
                               new FakeContext());
         assertTrue(logger.getMessages().contains(responseString));
     }
@@ -37,7 +38,8 @@ class BulkLoadHandlerTest {
         var responseString = createFailingResponseString();
         var httpClient = setUpFailingHttpResponse(responseString);
         var handler = new BulkLoadHandler(httpClient);
-        handler.handleRequest(new ByteArrayInputStream("".getBytes()), new ByteArrayOutputStream(),
+        handler.handleRequest(new ByteArrayInputStream("{}".getBytes()),
+                              new ByteArrayOutputStream(),
                               new FakeContext());
         assertTrue(logger.getMessages().contains(responseString));
     }
