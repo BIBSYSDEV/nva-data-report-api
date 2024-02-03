@@ -92,7 +92,7 @@ public class BulkLoadHandler implements RequestStreamHandler {
     private HttpRequest createLogRequest(ErrorLogRequest errorLogRequest) {
         var environment = new Environment();
         return HttpRequest.newBuilder()
-                   .POST(BodyPublishers.ofString(createLoaderSpec(environment)))
+                   .GET()
                    .header(CONTENT_TYPE, APPLICATION_JSON)
                    .uri(createLogRequestUri(environment, errorLogRequest))
                    .build();
