@@ -604,7 +604,9 @@ Resources:
                 Action:
                   - s3:Get*
                   - s3:List*
-                Resource: !Sub '${LoaderBucket.Arn}/*'
+                Resource:
+                  - !GetAtt LoaderBucket.Arn
+                  - !Sub '${LoaderBucket.Arn}/*'
 
 
 #### OUTPUTS ####
