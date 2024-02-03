@@ -45,13 +45,12 @@ public class BulkLoadHandler implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) {
-        var input = IoUtils.streamToString(inputStream);
-        if (isNull(input) || input.isEmpty()) {
+        var errorLogRequest = attempt(() -> JsonUtils.dtoObjectMapper
+                                                .readValue(inputStream, ErrorLogRequest.class));
+        if (errorLogRequest.isFailure()) {
             executeLoadOperation();
         } else {
-            var errorLogRequest = attempt(() -> JsonUtils.dtoObjectMapper
-                                      .readValue(input, ErrorLogRequest.class)).orElseThrow();
-            executeLogRequest(errorLogRequest);
+            executeLogRequest(errorLogRequest.orElseThrow());
         }
     }
 
