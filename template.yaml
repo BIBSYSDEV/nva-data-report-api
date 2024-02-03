@@ -380,8 +380,6 @@ Resources:
       ServerlessScalingConfiguration:
         MaxCapacity: 128
         MinCapacity: 2.5
-      EnableCloudwatchLogsExports:
-        - audit
 
   NeptuneInstance1:
     Type: AWS::Neptune::DBInstance
