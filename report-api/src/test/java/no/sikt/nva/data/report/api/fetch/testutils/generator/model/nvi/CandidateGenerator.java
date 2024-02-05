@@ -17,7 +17,7 @@ public class CandidateGenerator extends TripleBasedBuilder {
     private static final Property PUBLICATION_DETAILS = new PropertyImpl(ONTOLOGY_BASE_URI + "publicationDetails");
     private static final Property MODIFIED_DATE = new PropertyImpl(ONTOLOGY_BASE_URI + "modifiedDate");
     private static final Property IDENTIFIER = new PropertyImpl(ONTOLOGY_BASE_URI + "identifier");
-    private static final Property APPROVAL = new PropertyImpl(ONTOLOGY_BASE_URI + "Approval");
+    private static final Property APPROVAL = new PropertyImpl(ONTOLOGY_BASE_URI + "approval");
     private final Model model;
     private final Resource subject;
 
