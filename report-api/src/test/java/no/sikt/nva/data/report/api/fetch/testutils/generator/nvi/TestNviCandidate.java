@@ -50,12 +50,17 @@ public record TestNviCandidate(String identifier,
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
+        var approval = approvals().stream()
+                           .filter(testApproval -> testApproval.institutionId()
+                                                       .equals(affiliation.getTopLevelOrganization()))
+                           .findFirst()
+                           .orElseThrow();
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
-            .append(affiliation.getTopLevelOrganization()).append(DELIMITER)
-            .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionPoints
-            .append(EMPTY_STRING)//TODO: InstitutionApprovalStatus
+            .append(approval.institutionId()).append(DELIMITER)
+            .append(approval.points()).append(DELIMITER)
+            .append(approval.approvalStatus().getValue())
             .append(CRLF.getString());
     }
 
