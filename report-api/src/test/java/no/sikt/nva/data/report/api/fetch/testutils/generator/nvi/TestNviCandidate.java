@@ -34,6 +34,12 @@ public record TestNviCandidate(String identifier,
             .forEach(publicationDetails::withNviContributor);
         var nviCandidate = new CandidateGenerator(identifier, modifiedDate.toString())
                                .withPublicationDetails(publicationDetails);
+        approvals().stream()
+            .map(testApproval -> testApproval.toModel()
+                                     .withApprovalStatus(testApproval.approvalStatus().getValue())
+                                     .withInstitutionId(testApproval.institutionId())
+                                     .withPoints(testApproval.points().toString()))
+            .forEach(nviCandidate::withApproval);
         return nviCandidate.build();
     }
 
@@ -47,7 +53,7 @@ public record TestNviCandidate(String identifier,
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
-            .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionId
+            .append(affiliation.getTopLevelOrganization()).append(DELIMITER)
             .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionPoints
             .append(EMPTY_STRING)//TODO: InstitutionApprovalStatus
             .append(CRLF.getString());

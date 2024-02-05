@@ -32,11 +32,11 @@ public class OrganizationGenerator extends TripleBasedBuilder {
         return this;
     }
 
-    public OrganizationGenerator withPartOf(OrganizationGenerator orgaanization) {
-        if (nonNull(orgaanization)) {
-            model.add(subject, PART_OF, orgaanization.getSubject());
-            model.add(orgaanization.getSubject(), HAS_PART, subject);
-            model.add(orgaanization.model);
+    public OrganizationGenerator withPartOf(OrganizationGenerator organization) {
+        if (nonNull(organization)) {
+            model.add(subject, PART_OF, organization.getSubject());
+            model.add(organization.getSubject(), HAS_PART, subject);
+            model.add(organization.model);
         }
         return this;
     }

@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import java.math.BigDecimal;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 
 public record TestApproval(String institutionId,
                            ApprovalStatus approvalStatus,
@@ -10,13 +11,24 @@ public record TestApproval(String institutionId,
         return new Builder();
     }
 
+    public ApprovalGenerator toModel() {
+        return new ApprovalGenerator();
+    }
+
     public enum ApprovalStatus {
 
         PENDING("Pending"),
         APPROVED("Approved"),
         REJECTED("Rejected");
 
+        private final String value;
+
         ApprovalStatus(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
         }
     }
 

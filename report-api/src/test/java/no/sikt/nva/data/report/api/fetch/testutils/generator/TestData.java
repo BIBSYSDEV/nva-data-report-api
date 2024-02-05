@@ -1,15 +1,20 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval.ApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestChannel;
@@ -184,14 +189,26 @@ public class TestData {
     }
 
     private static TestOrganization generateAffiliation() {
-        return new TestOrganization(Constants.organizationUri("10.1.1.2"), "My university");
+        return new TestOrganization(organizationUri("10.1.1.2"), "My university");
     }
 
     private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
+        var publicationDetails = generatePublicationDetails();
+        var approvals = publicationDetails.contributors().stream()
+                            .flatMap(contributor -> contributor.affiliations().stream())
+                            .map(TestNviOrganization::getTopLevelOrganization)
+                            .distinct()
+                            .map(topLevelOrganization -> TestApproval.builder()
+                                                             .withInstitutionId(topLevelOrganization)
+                                                             .withApprovalStatus(randomElement(ApprovalStatus.values()))
+                                                             .withPoints(BigDecimal.ONE)
+                                                             .build())
+                            .toList();
         return TestNviCandidate.builder()
                    .withIdentifier(UUID.randomUUID().toString())
                    .withModifiedDate(modifiedDate)
-                   .withPublicationDetails(generatePublicationDetails())
+                   .withPublicationDetails(publicationDetails)
+                   .withApprovals(approvals)
                    .build();
     }
 
@@ -211,7 +228,7 @@ public class TestData {
 
     private TestNviOrganization generateNviAffiliation() {
         return TestNviOrganization.builder()
-                   .withId(randomUri().toString())
+                   .withId(organizationUri("10.1.1.2"))
                    .build();
     }
 
