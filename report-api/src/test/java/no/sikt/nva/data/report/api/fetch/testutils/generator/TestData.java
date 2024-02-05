@@ -151,6 +151,7 @@ public class TestData {
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NVI_HEADERS) + CRLF.getString();
         nviTestData.sort(this::sortByPublicationUri);
+        nviTestData.forEach(candidate -> candidate.publicationDetails().contributors().sort(this::sortByContributor));
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedNviResponse)
                          .collect(Collectors.joining());
@@ -225,7 +226,7 @@ public class TestData {
     private TestPublicationDetails generatePublicationDetails() {
         return TestPublicationDetails.builder()
                    .withId(randomUri().toString())
-                   .withContributors(List.of(generateNviContributor()))
+                   .withContributors(new ArrayList<>(List.of(generateNviContributor(), generateNviContributor())))
                    .build();
     }
 
@@ -278,6 +279,10 @@ public class TestData {
 
     private int sortByPublicationUri(TestNviCandidate a, TestNviCandidate b) {
         return a.publicationDetails().id().compareTo(b.publicationDetails().id());
+    }
+
+    private int sortByContributor(TestNviContributor a, TestNviContributor b) {
+        return a.id().compareTo(b.id());
     }
 
     public record DatePair(PublicationDate publicationDate, Instant modifiedDate) {
