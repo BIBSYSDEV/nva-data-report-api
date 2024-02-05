@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestAffiliation;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
@@ -205,15 +205,13 @@ public class TestData {
     private TestNviContributor generateNviContributor() {
         return TestNviContributor.builder()
                    .withId(randomUri().toString())
-                   .withIsNviContributor(true)
                    .withAffiliations(List.of(generateNviAffiliation()))
                    .build();
     }
 
-    private TestAffiliation generateNviAffiliation() {
-        return TestAffiliation.builder()
+    private TestNviOrganization generateNviAffiliation() {
+        return TestNviOrganization.builder()
                    .withId(randomUri().toString())
-                   .withIsNviAffiliation(true)
                    .build();
     }
 

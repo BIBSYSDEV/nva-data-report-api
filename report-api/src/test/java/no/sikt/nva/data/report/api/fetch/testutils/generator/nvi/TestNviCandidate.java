@@ -22,8 +22,7 @@ public record TestNviCandidate(String identifier,
 
     public String getExpectedNviResponse() {
         var stringBuilder = new StringBuilder();
-        publicationDetails().contributors().stream()
-            .filter(TestNviContributor::isNviContributor)
+        publicationDetails().contributors()
             .forEach(contributor -> generateExpectedNviResponse(stringBuilder, contributor));
         return stringBuilder.toString();
     }
@@ -39,13 +38,12 @@ public record TestNviCandidate(String identifier,
     }
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor) {
-        contributor.affiliations().stream()
-            .filter(TestAffiliation::isNviAffiliation)
+        contributor.affiliations()
             .forEach(affiliation -> generateExpectedNviResponse(stringBuilder, contributor, affiliation));
     }
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
-                                             TestAffiliation affiliation) {
+                                             TestNviOrganization affiliation) {
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
