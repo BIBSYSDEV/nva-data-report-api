@@ -4,11 +4,11 @@ import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.NviContributorGenerator;
 
 public record TestNviContributor(String id,
-                                 List<NviOrganization> affiliations) {
+                                 List<TestNviOrganization> affiliations) {
 
     public NviContributorGenerator toModel() {
         var contributor = new NviContributorGenerator(id);
-        affiliations.stream().map(NviOrganization::toModel)
+        affiliations.stream().map(TestNviOrganization::toModel)
             .forEach(contributor::withAffiliation);
         return contributor;
     }
@@ -20,7 +20,7 @@ public record TestNviContributor(String id,
     public static final class Builder {
 
         private String id;
-        private List<NviOrganization> affiliations;
+        private List<TestNviOrganization> affiliations;
 
         private Builder() {
         }
@@ -30,7 +30,7 @@ public record TestNviContributor(String id,
             return this;
         }
 
-        public Builder withAffiliations(List<NviOrganization> affiliations) {
+        public Builder withAffiliations(List<TestNviOrganization> affiliations) {
             this.affiliations = affiliations;
             return this;
         }

@@ -2,7 +2,7 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.NviOrganizationGenerator;
 
-public record NviOrganization(String id) {
+public record TestNviOrganization(String id) {
 
     public NviOrganizationGenerator toModel() {
         return new NviOrganizationGenerator(id);
@@ -24,8 +24,8 @@ public record NviOrganization(String id) {
             return this;
         }
 
-        public NviOrganization build() {
-            return new NviOrganization(id);
+        public TestNviOrganization build() {
+            return new TestNviOrganization(id);
         }
     }
 }

@@ -43,7 +43,7 @@ public record TestNviCandidate(String identifier,
     }
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
-                                             NviOrganization affiliation) {
+                                             TestNviOrganization affiliation) {
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
