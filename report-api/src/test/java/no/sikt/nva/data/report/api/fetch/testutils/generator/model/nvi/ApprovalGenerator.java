@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 
+import java.util.UUID;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
 import org.apache.jena.rdf.model.Model;
@@ -16,7 +17,7 @@ public class ApprovalGenerator extends TripleBasedBuilder {
 
     public ApprovalGenerator() {
         this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource("someBlankNode");
+        this.subject = model.createResource("someBlankNode" + UUID.randomUUID());
         model.add(subject, TYPE, APPROVAL);
     }
 
