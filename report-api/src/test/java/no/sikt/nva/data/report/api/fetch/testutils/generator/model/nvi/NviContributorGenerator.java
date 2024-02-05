@@ -10,8 +10,7 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class NviContributorGenerator extends TripleBasedBuilder {
 
-    private static final Property CONTRIBUTOR = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "Contributor");
-    public static final Property IS_NVI_CONTRIBUTOR = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "isNviContributor");
+    private static final Property CONTRIBUTOR = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "NviContributor");
     private static final Property AFFILIATION = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "affiliation");
     private final Model model;
     private final Resource subject;
@@ -20,10 +19,9 @@ public class NviContributorGenerator extends TripleBasedBuilder {
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(id);
         model.add(subject, TYPE, CONTRIBUTOR);
-        model.add(subject, IS_NVI_CONTRIBUTOR, model.createTypedLiteral(true));
     }
 
-    public NviContributorGenerator withAffiliation(NviAffiliationGenerator affiliation) {
+    public NviContributorGenerator withAffiliation(NviOrganizationGenerator affiliation) {
         model.add(subject, AFFILIATION, affiliation.getSubject());
         model.add(affiliation.build());
         return this;
