@@ -14,7 +14,6 @@ public record TestNviCandidate(String identifier,
                                List<TestApproval> approvals) {
 
     public static final String DELIMITER = ",";
-    public static final String EMPTY_STRING = "";
 
     public static Builder builder() {
         return new Builder();

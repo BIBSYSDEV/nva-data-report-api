@@ -1,10 +1,8 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 
-import static java.util.Objects.nonNull;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.OrganizationGenerator;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -12,6 +10,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class NviOrganizationGenerator extends TripleBasedBuilder {
+
     private static final Property PART_OF = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "partOf");
 
     private final Model model;

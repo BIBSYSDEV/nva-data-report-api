@@ -5,6 +5,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +57,9 @@ public class TestData {
     private static final String INSTITUTION_POINTS = "institutionPoints";
     private static final String INSTITUTION_APPROVAL_STATUS = "institutionApprovalStatus";
     private static final String PUBLICATION_DATE = "publicationDate";
+
+    private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
+    private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
                                                                     CONTRIBUTOR_ID, CONTRIBUTOR_NAME, AFFILIATION_ID,
                                                                     AFFILIATION_NAME, INSTITUTION_ID, FACULTY_ID,
@@ -87,6 +91,12 @@ public class TestData {
         this.nviTestData = generateNviData(dates);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
+    }
+
+    public static BigDecimal randomBigDecimal() {
+        var randomBigDecimal = MIN_BIG_DECIMAL.add(
+            BigDecimal.valueOf(Math.random()).multiply(MAX_BIG_DECIMAL.subtract(MIN_BIG_DECIMAL)));
+        return randomBigDecimal.setScale(4, RoundingMode.HALF_UP);
     }
 
     public Model getModel() {
@@ -201,7 +211,7 @@ public class TestData {
                             .map(topLevelOrganization -> TestApproval.builder()
                                                              .withInstitutionId(topLevelOrganization)
                                                              .withApprovalStatus(randomElement(ApprovalStatus.values()))
-                                                             .withPoints(BigDecimal.ONE)
+                                                             .withPoints(randomBigDecimal())
                                                              .build())
                             .toList();
         return TestNviCandidate.builder()
