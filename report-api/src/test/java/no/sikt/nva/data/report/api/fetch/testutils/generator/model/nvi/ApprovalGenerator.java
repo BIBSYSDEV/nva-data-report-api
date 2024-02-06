@@ -3,6 +3,7 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.OrganizationGenerator;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -21,8 +22,9 @@ public class ApprovalGenerator extends TripleBasedBuilder {
         model.add(subject, TYPE, APPROVAL);
     }
 
-    public ApprovalGenerator withInstitutionId(String institutionId) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "institutionId"), institutionId);
+    public ApprovalGenerator withInstitutionId(OrganizationGenerator organizationGenerator) {
+        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "institutionId"),
+                  organizationGenerator.subject);
         return this;
     }
 

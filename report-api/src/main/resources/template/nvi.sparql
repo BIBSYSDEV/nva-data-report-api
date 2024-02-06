@@ -27,8 +27,7 @@ SELECT DISTINCT
       ?approval a :Approval ;
         :approvalStatus ?institutionApprovalStatus ;
         :points ?institutionPoints ;
-        :institutionId ?organizationUriString .
-      BIND(URI(?organizationUriString) AS ?organizationUri)
+        :institutionId ?organizationUri .
       ?affiliationUri :partOf ?organizationUri .
       BIND(STR(?organizationUri) AS ?institutionId)
 

@@ -6,6 +6,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -210,7 +211,7 @@ public class TestData {
                             .map(TestNviOrganization::getTopLevelOrganization)
                             .distinct()
                             .map(topLevelOrganization -> TestApproval.builder()
-                                                             .withInstitutionId(topLevelOrganization)
+                                                             .withInstitutionId(URI.create(topLevelOrganization))
                                                              .withApprovalStatus(randomElement(ApprovalStatus.values()))
                                                              .withPoints(randomBigDecimal())
                                                              .build())

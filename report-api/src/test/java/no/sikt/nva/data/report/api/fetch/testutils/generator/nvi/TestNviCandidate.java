@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.OrganizationGenerator;
 import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.rdf.model.Model;
 
@@ -36,7 +37,8 @@ public record TestNviCandidate(String identifier,
         approvals().stream()
             .map(testApproval -> testApproval.toModel()
                                      .withApprovalStatus(testApproval.approvalStatus().getValue())
-                                     .withInstitutionId(testApproval.institutionId())
+                                     .withInstitutionId(
+                                         new OrganizationGenerator(testApproval.institutionId().toString()))
                                      .withPoints(testApproval.points().toString()))
             .forEach(nviCandidate::withApproval);
         return nviCandidate.build();
@@ -50,7 +52,7 @@ public record TestNviCandidate(String identifier,
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
         var approval = approvals().stream()
-                           .filter(testApproval -> testApproval.institutionId()
+                           .filter(testApproval -> testApproval.institutionId().toString()
                                                        .equals(affiliation.getTopLevelOrganization()))
                            .findFirst()
                            .orElseThrow();
