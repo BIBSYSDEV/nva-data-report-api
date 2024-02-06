@@ -3,7 +3,6 @@ package no.sikt.nva.data.report.api.etl.loader;
 import static java.util.Objects.nonNull;
 import java.net.URI;
 import java.util.UUID;
-import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
 public record ErrorLogRequest(UUID loadId, Integer page, Integer errorsPerPage) {
