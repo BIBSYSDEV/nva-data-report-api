@@ -23,7 +23,15 @@ SELECT DISTINCT
       ?affiliationUri a ?NviOrganization .
       BIND(STR(?affiliationUri) AS ?affiliationId)
 
+      ?candidate :approval ?approval .
+      ?approval a :Approval ;
+        :approvalStatus ?institutionApprovalStatus ;
+        :points ?institutionPoints ;
+        :institutionId ?organizationUri .
+      ?affiliationUri :partOf ?organizationUri .
+      BIND(STR(?organizationUri) AS ?institutionId)
+
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
   }
-} ORDER BY ?publicationId LIMIT __PAGE_SIZE__
+} ORDER BY ?publicationId ?contributorIdentifier LIMIT __PAGE_SIZE__

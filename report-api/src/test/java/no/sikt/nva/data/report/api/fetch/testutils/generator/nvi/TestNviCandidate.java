@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.OrganizationGenerator;
 import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.rdf.model.Model;
 
@@ -14,7 +15,6 @@ public record TestNviCandidate(String identifier,
                                List<TestApproval> approvals) {
 
     public static final String DELIMITER = ",";
-    public static final String EMPTY_STRING = "";
 
     public static Builder builder() {
         return new Builder();
@@ -34,6 +34,13 @@ public record TestNviCandidate(String identifier,
             .forEach(publicationDetails::withNviContributor);
         var nviCandidate = new CandidateGenerator(identifier, modifiedDate.toString())
                                .withPublicationDetails(publicationDetails);
+        approvals().stream()
+            .map(testApproval -> testApproval.toModel()
+                                     .withApprovalStatus(testApproval.approvalStatus().getValue())
+                                     .withInstitutionId(
+                                         new OrganizationGenerator(testApproval.institutionId().toString()))
+                                     .withPoints(testApproval.points().toString()))
+            .forEach(nviCandidate::withApproval);
         return nviCandidate.build();
     }
 
@@ -44,13 +51,23 @@ public record TestNviCandidate(String identifier,
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
+        var approval = generateExpectedApprovals(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
-            .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionId
-            .append(EMPTY_STRING).append(DELIMITER)//TODO: InstitutionPoints
-            .append(EMPTY_STRING)//TODO: InstitutionApprovalStatus
+            .append(approval.institutionId()).append(DELIMITER)
+            .append(approval.points()).append(DELIMITER)
+            .append(approval.approvalStatus().getValue())
             .append(CRLF.getString());
+    }
+
+    private TestApproval generateExpectedApprovals(TestNviOrganization affiliation) {
+        return approvals().stream()
+                   .filter(testApproval -> testApproval.institutionId()
+                                               .toString()
+                                               .equals(affiliation.getTopLevelOrganization()))
+                   .findFirst()
+                   .orElseThrow();
     }
 
     private String extractLastPathElement(String uri) {

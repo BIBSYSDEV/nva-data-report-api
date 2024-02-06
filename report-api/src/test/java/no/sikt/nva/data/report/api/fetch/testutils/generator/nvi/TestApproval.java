@@ -1,13 +1,19 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 
-public record TestApproval(String institutionId,
+public record TestApproval(URI institutionId,
                            ApprovalStatus approvalStatus,
                            BigDecimal points) {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public ApprovalGenerator toModel() {
+        return new ApprovalGenerator();
     }
 
     public enum ApprovalStatus {
@@ -16,20 +22,27 @@ public record TestApproval(String institutionId,
         APPROVED("Approved"),
         REJECTED("Rejected");
 
+        private final String value;
+
         ApprovalStatus(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
         }
     }
 
     public static final class Builder {
 
-        private String institutionId;
+        private URI institutionId;
         private ApprovalStatus approvalStatus;
         private BigDecimal points;
 
         private Builder() {
         }
 
-        public Builder withInstitutionId(String institutionId) {
+        public Builder withInstitutionId(URI institutionId) {
             this.institutionId = institutionId;
             return this;
         }
