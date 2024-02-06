@@ -204,18 +204,26 @@ public class TestData {
         return new TestOrganization(organizationUri("10.1.1.2"), "My university");
     }
 
+    private static List<TestApproval> generateApprovals(TestPublicationDetails publicationDetails) {
+        return publicationDetails.contributors().stream()
+                   .flatMap(contributor -> contributor.affiliations().stream())
+                   .map(TestNviOrganization::getTopLevelOrganization)
+                   .distinct()
+                   .map(TestData::generateApproval)
+                   .toList();
+    }
+
+    private static TestApproval generateApproval(String topLevelOrganization) {
+        return TestApproval.builder()
+                   .withInstitutionId(URI.create(topLevelOrganization))
+                   .withApprovalStatus(randomElement(ApprovalStatus.values()))
+                   .withPoints(randomBigDecimal())
+                   .build();
+    }
+
     private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
         var publicationDetails = generatePublicationDetails();
-        var approvals = publicationDetails.contributors().stream()
-                            .flatMap(contributor -> contributor.affiliations().stream())
-                            .map(TestNviOrganization::getTopLevelOrganization)
-                            .distinct()
-                            .map(topLevelOrganization -> TestApproval.builder()
-                                                             .withInstitutionId(URI.create(topLevelOrganization))
-                                                             .withApprovalStatus(randomElement(ApprovalStatus.values()))
-                                                             .withPoints(randomBigDecimal())
-                                                             .build())
-                            .toList();
+        var approvals = generateApprovals(publicationDetails);
         return TestNviCandidate.builder()
                    .withIdentifier(UUID.randomUUID().toString())
                    .withModifiedDate(modifiedDate)

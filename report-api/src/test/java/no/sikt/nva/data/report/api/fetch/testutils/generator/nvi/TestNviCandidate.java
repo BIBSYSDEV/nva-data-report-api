@@ -51,11 +51,7 @@ public record TestNviCandidate(String identifier,
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
-        var approval = approvals().stream()
-                           .filter(testApproval -> testApproval.institutionId().toString()
-                                                       .equals(affiliation.getTopLevelOrganization()))
-                           .findFirst()
-                           .orElseThrow();
+        var approval = generateExpectedApprovals(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
@@ -63,6 +59,15 @@ public record TestNviCandidate(String identifier,
             .append(approval.points()).append(DELIMITER)
             .append(approval.approvalStatus().getValue())
             .append(CRLF.getString());
+    }
+
+    private TestApproval generateExpectedApprovals(TestNviOrganization affiliation) {
+        return approvals().stream()
+                   .filter(testApproval -> testApproval.institutionId()
+                                               .toString()
+                                               .equals(affiliation.getTopLevelOrganization()))
+                   .findFirst()
+                   .orElseThrow();
     }
 
     private String extractLastPathElement(String uri) {

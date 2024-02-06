@@ -13,6 +13,9 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 public class ApprovalGenerator extends TripleBasedBuilder {
 
     private static final Property APPROVAL = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "Approval");
+    private static final String INSTITUTION_ID = "institutionId";
+    private static final String APPROVAL_STATUS = "approvalStatus";
+    private static final String POINTS = "points";
     private final Model model;
     private final Resource subject;
 
@@ -23,18 +26,18 @@ public class ApprovalGenerator extends TripleBasedBuilder {
     }
 
     public ApprovalGenerator withInstitutionId(OrganizationGenerator organizationGenerator) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "institutionId"),
+        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, INSTITUTION_ID),
                   organizationGenerator.subject);
         return this;
     }
 
     public ApprovalGenerator withApprovalStatus(String approvalStatus) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "approvalStatus"), approvalStatus);
+        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, APPROVAL_STATUS), approvalStatus);
         return this;
     }
 
     public ApprovalGenerator withPoints(String points) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "points"), points);
+        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, POINTS), points);
         return this;
     }
 

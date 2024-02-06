@@ -12,6 +12,7 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 public class NviOrganizationGenerator extends TripleBasedBuilder {
 
     private static final Property PART_OF = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "partOf");
+    private static final String NVI_ORGANIZATION = "NviOrganization";
 
     private final Model model;
     private final Resource subject;
@@ -19,7 +20,7 @@ public class NviOrganizationGenerator extends TripleBasedBuilder {
     public NviOrganizationGenerator(String id) {
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(id);
-        model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + "NviOrganization"));
+        model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + NVI_ORGANIZATION));
     }
 
     public NviOrganizationGenerator withPartOf(List<String> partOfList) {
