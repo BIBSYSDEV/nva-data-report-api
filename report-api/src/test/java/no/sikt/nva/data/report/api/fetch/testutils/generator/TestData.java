@@ -58,7 +58,6 @@ public class TestData {
     private static final String INSTITUTION_POINTS = "institutionPoints";
     private static final String INSTITUTION_APPROVAL_STATUS = "institutionApprovalStatus";
     private static final String PUBLICATION_DATE = "publicationDate";
-
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
@@ -81,6 +80,7 @@ public class TestData {
                                                             CONTRIBUTOR_IDENTIFIER,
                                                             AFFILIATION_ID, INSTITUTION_ID, INSTITUTION_POINTS,
                                                             INSTITUTION_APPROVAL_STATUS);
+    private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
     private final List<TestPublication> publicationTestData;
 
     private final List<TestNviCandidate> nviTestData;
@@ -201,7 +201,7 @@ public class TestData {
     }
 
     private static TestOrganization generateAffiliation() {
-        return new TestOrganization(organizationUri("10.1.1.2"), "My university");
+        return new TestOrganization(organizationUri(SOME_SUB_UNIT_IDENTIFIER), "My university");
     }
 
     private static List<TestApproval> generateApprovals(TestPublicationDetails publicationDetails) {
@@ -248,7 +248,7 @@ public class TestData {
 
     private TestNviOrganization generateNviAffiliation() {
         return TestNviOrganization.builder()
-                   .withId(organizationUri("10.1.1.2"))
+                   .withId(organizationUri(SOME_SUB_UNIT_IDENTIFIER))
                    .build();
     }
 
