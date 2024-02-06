@@ -8,4 +8,22 @@ repositories {
 
 dependencies {
     implementation libs.bundles.jena
+    implementation libs.nva.s3
+    implementation libs.nva.commons.core
+    implementation libs.nva.json
+    implementation libs.aws.sdk2.lambda.events
+    implementation libs.aws.lambda.java.core
+    implementation libs.bundles.logging
+
+    testImplementation('com.github.bibsysdev:nvatestutils:1.36.12') {
+        exclude group: 'org.wiremock', module: 'wiremock'
+    }
+
+    test {
+        environment("NEPTUNE_ENDPOINT", "localhost")
+        environment("NEPTUNE_PORT", "8182")
+        environment("LOADER_IAM_ROLE", "aim:role:loader")
+        environment("AWS_REGION_NAME", "eu-west-1")
+        environment("LOADER_BUCKET", "s3://someBucket")
+    }
 }

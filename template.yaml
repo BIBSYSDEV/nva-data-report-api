@@ -45,6 +45,10 @@ Parameters:
     Type: String
     Description: Prefix for nvi-candidate files in persisted-resources bucket
     Default: nvi-candidates/
+  LoaderBucketName:
+    Type: 'String'
+    Default: "loader-input-files"
+    Description: Name of bucket for input NQuads files
 
 Mappings:
   SubnetConfig:
@@ -324,6 +328,26 @@ Resources:
             Type: SQS
             Destination: !GetAtt DataLoadingDLQ.Arn
 
+
+  BulkDataLoader:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bulk-load
+      Policies:
+        - VPCAccessPolicy: { }
+      Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          LOADER_BUCKET: !Sub s3://${LoaderBucket}
+          NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
+          NEPTUNE_PORT: 8182
+          LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
+          AWS_REGION_NAME: !Ref AWS::Region
+
+
   ResetDatabaseButton:
     Type: AWS::Serverless::Function
     Properties:
@@ -342,6 +366,8 @@ Resources:
   NeptuneCluster:
     Type: AWS::Neptune::DBCluster
     Properties:
+      AssociatedRoles:
+        - RoleArn: !GetAtt ReadAndListBucketPolicy.Arn
       DBClusterIdentifier: !Ref ProjectName
       DBSubnetGroupName: !Ref NeptuneSubnets
       VpcSecurityGroupIds:
@@ -354,6 +380,8 @@ Resources:
       ServerlessScalingConfiguration:
         MaxCapacity: 128
         MinCapacity: 2.5
+      EnableCloudwatchLogsExports:
+        - audit
 
   NeptuneInstance1:
     Type: AWS::Neptune::DBInstance
@@ -512,6 +540,12 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref PrivateSubnet1
 
+  PrivateRouteTable2Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+
   PrivateRouteTableLambdaAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -535,6 +569,45 @@ Resources:
               - 's3:Get*'
               - 's3:List*'
             Resource: '*'
+
+    #---- Buckets ----
+  LoaderBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${LoaderBucketName}-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteContentAfter3Days
+            Status: Enabled
+            ExpirationInDays: 3
+
+    #---- Role for Neptune load ----
+
+  ReadAndListBucketPolicy:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - rds.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: listGetS3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get*
+                  - s3:List*
+                Resource:
+                  - !GetAtt LoaderBucket.Arn
+                  - !Sub '${LoaderBucket.Arn}/*'
+
 
 #### OUTPUTS ####
 Outputs:
