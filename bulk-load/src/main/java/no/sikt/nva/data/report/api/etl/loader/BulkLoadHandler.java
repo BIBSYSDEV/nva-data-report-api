@@ -14,13 +14,13 @@ import java.net.http.HttpResponse.BodyHandlers;
 import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BulkLoadHandler implements RequestStreamHandler {
 
     public static final Logger logger = LoggerFactory.getLogger(BulkLoadHandler.class);
-    private static final String URI_TEMPLATE = "https://%s:%s/loader";
     public static final String NEPTUNE_ENDPOINT = "NEPTUNE_ENDPOINT";
     public static final String NEPTUNE_PORT = "NEPTUNE_PORT";
     public static final String CONTENT_TYPE = "Content-Type";
@@ -29,8 +29,6 @@ public class BulkLoadHandler implements RequestStreamHandler {
     public static final String AWS_REGION = "AWS_REGION_NAME";
     public static final String LOADER_BUCKET = "LOADER_BUCKET";
     public static final int HTTP_OK = 200;
-    private static final String ERROR_LOG_URI_TEMPLATE = "https://%s:%s/loader/%s?details=true"
-                                                         + "&errors=true&page=%d&errorsPerPage=%d";
     private final HttpClient httpClient;
 
     @JacocoGenerated
@@ -89,26 +87,19 @@ public class BulkLoadHandler implements RequestStreamHandler {
 
     private HttpRequest createLogRequest(ErrorLogRequest errorLogRequest) {
         var environment = new Environment();
+        var endpoint = environment.readEnv(NEPTUNE_ENDPOINT);
+        var port = Integer.parseInt(environment.readEnv(NEPTUNE_PORT));
         return HttpRequest.newBuilder()
                    .GET()
                    .header(CONTENT_TYPE, APPLICATION_JSON)
-                   .uri(createLogRequestUri(environment, errorLogRequest))
+                   .uri(errorLogRequest.uri(endpoint, port))
                    .build();
     }
 
-    private URI createLogRequestUri(Environment environment, ErrorLogRequest errorLogRequest) {
-        return URI.create(String.format(ERROR_LOG_URI_TEMPLATE,
-                                        environment.readEnv(NEPTUNE_ENDPOINT),
-                                        environment.readEnv(NEPTUNE_PORT),
-                                        errorLogRequest.loadId().toString(),
-                                        errorLogRequest.page(),
-                                        errorLogRequest.errorsPerPage()));
-    }
-
     private static URI createUri(Environment environment) {
-        return URI.create(String.format(URI_TEMPLATE,
-                                        environment.readEnv(NEPTUNE_ENDPOINT),
-                                        environment.readEnv(NEPTUNE_PORT)));
+        return UriWrapper.fromHost(environment.readEnv(NEPTUNE_ENDPOINT),
+                                   Integer.parseInt(environment.readEnv(NEPTUNE_PORT)))
+                   .getUri();
     }
 
     private static String createLoaderSpec(Environment environment) {
