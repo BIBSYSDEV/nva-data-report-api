@@ -81,6 +81,7 @@ public class TestData {
                                                             AFFILIATION_ID, INSTITUTION_ID, INSTITUTION_POINTS,
                                                             INSTITUTION_APPROVAL_STATUS);
     private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
+    public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     private final List<TestPublication> publicationTestData;
 
     private final List<TestNviCandidate> nviTestData;
@@ -235,20 +236,21 @@ public class TestData {
     private TestPublicationDetails generatePublicationDetails() {
         return TestPublicationDetails.builder()
                    .withId(randomUri().toString())
-                   .withContributors(new ArrayList<>(List.of(generateNviContributor(), generateNviContributor())))
+                   .withContributors(new ArrayList<>(List.of(generateNviContributor(SOME_SUB_UNIT_IDENTIFIER),
+                                                             generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER))))
                    .build();
     }
 
-    private TestNviContributor generateNviContributor() {
+    private TestNviContributor generateNviContributor(String organizationIdentifier) {
         return TestNviContributor.builder()
                    .withId(randomUri().toString())
-                   .withAffiliations(List.of(generateNviAffiliation()))
+                   .withAffiliations(List.of(generateNviAffiliation(organizationIdentifier)))
                    .build();
     }
 
-    private TestNviOrganization generateNviAffiliation() {
+    private TestNviOrganization generateNviAffiliation(String organizationIdentifier) {
         return TestNviOrganization.builder()
-                   .withId(organizationUri(SOME_SUB_UNIT_IDENTIFIER))
+                   .withId(organizationUri(organizationIdentifier))
                    .build();
     }
 
