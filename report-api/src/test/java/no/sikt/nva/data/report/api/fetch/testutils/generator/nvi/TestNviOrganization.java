@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import static java.util.Objects.isNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.NviOrganizationGenerator;
@@ -17,7 +18,7 @@ public record TestNviOrganization(String id, List<String> partOf) {
     }
 
     public String getTopLevelOrganization() {
-        return partOf.isEmpty() ? id() : partOf.stream().min(Comparator.naturalOrder()).get();
+        return partOf.isEmpty() ? id : partOf.stream().min(Comparator.naturalOrder()).get();
     }
 
     public static final class Builder {
@@ -40,7 +41,7 @@ public record TestNviOrganization(String id, List<String> partOf) {
             var partOfList = new ArrayList<String>();
 
             if (isNull(id) || id.endsWith(".0.0.0")) {
-                return null;
+                return Collections.emptyList();
             }
 
             int lastIndexOfSlash = id.lastIndexOf('/') + 1;
