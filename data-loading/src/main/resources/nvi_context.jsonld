@@ -1,5 +1,5 @@
 {
-  "@context" : {
+  "@context": {
     "@vocab": "https://nva.sikt.no/ontology/publication#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "id": "@id",
@@ -12,8 +12,20 @@
       "@id": "note",
       "@container": "@set"
     },
-    "institutionId" : {
-      "@type" : "@id"
+    "institutionId": {
+      "@type": "@id"
+    },
+    "contributors": {
+      "@id": "contributor",
+      "@container": "@set"
+    },
+    "affiliations": {
+      "@id": "affiliation",
+      "@container": "@set"
+    },
+    "labels": {
+      "@id": "label",
+      "@container": "@language"
     }
   }
 }
