@@ -28,7 +28,7 @@ SELECT DISTINCT
         :approvalStatus ?institutionApprovalStatus ;
         :points ?institutionPoints ;
         :institutionId ?organizationUri .
-      EXISTS { ?affiliationUri :partOf* ?organizationUri . }
+      FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
       BIND(STR(?organizationUri) AS ?institutionId)
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
