@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.dbtools;
 
+import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,16 +77,17 @@ class DatabaseResetHandlerTest {
         throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
         mockClient(initializeRequest, neptuneInitializationResponse(), httpClient);
-        mockClient(performRequest, neptunePerformResponse(), httpClient);
+        //mockClient(performRequest, null, httpClient);
         return httpClient;
     }
 
     private static void mockClient(HttpRequest request, String responseBody, HttpClient httpClient)
         throws IOException, InterruptedException {
-        var httpResponse = createResponse(responseBody);
+        var httpResponse = createSuccessfulResponse(responseBody);
         when(httpClient.send(eq(request), eq(BodyHandlers.ofString()))).thenReturn(httpResponse);
     }
 
+    @SuppressWarnings("unchecked")
     private static HttpClient mockRequestFailure() throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
         var httpResponse = (HttpResponse<String>) mock(HttpResponse.class);
@@ -104,10 +106,12 @@ class DatabaseResetHandlerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static HttpResponse<String> createResponse(String body) {
+    private static HttpResponse<String> createSuccessfulResponse(String body) {
         var response = (HttpResponse<String>) mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(200);
-        when(response.body()).thenReturn(body);
+        if (nonNull(body)){
+            when(response.body()).thenReturn(body);
+        }
         return response;
     }
 
@@ -125,20 +129,9 @@ class DatabaseResetHandlerTest {
 
     private static String neptuneInitializationResponse() {
         return String.format("""
-                                     {
-                                       "status" : "200 OK",
-                                       "payload" : {
-                                         "token" : "%s"
-                                       }
-                                     }
+                                 {
+                                    "token" : "%s"
+                                 }
                                  """, DatabaseResetHandlerTest.TEST_TOKEN);
-    }
-
-    private static String neptunePerformResponse() {
-        return """
-                {
-                  "status" : "200 OK"
-                }
-            """;
     }
 }
