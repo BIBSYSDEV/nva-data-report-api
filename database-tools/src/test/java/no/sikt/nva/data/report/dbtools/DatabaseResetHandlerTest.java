@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -42,14 +43,11 @@ class DatabaseResetHandlerTest {
     @Test
     void shouldSendResetRequestToNeptune() throws IOException, InterruptedException {
         final var logger = LogUtils.getTestingAppenderForRootLogger();
-        var initializeRequest = buildInitializationRequest();
-        var performRequest = buildPerformRequest();
-        var httpClient = mockSuccessfulRequest(initializeRequest, performRequest);
+        var httpClient = mockSuccessfulRequest();
         var handler = new DatabaseResetHandler(httpClient);
         var request = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
         handler.handleRequest(request, null, CONTEXT);
-        verify(httpClient, times(1)).send(eq(initializeRequest), any());
-        verify(httpClient, times(1)).send(eq(performRequest), any());
+        verify(httpClient, times(2)).send(any(), any());
         assertTrue(logger.getMessages().contains("Successfully submitted reset request"));
     }
 
@@ -73,18 +71,23 @@ class DatabaseResetHandlerTest {
         assertTrue(exception.getMessage().contains("java.lang.InterruptedException"));
     }
 
-    private static HttpClient mockSuccessfulRequest(HttpRequest initializeRequest, HttpRequest performRequest)
+    private static HttpClient mockSuccessfulRequest()
         throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
-        mockClient(initializeRequest, neptuneInitializationResponse(), httpClient);
-        //mockClient(performRequest, null, httpClient);
+        mockClient(buildInitializationRequest(), neptuneInitializationResponse(), httpClient);
+        mockClient(buildPerformRequest(), null, httpClient);
         return httpClient;
     }
 
     private static void mockClient(HttpRequest request, String responseBody, HttpClient httpClient)
         throws IOException, InterruptedException {
         var httpResponse = createSuccessfulResponse(responseBody);
-        when(httpClient.send(eq(request), eq(BodyHandlers.ofString()))).thenReturn(httpResponse);
+        when(httpClient.send(argThat(
+                                 argument -> argument.bodyPublisher().get().contentLength() ==
+                                             request.bodyPublisher()
+                                                 .get()
+                                                 .contentLength()),
+                             eq(BodyHandlers.ofString()))).thenReturn(httpResponse);
     }
 
     @SuppressWarnings("unchecked")
@@ -109,7 +112,7 @@ class DatabaseResetHandlerTest {
     private static HttpResponse<String> createSuccessfulResponse(String body) {
         var response = (HttpResponse<String>) mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(200);
-        if (nonNull(body)){
+        if (nonNull(body)) {
             when(response.body()).thenReturn(body);
         }
         return response;

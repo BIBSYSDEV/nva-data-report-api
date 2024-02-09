@@ -5,6 +5,7 @@ import static no.sikt.nva.data.report.dbtools.ResetAction.ACTION_PERFORM_DATABAS
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,6 +13,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import no.sikt.nva.data.report.dbtools.exception.DatabaseResetRequestException;
 import no.sikt.nva.data.report.dbtools.model.TokenResponse;
@@ -46,18 +48,34 @@ public class DatabaseResetHandler implements RequestStreamHandler {
                               OutputStream outputStream,
                               Context context) throws IOException {
         try {
-            var tokenResponse = httpClient.send(buildHttpRequest(ACTION_INITIATE_DATABASE_RESET), BodyHandlers.ofString());
-            if (tokenResponse.statusCode() == HTTP_OK) {
-                logger.info("Successfully submitted reset request");
-                var token = dtoObjectMapper.readValue(tokenResponse.body(), TokenResponse.class).token();
-                httpClient.send(buildPerformResetRequest(token), BodyHandlers.ofString());
+            var response = httpClient.send(buildHttpRequest(ACTION_INITIATE_DATABASE_RESET), BodyHandlers.ofString());
+            if (response.statusCode() == HTTP_OK) {
+                logger.info("Successfully submitted initialize reset request");
+                var token = parseResponseBody(response);
+                sendPerformDatabaseResetRequest(token.token());
             } else {
-                logger.error("Request failed, received status from upstream {}", tokenResponse.statusCode());
+                logger.error("Initialize database reset request failed, received status from upstream {}",
+                             response.statusCode());
                 throw new DatabaseResetRequestException();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
+        }
+    }
+
+    private static TokenResponse parseResponseBody(HttpResponse<String> response) throws JsonProcessingException {
+        return dtoObjectMapper.readValue(response.body(), TokenResponse.class);
+    }
+
+    private void sendPerformDatabaseResetRequest(String token) throws IOException, InterruptedException {
+        var response = httpClient.send(buildPerformResetRequest(token), BodyHandlers.ofString());
+        if (response.statusCode() == HTTP_OK) {
+            logger.info("Successfully submitted perform reset request");
+        } else {
+            logger.error("Perform database reset request failed, received status from upstream {}",
+                         response.statusCode());
+            throw new DatabaseResetRequestException();
         }
     }
 
