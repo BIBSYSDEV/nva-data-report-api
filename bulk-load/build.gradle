@@ -14,6 +14,13 @@ dependencies {
     implementation libs.aws.sdk2.lambda.events
     implementation libs.aws.lambda.java.core
     implementation libs.bundles.logging
+    implementation libs.nva.eventhandlers
+    implementation libs.aws.sdk2.eventbridge
+    implementation libs.aws.sdk2.s3
+    implementation libs.aws.sdk2.sqs
+    implementation libs.aws.lambda.events
+    implementation libs.aws.sdk2.urlconnection
+    implementation libs.nva.identifiers
 
     testImplementation('com.github.bibsysdev:nvatestutils:1.36.12') {
         exclude group: 'org.wiremock', module: 'wiremock'
@@ -25,5 +32,9 @@ dependencies {
         environment("LOADER_IAM_ROLE", "aim:role:loader")
         environment("AWS_REGION_NAME", "eu-west-1")
         environment("LOADER_BUCKET", "s3://someBucket")
+        environment("EXPANDED_RESOURCES_BUCKET", "s3://persistedResources")
+        environment("KEY_BATCHES_BUCKET", "s3://keyBatches")
+        environment("EVENT_BUS", "eventBus")
+        environment("TOPIC", "some topic")
     }
 }

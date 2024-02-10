@@ -3,7 +3,7 @@ junit = { strictly = '5.10.0' }
 nva = { strictly = '1.36.12' }
 zalando = { strictly = '0.27.1' }
 awsLambdaJavaCore = { strictly = '1.2.2' }
-awsLambdaEvents = { strictly = '3.11.2' }
+awsLambdaEvents = { strictly = '3.11.4' }
 log4j = { strictly = '2.22.0' }
 slf4j = { strictly = '2.0.9' }
 awslog4j2 = { strictly = '1.5.1' }
@@ -29,6 +29,7 @@ nva-commons-core = { group = 'com.github.bibsysdev', name = 'core', version.ref 
 nva-commons-auth = { group = 'com.github.bibsysdev', name = 'auth', version.ref = 'nva' }
 nva-commons-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nva' }
 nva-eventhandlers = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nva' }
+nva-identifiers = { group = 'com.github.bibsysdev', name = 'identifiers', version.ref = 'nva' }
 
 jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
 jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }

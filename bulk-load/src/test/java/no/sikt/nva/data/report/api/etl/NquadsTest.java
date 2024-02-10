@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
+import no.sikt.nva.data.report.api.etl.transformer.Nquads;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

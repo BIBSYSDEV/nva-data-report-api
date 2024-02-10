@@ -49,6 +49,10 @@ Parameters:
     Type: 'String'
     Default: "loader-input-files"
     Description: Name of bucket for input NQuads files
+  KeyBatchesBucketName:
+    Type: 'String'
+    Default: "key-batches"
+    Description: Name of bucket for key batch files
 
 Mappings:
   SubnetConfig:
@@ -359,6 +363,32 @@ Resources:
       MemorySize: 1536
       AutoPublishAlias: live
 
+  #---- Generates key batches in bucket ----
+
+  GenerateKeyBatchesHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bulk-load
+      Handler: no.sikt.nva.data.report.api.etl.transformer.GenerateKeyBatchesHandler::handleRequest
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
+          PERSISTED_RESOURCES_BUCKET: !Ref ResourcesBucket
+          KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
+          TOPIC: 'ReportApi.Bulk.KeyBasedBatch'
+      Events:
+        BatchIndexEvent:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !GetAtt BatchLoadEventBus.Name
+            Pattern:
+              detail:
+                topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
+
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
   # parameter groups
@@ -569,12 +599,33 @@ Resources:
               - 's3:List*'
             Resource: '*'
 
-    #---- Buckets ----
+  #---- EventBus ----
+
+  BatchLoadEventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !If
+        - WithSuffix
+        - !Join [ "-",[ "BatchLoadEventBus", !Ref Suffix ] ]
+        - "BatchLoadEventBus"
+
+  #---- Buckets ----
   LoaderBucket:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: Private
       BucketName: !Sub "${LoaderBucketName}-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteContentAfter3Days
+            Status: Enabled
+            ExpirationInDays: 3
+
+  KeyBatchesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${KeyBatchesBucketName}-${AWS::AccountId}"
       LifecycleConfiguration:
         Rules:
           - Id: DeleteContentAfter3Days
