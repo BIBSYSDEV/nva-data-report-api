@@ -1,9 +1,9 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.nonNull;
 import static java.util.UUID.randomUUID;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,7 +52,9 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         this(defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
     }
 
-    public GenerateKeyBatchesHandler(S3Client inputClient, S3Client outputClient, EventBridgeClient eventBridgeClient) {
+    public GenerateKeyBatchesHandler(S3Client inputClient,
+                                     S3Client outputClient,
+                                     EventBridgeClient eventBridgeClient) {
         super(KeyBatchRequestEvent.class);
         this.inputClient = inputClient;
         this.outputClient = outputClient;
@@ -60,7 +62,8 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     }
 
     @Override
-    protected Void processInput(KeyBatchRequestEvent input, AwsEventBridgeEvent<KeyBatchRequestEvent> event,
+    protected Void processInput(KeyBatchRequestEvent input,
+                                AwsEventBridgeEvent<KeyBatchRequestEvent> event,
                                 Context context) {
         var startMarker = getStartMarker(input);
         var location = getLocation(input);
@@ -82,11 +85,13 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         return nonNull(event) && nonNull(event.getLocation());
     }
 
-    private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey, Context context,
+    private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
+                                                               Context context,
                                                                String location) {
         return PutEventsRequestEntry.builder()
                    .eventBusName(EVENT_BUS)
-                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location).toJsonString())
+                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location)
+                               .toJsonString())
                    .detailType(MANDATORY_UNUSED_SUBTOPIC)
                    // TODO: replace Object.class with actual class name
                    .source(Object.class.getName())
@@ -122,12 +127,14 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     }
 
     private static String getLastEvaluatedKey(List<String> keys) {
-        return keys.get(keys.size() - 1);
+        return keys.getLast();
     }
 
     @JacocoGenerated
     private static EventBridgeClient defaultEventBridgeClient() {
-        return EventBridgeClient.builder().httpClientBuilder(UrlConnectionHttpClient.builder()).build();
+        return EventBridgeClient.builder()
+                   .httpClientBuilder(UrlConnectionHttpClient.builder())
+                   .build();
     }
 
     private PutEventsResponse sendEvent(PutEventsRequestEntry event) {
@@ -135,13 +142,17 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     }
 
     private void writeObject(String object) {
-        var request = PutObjectRequest.builder().bucket(OUTPUT_BUCKET).key(randomUUID().toString()).build();
-        outputClient.putObject(request, RequestBody.fromBytes(object.getBytes(StandardCharsets.UTF_8)));
+        var request = PutObjectRequest.builder()
+                          .bucket(OUTPUT_BUCKET)
+                          .key(randomUUID().toString())
+                          .build();
+        outputClient.putObject(request, RequestBody.fromBytes(object.getBytes(UTF_8)));
     }
 
     @JacocoGenerated
     public static S3Client defaultS3Client() {
-        String awsRegion = ENVIRONMENT.readEnvOpt(AWS_REGION_ENV_VARIABLE).orElse(Region.EU_WEST_1.toString());
+        var awsRegion = ENVIRONMENT.readEnvOpt(AWS_REGION_ENV_VARIABLE)
+                            .orElse(Region.EU_WEST_1.toString());
         return S3Client.builder()
                    .region(Region.of(awsRegion))
                    .httpClient(UrlConnectionHttpClient.builder().build())
