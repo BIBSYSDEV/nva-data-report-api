@@ -70,7 +70,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         logger.info(START_MARKER_MESSAGE, startMarker);
         var response = inputClient.listObjectsV2(createRequest(startMarker, location));
         var keys = getKeys(response);
-        writeObject(toKeyString(keys));
+        writeObject(location, toKeyString(keys));
         var lastEvaluatedKey = getLastEvaluatedKey(keys);
         var eventsResponse = sendEvent(constructRequestEntry(lastEvaluatedKey, context, location));
         logger.info(eventsResponse.toString());
@@ -141,10 +141,11 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         return eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
     }
 
-    private void writeObject(String object) {
+    private void writeObject(String location, String object) {
+        var key = location + DELIMITER + randomUUID();
         var request = PutObjectRequest.builder()
                           .bucket(OUTPUT_BUCKET)
-                          .key(randomUUID().toString())
+                          .key(key)
                           .build();
         outputClient.putObject(request, RequestBody.fromBytes(object.getBytes(UTF_8)));
     }
