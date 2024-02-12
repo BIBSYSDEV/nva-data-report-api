@@ -39,13 +39,23 @@ class DatabaseResetHandlerTest {
     }
 
     @Test
-    void shouldLogFailure() throws IOException, InterruptedException {
+    void shouldLogInitializeFailure() throws IOException, InterruptedException {
         final var logger = LogUtils.getTestingAppenderForRootLogger();
-        var httpClient = mockRequestFailure();
+        var httpClient = mockInitializeFailure();
         var handler = new DatabaseResetHandler(httpClient);
         var request = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
         assertThrows(DatabaseResetRequestException.class, () -> handler.handleRequest(request, null, CONTEXT));
         assertTrue(logger.getMessages().contains("Initialize database reset request failed"));
+    }
+
+    @Test
+    void shouldLogPerformResetFailure() throws IOException, InterruptedException {
+        final var logger = LogUtils.getTestingAppenderForRootLogger();
+        var httpClient = mockPerformResetFailure();
+        var handler = new DatabaseResetHandler(httpClient);
+        var request = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
+        assertThrows(DatabaseResetRequestException.class, () -> handler.handleRequest(request, null, CONTEXT));
+        assertTrue(logger.getMessages().contains("Perform database reset request failed"));
     }
 
     @Test
@@ -69,12 +79,27 @@ class DatabaseResetHandlerTest {
         return httpClient;
     }
 
-    @SuppressWarnings("unchecked")
-    private static HttpClient mockRequestFailure() throws IOException, InterruptedException {
+    private static HttpClient mockInitializeFailure() throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
-        var httpResponse = (HttpResponse<String>) mock(HttpResponse.class);
+        var httpResponse = getNotFoundResponse();
         when(httpClient.send(any(), eq(BodyHandlers.ofString()))).thenReturn(httpResponse);
+        return httpClient;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static HttpResponse<String> getNotFoundResponse() {
+        var httpResponse = (HttpResponse<String>) mock(HttpResponse.class);
         when(httpResponse.statusCode()).thenReturn(404);
+        return httpResponse;
+    }
+
+    private static HttpClient mockPerformResetFailure() throws IOException, InterruptedException {
+        var httpClient = mock(HttpClient.class);
+        var notFoundResponse = getNotFoundResponse();
+        var successfulInitializeResponse = createSuccessfulResponse(neptuneInitializationResponse());
+        when(httpClient.send(any(), eq(BodyHandlers.ofString())))
+            .thenReturn(successfulInitializeResponse)
+            .thenReturn(notFoundResponse);
         return httpClient;
     }
 
