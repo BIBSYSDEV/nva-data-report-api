@@ -55,6 +55,10 @@ public class DatabaseResetHandler implements RequestStreamHandler {
         }
     }
 
+    private static TokenResponse parseResponseBody(HttpResponse<String> response) throws JsonProcessingException {
+        return dtoObjectMapper.readValue(response.body(), TokenResponse.class);
+    }
+
     private void sendDatabaseResetRequests() throws IOException, InterruptedException {
         var response = httpClient.send(buildHttpRequest(ACTION_INITIATE_DATABASE_RESET), BodyHandlers.ofString());
         if (response.statusCode() == HTTP_OK) {
@@ -66,10 +70,6 @@ public class DatabaseResetHandler implements RequestStreamHandler {
                          response.statusCode());
             throw new DatabaseResetRequestException();
         }
-    }
-
-    private static TokenResponse parseResponseBody(HttpResponse<String> response) throws JsonProcessingException {
-        return dtoObjectMapper.readValue(response.body(), TokenResponse.class);
     }
 
     private void sendPerformDatabaseResetRequest(String token) throws IOException, InterruptedException {
