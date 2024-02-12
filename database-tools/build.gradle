@@ -12,6 +12,10 @@ dependencies {
     implementation libs.nva.commons.core
     implementation libs.bundles.logging
 
+    implementation libs.jackson.core
+    implementation libs.jackson.databind
+    implementation libs.nva.json
+
     testImplementation libs.nva.testutils
 }
 

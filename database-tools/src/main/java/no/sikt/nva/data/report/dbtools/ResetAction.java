@@ -6,6 +6,10 @@ public final class ResetAction {
         { "action" : "initiateDatabaseReset" }
         """;
 
+    public static final String ACTION_PERFORM_DATABASE_RESET = """
+        { "action" : "performDatabaseReset", "token": "%s"}
+        """;
+
     private ResetAction() {
         // NO-OP
     }
