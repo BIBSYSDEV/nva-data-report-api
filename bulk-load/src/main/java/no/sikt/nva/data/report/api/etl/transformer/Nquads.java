@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.etl;
+package no.sikt.nva.data.report.api.etl.transformer;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
