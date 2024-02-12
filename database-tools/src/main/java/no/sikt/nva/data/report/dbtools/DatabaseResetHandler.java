@@ -24,11 +24,11 @@ import org.slf4j.LoggerFactory;
 
 public class DatabaseResetHandler implements RequestStreamHandler {
 
-    public static final String NEPTUNE_SYSTEM_TEMPLATE = "https://%s:%s/system";
-    public static final String NEPTUNE_ENDPOINT = "NEPTUNE_ENDPOINT";
-    public static final String NEPTUNE_PORT = "NEPTUNE_PORT";
-    public static final int HTTP_OK = 200;
     private static final Logger logger = LoggerFactory.getLogger(DatabaseResetHandler.class);
+    private static final String NEPTUNE_SYSTEM_TEMPLATE = "https://%s:%s/system";
+    private static final String NEPTUNE_ENDPOINT = "NEPTUNE_ENDPOINT";
+    private static final String NEPTUNE_PORT = "NEPTUNE_PORT";
+    private static final int HTTP_OK = 200;
     private static final String CONTENT_TYPE = "Content-Type";
     private final HttpClient httpClient;
     private final Environment environment;
