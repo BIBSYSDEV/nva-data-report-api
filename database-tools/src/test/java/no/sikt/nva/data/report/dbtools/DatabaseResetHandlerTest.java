@@ -4,7 +4,6 @@ import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -15,8 +14,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
@@ -30,14 +27,6 @@ import org.junit.jupiter.api.Test;
 class DatabaseResetHandlerTest {
 
     private static final Context CONTEXT = new FakeContext();
-    private static final String CONTENT_TYPE = "Content-Type";
-    private static final String NEPTUNE_SYSTEM_TEMPLATE = "https://%s:%s/system";
-    private static final Environment environment = new Environment();
-    private static final String NEPTUNE_PORT = environment.readEnv("NEPTUNE_PORT");
-    private static final String NEPTUNE_ENDPOINT = environment.readEnv("NEPTUNE_ENDPOINT");
-    private static final URI DATABASE_ENDPOINT = URI.create(String.format(NEPTUNE_SYSTEM_TEMPLATE,
-                                                                          NEPTUNE_ENDPOINT,
-                                                                          NEPTUNE_PORT));
     private static final String TEST_TOKEN = UUID.randomUUID().toString();
 
     @Test
@@ -48,7 +37,7 @@ class DatabaseResetHandlerTest {
         var request = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
         handler.handleRequest(request, null, CONTEXT);
         verify(httpClient, times(2)).send(any(), any());
-        assertTrue(logger.getMessages().contains("Successfully submitted reset request"));
+        assertTrue(logger.getMessages().contains("Successfully submitted initialize reset request"));
     }
 
     @Test
@@ -58,7 +47,7 @@ class DatabaseResetHandlerTest {
         var handler = new DatabaseResetHandler(httpClient);
         var request = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
         assertThrows(DatabaseResetRequestException.class, () -> handler.handleRequest(request, null, CONTEXT));
-        assertTrue(logger.getMessages().contains("Request failed"));
+        assertTrue(logger.getMessages().contains("Initialize database reset request failed"));
     }
 
     @Test
@@ -74,20 +63,12 @@ class DatabaseResetHandlerTest {
     private static HttpClient mockSuccessfulRequest()
         throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
-        mockClient(buildInitializationRequest(), neptuneInitializationResponse(), httpClient);
-        mockClient(buildPerformRequest(), null, httpClient);
+        var successfulInitializeResponse = createSuccessfulResponse(neptuneInitializationResponse());
+        var successfulPerformResetResponse = createSuccessfulResponse(null);
+        when(httpClient.send(any(), eq(BodyHandlers.ofString())))
+            .thenReturn(successfulInitializeResponse)
+            .thenReturn(successfulPerformResetResponse);
         return httpClient;
-    }
-
-    private static void mockClient(HttpRequest request, String responseBody, HttpClient httpClient)
-        throws IOException, InterruptedException {
-        var httpResponse = createSuccessfulResponse(responseBody);
-        when(httpClient.send(argThat(
-                                 argument -> argument.bodyPublisher().get().contentLength() ==
-                                             request.bodyPublisher()
-                                                 .get()
-                                                 .contentLength()),
-                             eq(BodyHandlers.ofString()))).thenReturn(httpResponse);
     }
 
     @SuppressWarnings("unchecked")
@@ -96,16 +77,7 @@ class DatabaseResetHandlerTest {
         var httpResponse = (HttpResponse<String>) mock(HttpResponse.class);
         when(httpClient.send(any(), eq(BodyHandlers.ofString()))).thenReturn(httpResponse);
         when(httpResponse.statusCode()).thenReturn(404);
-        when(httpClient.send(any(), eq(BodyHandlers.ofString()))).thenReturn(httpResponse);
         return httpClient;
-    }
-
-    private static HttpRequest buildHttpRequest(String body) {
-        return HttpRequest.newBuilder()
-                   .POST(BodyPublishers.ofString(body))
-                   .header(CONTENT_TYPE, "application/json")
-                   .uri(DATABASE_ENDPOINT)
-                   .build();
     }
 
     @SuppressWarnings("unchecked")
@@ -114,20 +86,10 @@ class DatabaseResetHandlerTest {
         when(response.statusCode()).thenReturn(200);
         if (nonNull(body)) {
             when(response.body()).thenReturn(body);
+        } else {
+            when(response.body()).thenReturn("");
         }
         return response;
-    }
-
-    private static HttpRequest buildPerformRequest() {
-        return buildHttpRequest(String.format("""
-                                                  { "action" : "performDatabaseReset", "token" : "%s"}
-                                                  """, TEST_TOKEN));
-    }
-
-    private static HttpRequest buildInitializationRequest() {
-        return buildHttpRequest("""
-                                    { "action" : "initiateDatabaseReset" }
-                                    """);
     }
 
     private static String neptuneInitializationResponse() {
