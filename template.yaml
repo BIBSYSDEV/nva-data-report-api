@@ -349,8 +349,6 @@ Resources:
           NEPTUNE_PORT: 8182
           LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
           AWS_REGION_NAME: !Ref AWS::Region
-          RESOURCES_PREFIX: ResourcesPrefix
-          NVI_CANDIDATES_PREFIX: NviCandidatesPrefix
 
 
   ResetDatabaseButton:
