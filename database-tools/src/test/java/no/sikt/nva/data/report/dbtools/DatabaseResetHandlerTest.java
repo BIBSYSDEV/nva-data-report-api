@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -20,7 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import no.sikt.nva.data.report.dbtools.exception.DatabaseResetRequestException;
 import no.unit.nva.stubs.FakeContext;
-import nva.commons.core.Environment;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.Test;
 

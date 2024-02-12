@@ -48,19 +48,23 @@ public class DatabaseResetHandler implements RequestStreamHandler {
                               OutputStream outputStream,
                               Context context) throws IOException {
         try {
-            var response = httpClient.send(buildHttpRequest(ACTION_INITIATE_DATABASE_RESET), BodyHandlers.ofString());
-            if (response.statusCode() == HTTP_OK) {
-                logger.info("Successfully submitted initialize reset request");
-                var token = parseResponseBody(response);
-                sendPerformDatabaseResetRequest(token.token());
-            } else {
-                logger.error("Initialize database reset request failed, received status from upstream {}",
-                             response.statusCode());
-                throw new DatabaseResetRequestException();
-            }
+            sendDatabaseResetRequests();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
+        }
+    }
+
+    private void sendDatabaseResetRequests() throws IOException, InterruptedException {
+        var response = httpClient.send(buildHttpRequest(ACTION_INITIATE_DATABASE_RESET), BodyHandlers.ofString());
+        if (response.statusCode() == HTTP_OK) {
+            logger.info("Successfully submitted initialize reset request");
+            var token = parseResponseBody(response);
+            sendPerformDatabaseResetRequest(token.token());
+        } else {
+            logger.error("Initialize database reset request failed, received status from upstream {}",
+                         response.statusCode());
+            throw new DatabaseResetRequestException();
         }
     }
 
