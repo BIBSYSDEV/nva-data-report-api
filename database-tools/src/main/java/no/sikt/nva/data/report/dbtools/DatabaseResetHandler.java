@@ -63,8 +63,8 @@ public class DatabaseResetHandler implements RequestStreamHandler {
         var response = httpClient.send(buildHttpRequest(ACTION_INITIATE_DATABASE_RESET), BodyHandlers.ofString());
         if (response.statusCode() == HTTP_OK) {
             logger.info("Successfully submitted initialize reset request");
-            var token = parseResponseBody(response);
-            sendPerformDatabaseResetRequest(token.token());
+            var tokenResponse = parseResponseBody(response);
+            sendPerformDatabaseResetRequest(tokenResponse.token());
         } else {
             logger.error("Initialize database reset request failed, received status from upstream {}",
                          response.statusCode());
