@@ -66,8 +66,8 @@ public class DatabaseResetHandler implements RequestStreamHandler {
             var tokenResponse = parseResponseBody(response);
             sendPerformDatabaseResetRequest(tokenResponse.token());
         } else {
-            logger.error("Initialize database reset request failed, received status from upstream {}",
-                         response.statusCode());
+            logger.error("Initialize database reset request failed, received status from upstream {}, with body: {}",
+                         response.statusCode(), response.body());
             throw new DatabaseResetRequestException();
         }
     }
@@ -77,8 +77,8 @@ public class DatabaseResetHandler implements RequestStreamHandler {
         if (response.statusCode() == HTTP_OK) {
             logger.info("Successfully submitted perform reset request");
         } else {
-            logger.error("Perform database reset request failed, received status from upstream {}",
-                         response.statusCode());
+            logger.error("Perform database reset request failed, received status from upstream {}, with body: {}",
+                         response.statusCode(), response.body());
             throw new DatabaseResetRequestException();
         }
     }
