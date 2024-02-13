@@ -31,7 +31,7 @@ dependencies {
         environment("NEPTUNE_PORT", "8182")
         environment("LOADER_IAM_ROLE", "aim:role:loader")
         environment("AWS_REGION_NAME", "eu-west-1")
-        environment("LOADER_BUCKET", "s3://someBucket")
+        environment("LOADER_BUCKET", "s3://loaderBucket")
         environment("EXPANDED_RESOURCES_BUCKET", "s3://persistedResources")
         environment("KEY_BATCHES_BUCKET", "s3://keyBatches")
         environment("EVENT_BUS", "eventBus")
