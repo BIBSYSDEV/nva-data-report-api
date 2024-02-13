@@ -3,7 +3,7 @@ package no.sikt.nva.data.report.api.etl.transformer;
 import static java.util.UUID.randomUUID;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,9 +26,11 @@ import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
@@ -51,8 +53,6 @@ class BulkTransformerHandlerTest {
     private S3Driver s3OutputDriver;
 
     // TODO: read all data from bucket
-    // TODO: convert from JSON-body to Quads
-    // TODO: write entire batch as big file (zipped)
 
     @BeforeEach
     void setup() {
@@ -62,13 +62,13 @@ class BulkTransformerHandlerTest {
         s3BatchesClient = new FakeS3Client();
         s3BatchesDriver = new S3Driver(s3BatchesClient, "batchesBucket");
         s3OutputClient = new FakeS3Client();
-        s3OutputDriver = new S3Driver(s3BatchesClient, "loaderBucket");
+        s3OutputDriver = new S3Driver(s3OutputClient, "loaderBucket");
 
         eventBridgeClient = new StubEventBridgeClient();
     }
 
     @Test
-    void shouldReadFromInputBucket() throws IOException {
+    void shouldWriteNquadsToS3() throws IOException {
         var expectedDocuments = createExpectedDocuments(10);
         var batch = expectedDocuments.stream()
                         .map(IndexDocument::getDocumentIdentifier)
@@ -80,7 +80,15 @@ class BulkTransformerHandlerTest {
                                                  s3OutputClient,
                                                  eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
-        assertEquals(1, s3OutputDriver.listAllFiles(UnixPath.of("")).size());
+        var file = s3OutputDriver.listAllFiles(UnixPath.of("")).getFirst();
+        var contentString = s3OutputDriver.getFile(file);
+        assertTrue(modelHasData(contentString));
+    }
+
+    private boolean modelHasData(String contentString) {
+        var graph = DatasetGraphFactory.createTxnMem();
+        RDFDataMgr.read(graph, IoUtils.stringToStream(contentString), Lang.NQUADS);
+        return !graph.isEmpty();
     }
 
     private InputStream eventStream(String startMarker) throws JsonProcessingException {

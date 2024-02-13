@@ -3,8 +3,17 @@ package no.sikt.nva.data.report.api.etl.transformer;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import commons.db.utils.GraphName;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import no.sikt.nva.data.report.api.etl.transformer.model.IndexDocument;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.s3.S3Driver;
@@ -28,11 +37,13 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
     public static final String LOADER_BUCKET = "LOADER_BUCKET";
     public static final String NQUADS = ".nquads";
+    public static final ObjectMapper mapper = JsonUtils.dtoObjectMapper;
     private final String KEY_BATCHES_BUCKET = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
     public static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
     public static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
     public static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
     public static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
+    public static final String LINE_BREAK = "\n";
 
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
@@ -64,8 +75,10 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
             sendEvent(constructRequestEntry(batchKey, context, location));
         }
 
-        var content = extractContent(batchKey);
-        var nquads = mapToNquads(content);
+        var keys = extractContent(batchKey);
+        var nquads = mapToIndexDocuments(keys, location).stream()
+                          .map(this::mapToNquads)
+                         .collect(Collectors.joining(System.lineSeparator()));
         persistNquads(nquads);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.contents().getFirst());
@@ -80,9 +93,16 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         s3OutputClient.putObject(request, RequestBody.fromString(nquads));
     }
 
-    private String mapToNquads(String content) {
-        // TODO: Actually do something.
-        return content;
+    private String mapToNquads(IndexDocument content) {
+        // TODO: Refactor GraphName to allow construction of path of GraphName.
+        // This is a silly workaround to make GraphName work.
+        var documentIdentifier = content.getResource().at("/id").toString() + ".nt";
+        var graphName = GraphName.newBuilder()
+                            .withBase(ENVIRONMENT.readEnv("API_HOST"))
+                            .fromUnixPath(UnixPath.of(documentIdentifier))
+                            .build().toUri();
+        var body = content.getResource().toString();
+        return Nquads.transform(body, graphName).toString();
     }
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey, Context context,
@@ -118,5 +138,24 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
 
     private void sendEvent(PutEventsRequestEntry event) {
         eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
+    }
+
+    private List<IndexDocument> mapToIndexDocuments(String content, String location) {
+        return extractIdentifiers(content)
+                   .filter(Objects::nonNull)
+                   .map(key -> fetchS3Content(key, location))
+                   .map(IndexDocument::fromJsonString)
+                   .toList();
+    }
+
+    private Stream<String> extractIdentifiers(String value) {
+        return nonNull(value) && !value.isBlank()
+                   ? Arrays.stream(value.split(LINE_BREAK))
+                   : Stream.empty();
+    }
+
+    private String fetchS3Content(String key, String location) {
+        var s3Driver = new S3Driver(s3ResourcesClient, location);
+        return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
     }
 }

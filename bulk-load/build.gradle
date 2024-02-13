@@ -7,6 +7,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(':data-report-commons'))
     implementation libs.bundles.jena
     implementation libs.nva.s3
     implementation libs.nva.commons.core
@@ -27,6 +28,7 @@ dependencies {
     }
 
     test {
+        environment("API_HOST", "example.org")
         environment("NEPTUNE_ENDPOINT", "localhost")
         environment("NEPTUNE_PORT", "8182")
         environment("LOADER_IAM_ROLE", "aim:role:loader")

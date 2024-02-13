@@ -1,5 +1,6 @@
 {
   "type": "Publication",
+  "id": "https://example.org/publication/__IDENTIFIER__",
   "identifier": "__IDENTIFIER__",
   "status": "Draft",
   "owner": "eier@example.org",
