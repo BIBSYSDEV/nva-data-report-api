@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.dbtools;
 
+import static java.util.Objects.isNull;
 import static no.sikt.nva.data.report.dbtools.ResetAction.ACTION_INITIATE_DATABASE_RESET;
 import static no.sikt.nva.data.report.dbtools.ResetAction.ACTION_PERFORM_DATABASE_RESET;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
@@ -64,7 +65,7 @@ public class DatabaseResetHandler implements RequestStreamHandler {
         if (response.statusCode() == HTTP_OK) {
             logger.info("Successfully submitted initialize reset request");
             var tokenResponse = parseResponseBody(response);
-            sendPerformDatabaseResetRequest(tokenResponse.token());
+            sendPerformDatabaseResetRequest(tokenResponse.payload().token());
         } else {
             logger.error("Initialize database reset request failed, received status from upstream {}, with body: {}",
                          response.statusCode(), response.body());
@@ -84,6 +85,10 @@ public class DatabaseResetHandler implements RequestStreamHandler {
     }
 
     private HttpRequest buildPerformResetRequest(String token) {
+        if (isNull(token)) {
+            logger.error("Token is null, cannot perform reset");
+            throw new DatabaseResetRequestException();
+        }
         return buildHttpRequest(String.format(ACTION_PERFORM_DATABASE_RESET, token));
     }
 

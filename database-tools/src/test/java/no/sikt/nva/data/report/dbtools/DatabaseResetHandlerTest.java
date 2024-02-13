@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.dbtools;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,7 +36,19 @@ class DatabaseResetHandlerTest {
         var request = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
         handler.handleRequest(request, null, CONTEXT);
         verify(httpClient, times(2)).send(any(), any());
-        assertTrue(logger.getMessages().contains("Successfully submitted initialize reset request"));
+        assertTrue(logger.getMessages().contains("Successfully submitted perform reset request"));
+    }
+
+    @Test
+    void shouldReportNullToken() throws IOException, InterruptedException {
+        final var appender = LogUtils.getTestingAppenderForRootLogger();
+        var httpClient = mock(HttpClient.class);
+        var response = createSuccessfulResponse(neptuneInitializationResponse(null));
+        when(httpClient.send(any(), eq(BodyHandlers.ofString()))).thenReturn(response);
+        var handler = new DatabaseResetHandler(httpClient);
+        var request = new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
+        assertThrows(DatabaseResetRequestException.class, () -> handler.handleRequest(request, null, CONTEXT));
+        assertTrue(appender.getMessages().contains("Token is null"));
     }
 
     @Test
@@ -71,7 +84,7 @@ class DatabaseResetHandlerTest {
     private static HttpClient mockSuccessfulRequest()
         throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
-        var successfulInitializeResponse = createSuccessfulResponse(neptuneInitializationResponse());
+        var successfulInitializeResponse = createSuccessfulResponse(neptuneInitializationResponse(TEST_TOKEN));
         var successfulPerformResetResponse = createSuccessfulResponse(null);
         when(httpClient.send(any(), eq(BodyHandlers.ofString())))
             .thenReturn(successfulInitializeResponse)
@@ -96,7 +109,8 @@ class DatabaseResetHandlerTest {
     private static HttpClient mockPerformResetFailure() throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
         var notFoundResponse = getNotFoundResponse();
-        var successfulInitializeResponse = createSuccessfulResponse(neptuneInitializationResponse());
+        var successfulInitializeResponse = createSuccessfulResponse(neptuneInitializationResponse(
+            DatabaseResetHandlerTest.TEST_TOKEN));
         when(httpClient.send(any(), eq(BodyHandlers.ofString())))
             .thenReturn(successfulInitializeResponse)
             .thenReturn(notFoundResponse);
@@ -115,11 +129,15 @@ class DatabaseResetHandlerTest {
         return response;
     }
 
-    private static String neptuneInitializationResponse() {
+    private static String neptuneInitializationResponse(String token) {
+        var string = isNull(token) ? null : "\"" + token + "\"";
         return String.format("""
                                  {
-                                    "token" : "%s"
+                                    "status": "200 OK",
+                                    "payload": {
+                                        "token": %s
+                                    }
                                  }
-                                 """, DatabaseResetHandlerTest.TEST_TOKEN);
+                                 """, string);
     }
 }
