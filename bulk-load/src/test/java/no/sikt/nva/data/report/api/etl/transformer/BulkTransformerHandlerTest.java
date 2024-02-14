@@ -45,9 +45,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class BulkTransformerHandlerTest {
 
-    public static final String IDENTIFIER = "__IDENTIFIER__";
+    private static final String IDENTIFIER = "__IDENTIFIER__";
     private static final String VALID_PUBLICATION = IoUtils.stringFromResources(Path.of("publication.json"));
-    public static final String DEFAULT_LOCATION = "resources";
+    private static final String DEFAULT_LOCATION = "resources";
     private static final ObjectMapper objectMapperWithEmpty = JsonUtils.dtoObjectMapper;
     private ByteArrayOutputStream outputStream;
     private S3Client s3ResourcesClient;
