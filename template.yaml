@@ -389,6 +389,33 @@ Resources:
               detail:
                 topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
 
+  BulkTransformerHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bulk-load
+      Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
+          PERSISTED_RESOURCES_BUCKET: !Ref ResourcesBucket
+          KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
+          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
+          API_HOST: !Ref ApiDomain
+          AWS_REGION_NAME: !Ref AWS::Region
+          LOADER_BUCKET: !Sub s3://${LoaderBucket}
+      Events:
+        BatchIndexEvent:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !GetAtt BatchLoadEventBus.Name
+            Pattern:
+              detail:
+                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
+
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
   # parameter groups
