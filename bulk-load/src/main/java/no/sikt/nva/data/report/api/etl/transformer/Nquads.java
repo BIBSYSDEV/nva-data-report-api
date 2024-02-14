@@ -17,6 +17,7 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 
 public final class Nquads {
     private final DatasetGraph graph;
+
     private Nquads(DatasetGraph graph) {
         this.graph = graph;
     }

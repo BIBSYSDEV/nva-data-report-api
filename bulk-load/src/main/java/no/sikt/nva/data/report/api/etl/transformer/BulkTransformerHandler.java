@@ -38,7 +38,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     public static final String LOADER_BUCKET = "LOADER_BUCKET";
     public static final String NQUADS = ".nquads";
     public static final ObjectMapper mapper = JsonUtils.dtoObjectMapper;
-    private final String KEY_BATCHES_BUCKET = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
+    private static final String KEY_BATCHES_BUCKET
+        = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
     public static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
     public static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
     public static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
@@ -77,10 +78,11 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
 
         var keys = extractContent(batchKey);
         var nquads = mapToIndexDocuments(keys, location).stream()
-                          .map(this::mapToNquads)
+                         .map(this::mapToNquads)
                          .collect(Collectors.joining(System.lineSeparator()));
-        persistNquads(nquads);
-
+        if (!nquads.isEmpty()) {
+            persistNquads(nquads);
+        }
         logger.info(LAST_CONSUMED_BATCH, batchResponse.contents().getFirst());
         return null;
     }

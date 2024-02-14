@@ -6,13 +6,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Objects;
 import java.util.Optional;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.identifiers.SortableIdentifier;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.StringUtils;
 
 public class IndexDocument implements JsonSerializable {
 
@@ -20,7 +18,6 @@ public class IndexDocument implements JsonSerializable {
     public static final String BODY = "body";
     public static final String CONSUMPTION_ATTRIBUTES = "consumptionAttributes";
     public static final String MISSING_IDENTIFIER_IN_RESOURCE = "Missing identifier in resource";
-    public static final String MISSING_INDEX_NAME_IN_RESOURCE = "Missing index name in resource";
     @JsonProperty(CONSUMPTION_ATTRIBUTES)
     private final EventConsumptionAttributes consumptionAttributes;
     @JsonProperty(BODY)
@@ -33,19 +30,8 @@ public class IndexDocument implements JsonSerializable {
         this.resource = resource;
     }
 
-    public IndexDocument validate() {
-        Objects.requireNonNull(getIndexName());
-        Objects.requireNonNull(getDocumentIdentifier());
-        return this;
-    }
-
     public static IndexDocument fromJsonString(String json) {
         return attempt(() -> objectMapper.readValue(json, IndexDocument.class)).orElseThrow();
-    }
-
-    @JacocoGenerated
-    public EventConsumptionAttributes getConsumptionAttributes() {
-        return consumptionAttributes;
     }
 
     @JacocoGenerated
@@ -54,42 +40,9 @@ public class IndexDocument implements JsonSerializable {
     }
 
     @JsonIgnore
-    public String getIndexName() {
-        return Optional.ofNullable(consumptionAttributes.getIndex())
-            .filter(StringUtils::isNotBlank)
-            .orElseThrow(() -> new RuntimeException(MISSING_INDEX_NAME_IN_RESOURCE));
-    }
-
-    @JsonIgnore
     public String getDocumentIdentifier() {
         return Optional.ofNullable(consumptionAttributes.getDocumentIdentifier())
             .map(SortableIdentifier::toString)
             .orElseThrow(() -> new RuntimeException(MISSING_IDENTIFIER_IN_RESOURCE));
-    }
-
-
-
-    @JacocoGenerated
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof IndexDocument)) {
-            return false;
-        }
-        IndexDocument that = (IndexDocument) o;
-        return Objects.equals(getConsumptionAttributes(), that.getConsumptionAttributes())
-               && Objects.equals(getResource(), that.getResource());
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getConsumptionAttributes(), getResource());
-    }
-
-    private String serializeResource() {
-        return attempt(() -> objectMapper.writeValueAsString(resource)).orElseThrow();
     }
 }
