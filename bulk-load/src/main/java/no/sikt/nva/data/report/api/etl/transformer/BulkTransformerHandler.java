@@ -16,10 +16,13 @@ import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
@@ -42,13 +45,18 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
     private static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
     private static final String LINE_BREAK = "\n";
+    private static final String AWS_REGION_ENV_VARIABLE = "AWS_REGION_NAME";
 
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
     private final S3Client s3OutputClient;
     private final EventBridgeClient eventBridgeClient;
 
-    // TODO: Default constructor
+    @JacocoGenerated
+    public BulkTransformerHandler() {
+        this(defaultS3Client(), defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
+    }
+
     public BulkTransformerHandler(S3Client s3ResourcesClient,
                                   S3Client s3BatchesClient,
                                   S3Client s3OutputClient,
@@ -156,5 +164,20 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private String fetchS3Content(String key, String location) {
         var s3Driver = new S3Driver(s3ResourcesClient, location);
         return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
+    }
+
+    @JacocoGenerated
+    private static S3Client defaultS3Client() {
+        var awsRegion = ENVIRONMENT.readEnvOpt(AWS_REGION_ENV_VARIABLE)
+                               .orElse(Region.EU_WEST_1.toString());
+        return S3Client.builder()
+                   .region(Region.of(awsRegion))
+                   .httpClient(UrlConnectionHttpClient.builder().build())
+                   .build();
+    }
+
+    @JacocoGenerated
+    private static EventBridgeClient defaultEventBridgeClient() {
+        return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
     }
 }
