@@ -1,10 +1,10 @@
-package no.sikt.nva.data.report.api.etl.utils;
+package commons.db.utils;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Path;
+import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.ioutils.IoUtils;
 
 public final class DocumentUnwrapper {
@@ -19,12 +19,12 @@ public final class DocumentUnwrapper {
     private DocumentUnwrapper() {
     }
 
-    public static String unwrap(String indexDocument) throws JsonProcessingException {
-        var objectNode = dtoObjectMapper.readTree(indexDocument);
+    public static JsonNode unwrap(String indexDocument) throws JsonProcessingException {
+        var objectNode = JsonUtils.dtoObjectMapper.readTree(indexDocument);
         var jsonld = objectNode.at(JSON_PTR_BODY);
         var context = getReplacementContext(jsonld);
         ((ObjectNode) jsonld).set(CONTEXT_NODE, context.at(JSON_PTR_CONTEXT));
-        return jsonld.toString();
+        return jsonld;
     }
 
     private static JsonNode getReplacementContext(JsonNode jsonld) throws JsonProcessingException {
@@ -32,7 +32,7 @@ public final class DocumentUnwrapper {
         var contextFile = originalContext.contains(SCIENTIFIC_INDEX)
                               ? NVI_CONTEXT_JSONLD
                               : NVA_CONTEXT_JSONLD;
-        return dtoObjectMapper.readTree(getContext(contextFile));
+        return JsonUtils.dtoObjectMapper.readTree(getContext(contextFile));
     }
 
     private static String getContext(String contextFile) {

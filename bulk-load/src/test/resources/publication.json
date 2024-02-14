@@ -101,34 +101,5 @@
   },
   "publisherId": "http://example.org/org/123",
   "publisherOwnerDate": "http://example.org/org/123#eier@example.org#2020-03-30T05:51:02.487Z",
-  "@context": {
-    "@vocab": "https://nva.unit.no/publication#",
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "type": "@type",
-    "id": "@id",
-    "handle": {
-      "@type": "@id"
-    },
-    "alternativeTitles": {
-      "@container": "@language"
-    },
-    "createdDate": {
-      "@type": "xsd:dateTime"
-    },
-    "publishedDate": {
-      "@type": "xsd:dateTime"
-    },
-    "indexedDate": {
-      "@type": "xsd:dateTime"
-    },
-    "modifiedDate": {
-      "@type": "xsd:dateTime"
-    },
-    "link": {
-      "@type": "@id"
-    },
-    "hasTag": {
-      "@container": "@list"
-    }
-  }
+  "@context": "https://api.sikt.no/context.jsonld"
 }
