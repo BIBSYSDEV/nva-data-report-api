@@ -153,11 +153,11 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return extractIdentifiers(content)
                    .filter(Objects::nonNull)
                    .map(key -> fetchS3Content(key, location))
-                   .map(this::unwap)
+                   .map(this::unwrap)
                    .toList();
     }
 
-    private JsonNode unwap(String json) {
+    private JsonNode unwrap(String json) {
         return attempt(() -> DocumentUnwrapper.unwrap(json)).orElseThrow();
     }
 
