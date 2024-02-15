@@ -1,7 +1,7 @@
 package no.sikt.nva.data.report.api.etl;
 
 import static no.sikt.nva.data.report.api.etl.model.EventType.UPSERT;
-import static no.sikt.nva.data.report.api.etl.utils.DocumentUnwrapper.unwrap;
+import static commons.db.utils.DocumentUnwrapper.unwrap;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -61,7 +61,7 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
                         .fromUnixPath(objectKey)
                         .build()
                         .toUri();
-        graphService.persist(graph, resource);
+        graphService.persist(graph, resource.toString());
         LOGGER.info("Persisted object with key: {} in graph: {}", objectKey, graph);
     }
 

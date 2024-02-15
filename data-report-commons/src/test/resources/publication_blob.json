@@ -1,0 +1,141 @@
+{
+  "body" : {
+    "type" : "Publication",
+    "publicationContextUris" : [ "https://api.dev.nva.aws.unit.no/publication-channels-v2/publisher/f20577b8-0947-481b-96d4-f5de9ecf7c5f/2023" ],
+    "@context" : "https://api.dev.nva.aws.unit.no/publication/context",
+    "id" : "https://api.dev.nva.aws.unit.no/publication/018b80c90f4a-75942f6d-544e-4d5b-8129-7b81b957678c",
+    "associatedArtifacts" : [ {
+      "type" : "PublishedFile",
+      "administrativeAgreement" : false,
+      "identifier" : "6bd81b43-9ef7-4f2c-9d1f-8524965a2232",
+      "license" : "https://creativecommons.org/licenses/by-sa/4.0",
+      "mimeType" : "image/jpeg",
+      "name" : "osteloff.jpg",
+      "publishedDate" : "2023-10-30T13:39:17.286541763Z",
+      "publisherAuthority" : false,
+      "rightsRetentionStrategy" : {
+        "type" : "NullRightsRetentionStrategy"
+      },
+      "size" : 4656,
+      "visibleForNonOwner" : true
+    } ],
+    "createdDate" : "2023-10-30T13:32:22.218228718Z",
+    "entityDescription" : {
+      "type" : "EntityDescription",
+      "alternativeAbstracts" : { },
+      "contributors" : [ {
+        "type" : "Contributor",
+        "affiliations" : [ {
+          "id" : "https://api.dev.nva.aws.unit.no/cristin/organization/45220004.0.0.0",
+          "type" : "Organization",
+          "countryCode" : "IQ",
+          "labels" : {
+            "nn" : "Al-Iraqia University",
+            "nb" : "Al-Iraqia University",
+            "en" : "Al-Iraqia University"
+          }
+        }, {
+          "id" : "https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0",
+          "type" : "Organization",
+          "countryCode" : "NO",
+          "labels" : {
+            "nb" : "Sikt – Kunnskapssektorens tjenesteleverandør",
+            "en" : "Sikt - Norwegian Agency for Shared Services in Education and Research"
+          }
+        }, {
+          "id" : "https://api.dev.nva.aws.unit.no/cristin/organization/1627.0.0.0",
+          "type" : "Organization",
+          "countryCode" : "NO",
+          "labels" : {
+            "nb" : "Forsvarets høgskole",
+            "en" : "Norwegian Defence University College"
+          }
+        } ],
+        "correspondingAuthor" : false,
+        "identity" : {
+          "id" : "https://api.dev.nva.aws.unit.no/cristin/person/1136254",
+          "type" : "Identity",
+          "name" : "Kjetil Møkkelgjerd",
+          "orcId" : "https://sandbox.orcid.org/0000-0003-4147-3499",
+          "verificationStatus" : "Verified"
+        },
+        "role" : {
+          "type" : "Editor"
+        },
+        "sequence" : 1
+      } ],
+      "mainTitle" : "Kjetils Antologi",
+      "npiSubjectHeading" : "1003",
+      "publicationDate" : {
+        "type" : "PublicationDate",
+        "day" : "2",
+        "month" : "10",
+        "year" : "2023"
+      },
+      "reference" : {
+        "type" : "Reference",
+        "publicationContext" : {
+          "type" : "Book",
+          "publisher" : {
+            "id" : "https://api.dev.nva.aws.unit.no/publication-channels-v2/publisher/f20577b8-0947-481b-96d4-f5de9ecf7c5f/2023",
+            "type" : "Publisher",
+            "valid" : true
+          },
+          "series" : {
+            "type" : "UnconfirmedSeries"
+          }
+        },
+        "publicationInstance" : {
+          "type" : "BookAnthology",
+          "pages" : {
+            "type" : "MonographPages",
+            "illustrated" : false
+          }
+        }
+      }
+    },
+    "identifier" : "018b80c90f4a-75942f6d-544e-4d5b-8129-7b81b957678c",
+    "modelVersion" : "0.20.56",
+    "modifiedDate" : "2023-11-15T13:04:49.312343109Z",
+    "publishedDate" : "2023-10-30T13:39:17.448989386Z",
+    "publisher" : {
+      "id" : "https://api.dev.nva.aws.unit.no/customer/bb3d0c0c-5065-4623-9b98-5810983c2478",
+      "type" : "Organization"
+    },
+    "resourceOwner" : {
+      "owner" : "1136254@20754.0.0.0",
+      "ownerAffiliation" : "https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0"
+    },
+    "status" : "PUBLISHED",
+    "topLevelOrganizations" : [ {
+      "id" : "https://api.dev.nva.aws.unit.no/cristin/organization/45220004.0.0.0",
+      "type" : "Organization",
+      "countryCode" : "IQ",
+      "labels" : {
+        "nn" : "Al-Iraqia University",
+        "nb" : "Al-Iraqia University",
+        "en" : "Al-Iraqia University"
+      }
+    }, {
+      "id" : "https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0",
+      "type" : "Organization",
+      "countryCode" : "NO",
+      "labels" : {
+        "nb" : "Sikt – Kunnskapssektorens tjenesteleverandør",
+        "en" : "Sikt - Norwegian Agency for Shared Services in Education and Research"
+      }
+    }, {
+      "id" : "https://api.dev.nva.aws.unit.no/cristin/organization/1627.0.0.0",
+      "type" : "Organization",
+      "countryCode" : "NO",
+      "labels" : {
+        "nb" : "Forsvarets høgskole",
+        "en" : "Norwegian Defence University College"
+      }
+    } ]
+  },
+  "consumptionAttributes" : {
+    "index" : "resources",
+    "documentIdentifier" : "018b80c90f4a-75942f6d-544e-4d5b-8129-7b81b957678c"
+  }
+}

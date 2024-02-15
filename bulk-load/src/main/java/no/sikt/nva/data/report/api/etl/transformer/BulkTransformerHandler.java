@@ -3,7 +3,9 @@ package no.sikt.nva.data.report.api.etl.transformer;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
-import commons.db.utils.GraphName;
+import com.fasterxml.jackson.databind.JsonNode;
+import commons.db.utils.DocumentUnwrapper;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -11,7 +13,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.sikt.nva.data.report.api.etl.transformer.model.IndexDocument;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.s3.S3Driver;
@@ -46,6 +47,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
     private static final String LINE_BREAK = "\n";
     private static final String AWS_REGION_ENV_VARIABLE = "AWS_REGION_NAME";
+    public static final String ID_POINTER = "/id";
+    public static final String NT_EXTENSION = ".nt";
 
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
@@ -100,23 +103,18 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         s3OutputClient.putObject(request, RequestBody.fromString(nquads));
     }
 
-    private String mapToNquads(IndexDocument content) {
-        // TODO: Refactor GraphName to allow construction of path of GraphName.
-        // This is a silly workaround to make GraphName work.
-        var documentIdentifier = content.getResource().at("/id").toString() + ".nt";
-        var graphName = GraphName.newBuilder()
-                            .withBase(ENVIRONMENT.readEnv("API_HOST"))
-                            .fromUnixPath(UnixPath.of(documentIdentifier))
-                            .build().toUri();
-        var body = content.getResource().toString();
-        return Nquads.transform(body, graphName).toString();
+    private String mapToNquads(JsonNode content) {
+        var graphName = URI.create(content.at(ID_POINTER).textValue() + NT_EXTENSION);
+        return Nquads.transform(content.toString(), graphName).toString();
     }
 
-    private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey, Context context,
+    private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
+                                                               Context context,
                                                                String location) {
         return PutEventsRequestEntry.builder()
                    .eventBusName(EVENT_BUS)
-                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location).toJsonString())
+                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location)
+                               .toJsonString())
                    .detailType(MANDATORY_UNUSED_SUBTOPIC)
                    .source(BulkTransformerHandler.class.getName())
                    .resources(context.getInvokedFunctionArn())
@@ -140,19 +138,27 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
 
     private ListObjectsV2Response fetchSingleBatch(String startMarker) {
         return s3BatchesClient.listObjectsV2(
-            ListObjectsV2Request.builder().bucket(KEY_BATCHES_BUCKET).startAfter(startMarker).maxKeys(1).build());
+            ListObjectsV2Request.builder()
+                .bucket(KEY_BATCHES_BUCKET)
+                .startAfter(startMarker)
+                .maxKeys(1)
+                .build());
     }
 
     private void sendEvent(PutEventsRequestEntry event) {
         eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
     }
 
-    private List<IndexDocument> mapToIndexDocuments(String content, String location) {
+    private List<JsonNode> mapToIndexDocuments(String content, String location) {
         return extractIdentifiers(content)
                    .filter(Objects::nonNull)
                    .map(key -> fetchS3Content(key, location))
-                   .map(IndexDocument::fromJsonString)
+                   .map(this::unwrap)
                    .toList();
+    }
+
+    private JsonNode unwrap(String json) {
+        return attempt(() -> DocumentUnwrapper.unwrap(json)).orElseThrow();
     }
 
     private Stream<String> extractIdentifiers(String value) {
