@@ -2,9 +2,12 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
+import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
+import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.net.MediaType;
 import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
 import java.io.ByteArrayOutputStream;
@@ -16,7 +19,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
@@ -106,7 +108,8 @@ class FetchDataReportTest {
         var response = GatewayResponse.fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        assertEquals(expected, response.getBody());
+        var sortedResponse = sortResponse(getResponseType(request), response.getBody());
+        assertEquals(expected, sortedResponse);
     }
 
     @Test
@@ -129,7 +132,14 @@ class FetchDataReportTest {
         var response = GatewayResponse.fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        assertEquals(expected, response.getBody());
+        var sortedResponse = sortResponse(getResponseType(request), response.getBody());
+        assertEquals(expected, sortedResponse);
+    }
+
+    private static MediaType getResponseType(TestingRequest request) {
+        return TEXT_CSV.toString().equals(request.acceptHeader().get(ACCEPT))
+                   ? TEXT_CSV
+                   : TEXT_PLAIN;
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
@@ -165,9 +175,7 @@ class FetchDataReportTest {
 
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
     private String getExpected(TestingRequest request, TestData test) throws BadRequestException {
-        var responseType = TEXT_CSV.toString().equals(request.acceptHeader().get(ACCEPT))
-                               ? TEXT_CSV
-                               : TEXT_PLAIN;
+        var responseType = getResponseType(request);
         var data = switch (ReportType.parse(request.reportType())) {
             case AFFILIATION -> test.getAffiliationResponseData();
             case CONTRIBUTOR -> test.getContributorResponseData();
@@ -179,6 +187,6 @@ class FetchDataReportTest {
 
         return TEXT_CSV.equals(responseType)
                    ? data
-                   : ExpectedCsvFormatter.generateTable(data);
+                   : generateTable(data);
     }
 }

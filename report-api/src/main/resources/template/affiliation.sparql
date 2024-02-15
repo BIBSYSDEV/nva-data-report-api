@@ -59,4 +59,4 @@ WHERE {
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
   }
-} ORDER BY ?publicationId LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

@@ -30,14 +30,14 @@ import org.apache.jena.rdf.model.ModelFactory;
 
 public class TestData {
 
-    private static final String PUBLICATION_ID = "publicationId";
+    public static final String PUBLICATION_ID = "publicationId";
+    public static final String CONTRIBUTOR_IDENTIFIER = "contributorIdentifier";
     private static final String PUBLICATION_IDENTIFIER = "publicationIdentifier";
     private static final String PUBLICATION_CATEGORY = "publicationCategory";
     private static final String PUBLICATION_TITLE = "publicationTitle";
     private static final String CONTRIBUTOR_SEQUENCE_NUMBER = "contributorSequenceNumber";
     private static final String CONTRIBUTOR_ROLE = "contributorRole";
     private static final String CONTRIBUTOR_ID = "contributorId";
-    private static final String CONTRIBUTOR_IDENTIFIER = "contributorIdentifier";
     private static final String CONTRIBUTOR_NAME = "contributorName";
     private static final String AFFILIATION_ID = "affiliationId";
     private static final String AFFILIATION_NAME = "affiliationName";
