@@ -26,13 +26,7 @@ public class ResultSorter {
     }
 
     public static String sortResponse(MediaType type, String data) throws IOException {
-        if (CustomMediaType.TEXT_CSV.equals(type)) {
-            return sortCsv(data);
-        } else if (CustomMediaType.TEXT_PLAIN.equals(type)) {
-            return sortTextPlain(data);
-        } else {
-            return data;
-        }
+        return CustomMediaType.TEXT_CSV.equals(type) ? sortCsv(data) : sortTextPlain(data);
     }
 
     private static String sortCsv(String data) throws IOException {
