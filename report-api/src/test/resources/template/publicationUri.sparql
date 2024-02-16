@@ -1,0 +1,13 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT
+    ?uri
+WHERE {
+  GRAPH ?g {
+    ?uri a :Publication ;
+      :modifiedDate ?modifiedDate .
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+  }
+}

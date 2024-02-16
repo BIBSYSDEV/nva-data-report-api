@@ -9,7 +9,10 @@ import java.math.RoundingMode;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
@@ -32,6 +35,7 @@ public class TestData {
 
     public static final String PUBLICATION_ID = "publicationId";
     public static final String CONTRIBUTOR_IDENTIFIER = "contributorIdentifier";
+    public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     private static final String PUBLICATION_IDENTIFIER = "publicationIdentifier";
     private static final String PUBLICATION_CATEGORY = "publicationCategory";
     private static final String PUBLICATION_TITLE = "publicationTitle";
@@ -81,7 +85,6 @@ public class TestData {
                                                             AFFILIATION_ID, INSTITUTION_ID, INSTITUTION_POINTS,
                                                             INSTITUTION_APPROVAL_STATUS);
     private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
-    public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     private final List<TestPublication> publicationTestData;
 
     private final List<TestNviCandidate> nviTestData;
@@ -105,59 +108,99 @@ public class TestData {
         return model;
     }
 
-    public String getAffiliationResponseData() {
+    public String getAffiliationResponseData(int offset, int pageSize, List<String> databaseOrderedPublicationUris) {
         var headers = String.join(DELIMITER, AFFILIATION_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
-        var values = publicationTestData.stream()
+        var sorted = sortByDatabaseOrder(publicationTestData, databaseOrderedPublicationUris);
+        var values = sorted.stream()
+                         .skip(offset)
+                         .limit(pageSize)
                          .map(TestPublication::getExpectedAffiliationResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }
 
-    public String getContributorResponseData() {
+    public String getContributorResponseData(int offset, int pageSize, List<String> databaseOrderedPublicationUris) {
         var headers = String.join(DELIMITER, CONTRIBUTOR_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
-        var values = publicationTestData.stream()
+        var sorted = sortByDatabaseOrder(publicationTestData, databaseOrderedPublicationUris);
+        var values = sorted.stream()
+                         .skip(offset)
+                         .limit(pageSize)
                          .map(TestPublication::getExpectedContributorResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }
 
-    public String getFundingResponseData() {
+    public String getFundingResponseData(int offset, int pageSize, List<String> databaseOrderedPublicationUris) {
         var headers = String.join(DELIMITER, FUNDING_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
-        var values = publicationTestData.stream()
+        var sorted = sortByDatabaseOrder(publicationTestData, databaseOrderedPublicationUris);
+        var values = sorted.stream()
+                         .skip(offset)
+                         .limit(pageSize)
                          .map(TestPublication::getExpectedFundingResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }
 
-    public String getIdentifierResponseData() {
+    public String getIdentifierResponseData(int offset, int pageSize, List<String> databaseOrderedPublicationUris) {
         var headers = String.join(DELIMITER, IDENTIFIER_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
-        var values = publicationTestData.stream()
+        var sorted = sortByDatabaseOrder(publicationTestData, databaseOrderedPublicationUris);
+        var values = sorted.stream()
+                         .skip(offset)
+                         .limit(pageSize)
                          .map(TestPublication::getExpectedIdentifierResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }
 
-    public String getPublicationResponseData() {
+    public String getPublicationResponseData(int offset, int pageSize, List<String> databaseOrderedPublicationUris) {
         var headers = String.join(DELIMITER, PUBLICATION_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
-        var values = publicationTestData.stream()
+        var sorted = sortByDatabaseOrder(publicationTestData, databaseOrderedPublicationUris);
+        var values = sorted.stream()
+                         .skip(offset)
+                         .limit(pageSize)
                          .map(TestPublication::getExpectedPublicationResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }
 
-    public String getNviResponseData() {
+    public String getNviResponseData(int offset, int pageSize,
+                                     Map<String, List<String>> databaseOrderedResults) {
         var headers = String.join(DELIMITER, NVI_HEADERS) + CRLF.getString();
-        nviTestData.sort(this::sortByPublicationUri);
-        nviTestData.forEach(candidate -> candidate.publicationDetails().contributors().sort(this::sortByContributor));
-        var values = nviTestData.stream()
-                         .map(TestNviCandidate::getExpectedNviResponse)
+        var sorted = sortCandidatesByDatabaseOrder(nviTestData, databaseOrderedResults.keySet().stream().toList());
+        sorted.forEach(testNviCandidate -> {
+            var databaseOrderedContributors = databaseOrderedResults.get(testNviCandidate.publicationDetails().id());
+            testNviCandidate.sortContributorsByDatabaseOrder(databaseOrderedContributors);
+        });
+        var values = sorted.stream()
+                         .skip(offset)
+                         .limit(pageSize)
+                         .map(testNviCandidate -> testNviCandidate.getExpectedNviResponse(offset, pageSize))
                          .collect(Collectors.joining());
         return headers + values;
+    }
+
+    private static List<TestPublication> sortByDatabaseOrder(List<TestPublication> testPublications,
+                                                             List<String> databaseOrderedPublicationUris) {
+        var indexMap = getStringIntegerHashMap(databaseOrderedPublicationUris);
+        return testPublications.stream()
+                   .sorted(Comparator.comparingInt(publication -> indexMap.get(publication.getPublicationUri())))
+                   .collect(Collectors.toList());
+    }
+
+    private static HashMap<String, Integer> getStringIntegerHashMap(List<String> databaseOrderedPublicationUris) {
+        var indexMap = new HashMap<String, Integer>();
+        for (int i = 0; i < databaseOrderedPublicationUris.size(); i++) {
+            indexMap.put(databaseOrderedPublicationUris.get(i), i);
+        }
+        return indexMap;
+    }
+
+    private static List<TestNviCandidate> sortCandidatesByDatabaseOrder(List<TestNviCandidate> testCandidates,
+                                                                        List<String> databaseOrderedPublicationUris) {
+        var indexMap = getStringIntegerHashMap(databaseOrderedPublicationUris);
+        return testCandidates.stream()
+                   .sorted(Comparator.comparingInt(candidate -> indexMap.get(candidate.publicationDetails().id())))
+                   .collect(Collectors.toList());
     }
 
     private static TestPublication generatePublication(PublicationDate date, Instant modifiedDate) {

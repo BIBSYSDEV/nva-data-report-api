@@ -3,7 +3,6 @@ package no.sikt.nva.data.report.api.fetch;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
-import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,10 +14,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import no.sikt.nva.data.report.api.fetch.model.InstantUtil;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
@@ -28,15 +30,19 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
+import no.sikt.nva.data.report.testing.utils.RawFormatter;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
+import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -50,8 +56,15 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 class FetchDataReportTest {
 
+    public static final int DEFAULT_PAGE_SIZE = 10;
+    public static final String TEMPLATE_DIRECTORY = "template";
+    public static final String SPARQL = ".sparql";
+    public static final String BEFORE_PLACEHOLDER = "__BEFORE__";
+    public static final String AFTER_PLACEHOLDER = "__AFTER__";
+    public static final String PUBLICATION_URI_SPARQL = "publicationUri";
     private static final String GSP_ENDPOINT = "/gsp";
     private static final URI GRAPH = URI.create("https://example.org/graph");
+    private static final int DEFAULT_OFFSET = 0;
     private static FusekiServer server;
     private static DatabaseConnection databaseConnection;
 
@@ -107,9 +120,8 @@ class FetchDataReportTest {
         handler.handleRequest(input, output, new FakeContext());
         var response = GatewayResponse.fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
-        var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getResponseType(request), response.getBody());
-        assertEquals(expected, sortedResponse);
+        var expected = getExpected(request, testData, DEFAULT_OFFSET, DEFAULT_PAGE_SIZE);
+        assertEquals(expected, response.getBody());
     }
 
     @Test
@@ -131,9 +143,8 @@ class FetchDataReportTest {
         handler.handleRequest(input, output, new FakeContext());
         var response = GatewayResponse.fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
-        var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getResponseType(request), response.getBody());
-        assertEquals(expected, sortedResponse);
+        var expected = getExpected(request, testData, DEFAULT_OFFSET, 100);
+        assertEquals(expected, response.getBody());
     }
 
     private static MediaType getResponseType(TestingRequest request) {
@@ -173,20 +184,46 @@ class FetchDataReportTest {
         return stringWriter.toString();
     }
 
-    // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
-    private String getExpected(TestingRequest request, TestData test) throws BadRequestException {
+    // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/PAGE_SIZE.
+    private String getExpected(TestingRequest request, TestData test, int offset, int pageSize)
+        throws BadRequestException {
         var responseType = getResponseType(request);
+        var before = InstantUtil.before(request.before());
+        var after = InstantUtil.after(request.after());
+        var publicationUrisInDatabaseOrder = queryPublicationIds(before, after);
         var data = switch (ReportType.parse(request.reportType())) {
-            case AFFILIATION -> test.getAffiliationResponseData();
-            case CONTRIBUTOR -> test.getContributorResponseData();
-            case FUNDING -> test.getFundingResponseData();
-            case IDENTIFIER -> test.getIdentifierResponseData();
-            case PUBLICATION -> test.getPublicationResponseData();
-            case NVI -> test.getNviResponseData();
+            case AFFILIATION -> test.getAffiliationResponseData(offset, pageSize, publicationUrisInDatabaseOrder);
+            case CONTRIBUTOR -> test.getContributorResponseData(offset, pageSize, publicationUrisInDatabaseOrder);
+            case FUNDING -> test.getFundingResponseData(offset, pageSize, publicationUrisInDatabaseOrder);
+            case IDENTIFIER -> test.getIdentifierResponseData(offset, pageSize, publicationUrisInDatabaseOrder);
+            case PUBLICATION -> test.getPublicationResponseData(offset, pageSize, publicationUrisInDatabaseOrder);
+            case NVI -> getNviResponseData(test, offset, pageSize, before, after);
         };
 
         return TEXT_CSV.equals(responseType)
                    ? data
                    : generateTable(data);
+    }
+
+    private List<String> queryPublicationIds(Instant before, Instant after) {
+        return databaseConnection.getResult(generateQuery(before, after, PUBLICATION_URI_SPARQL), new RawFormatter())
+                   .lines()
+                   .toList();
+    }
+
+    private String getNviResponseData(TestData test, int offset, int pageSize, Instant before, Instant after) {
+        var nviResultOrder = databaseConnection.getResult(
+            generateQuery(before, after, "nviPublicationUri"), new RawFormatter()).lines()
+                                 .map(line -> line.split(" "))
+                                 .collect(Collectors.groupingBy(split -> split[0], Collectors.mapping(arr -> arr[1], Collectors.toList())));
+        return test.getNviResponseData(offset, pageSize, nviResultOrder);
+    }
+
+    private Query generateQuery(Instant before, Instant after, String sparqlName) {
+        var template = Path.of(TEMPLATE_DIRECTORY, sparqlName + SPARQL);
+        var sparqlTemplate = IoUtils.stringFromResources(template)
+                                 .replace(BEFORE_PLACEHOLDER, before.toString())
+                                 .replace(AFTER_PLACEHOLDER, after.toString());
+        return QueryFactory.create(sparqlTemplate);
     }
 }

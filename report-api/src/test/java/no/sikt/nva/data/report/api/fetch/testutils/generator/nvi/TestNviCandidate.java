@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
@@ -20,9 +21,9 @@ public record TestNviCandidate(String identifier,
         return new Builder();
     }
 
-    public String getExpectedNviResponse() {
+    public String getExpectedNviResponse(int offset, int pageSize) {
         var stringBuilder = new StringBuilder();
-        publicationDetails().contributors()
+        publicationDetails().contributors().stream().skip(offset).limit(pageSize)
             .forEach(contributor -> generateExpectedNviResponse(stringBuilder, contributor));
         return stringBuilder.toString();
     }
@@ -42,6 +43,11 @@ public record TestNviCandidate(String identifier,
                                      .withPoints(testApproval.points().toString()))
             .forEach(nviCandidate::withApproval);
         return nviCandidate.build();
+    }
+
+    public void sortContributorsByDatabaseOrder(List<String> databaseOrderedContributorIds) {
+        publicationDetails().contributors()
+            .sort(Comparator.comparingInt(contributor -> databaseOrderedContributorIds.indexOf(contributor.id())));
     }
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor) {

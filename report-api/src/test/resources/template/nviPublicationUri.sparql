@@ -1,0 +1,17 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT
+    ?publicationUri ?contributorId
+WHERE {
+  GRAPH ?g {
+    ?candidate a :NviCandidate ;
+            :modifiedDate ?modifiedDate ;
+            :publicationDetails ?publicationUri .
+
+    ?publicationUri :contributor ?contributorId .
+
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+  }
+}
