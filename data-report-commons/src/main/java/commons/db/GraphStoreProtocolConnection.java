@@ -30,6 +30,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     private static final String GSP_ENDPOINT = "gsp/";
     private static final String SPARQL_PATH = "sparql";
     private final String endpoint;
+    private final String readEndpoint;
     private final String queryPath;
 
     @JacocoGenerated
@@ -41,11 +42,14 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     private GraphStoreProtocolConnection(Environment environment) {
         this(constructEndPointUri(environment.readEnv("NEPTUNE_ENDPOINT"),
                                   environment.readEnv("NEPTUNE_PORT")),
+            constructEndPointUri(environment.readEnv("NEPTUNE_READ_ENDPOINT"),
+                                 environment.readEnv("NEPTUNE_PORT")),
              environment.readEnv("QUERY_PATH"));
     }
 
-    public GraphStoreProtocolConnection(String endpoint, String queryPath) {
+    public GraphStoreProtocolConnection(String endpoint, String readEndpoint, String queryPath) {
         this.endpoint = endpoint;
+        this.readEndpoint = readEndpoint;
         this.queryPath = queryPath;
     }
 
@@ -123,7 +127,7 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
 
     private RDFConnection configureReadConnection() {
         var path = NONE.equalsIgnoreCase(queryPath) ? EMPTY_STRING : queryPath;
-        return getRdfConnectionRemoteBuilder(endpoint)
+        return getRdfConnectionRemoteBuilder(readEndpoint)
                    .queryEndpoint(path)
                    .build();
     }

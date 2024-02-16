@@ -87,6 +87,7 @@ Globals:
     Environment:
       Variables:
         NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
+        NEPTUNE_READ_ENDPOINT: !GetAtt NeptuneCluster.ReadEndpoint
         API_HOST: !Ref ApiDomain
         QUERY_PATH: 'none'
         NEPTUNE_PORT: 8182
