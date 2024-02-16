@@ -326,19 +326,6 @@ public class TestData {
         }
         return dataSet;
     }
-
-    private int sortByPublicationUri(TestPublication a, TestPublication b) {
-        return a.getPublicationUri().compareTo(b.getPublicationUri());
-    }
-
-    private int sortByPublicationUri(TestNviCandidate a, TestNviCandidate b) {
-        return a.publicationDetails().id().compareTo(b.publicationDetails().id());
-    }
-
-    private int sortByContributor(TestNviContributor a, TestNviContributor b) {
-        return a.id().compareTo(b.id());
-    }
-
     public record DatePair(PublicationDate publicationDate, Instant modifiedDate) {
 
     }
