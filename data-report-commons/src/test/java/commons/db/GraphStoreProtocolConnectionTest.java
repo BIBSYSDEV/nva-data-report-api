@@ -34,7 +34,7 @@ class GraphStoreProtocolConnectionTest {
         var dataSet = DatasetFactory.createTxnMem();
         server = FusekiTestingServer.init(dataSet, GSP_ENDPOINT);
         var url = server.serverURL();
-        dbConnection = new GraphStoreProtocolConnection(url, new Environment().readEnv("QUERY_PATH"));
+        dbConnection = new GraphStoreProtocolConnection(url, url, new Environment().readEnv("QUERY_PATH"));
     }
 
     @AfterAll
