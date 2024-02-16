@@ -6,6 +6,8 @@ import org.apache.jena.query.ResultSet;
 
 public final class RawFormatter implements ResponseFormatter {
 
+    public static final String SPACE = " ";
+
     public RawFormatter() {
         // Simple object constructor.
     }
@@ -20,7 +22,7 @@ public final class RawFormatter implements ResponseFormatter {
                 var x = current.get(vars.next());
                 triples.append(x);
                 if (vars.hasNext()) {
-                    triples.append(" ");
+                    triples.append(SPACE);
                 }
             }
             triples.append(System.lineSeparator());
