@@ -44,8 +44,8 @@ class SingleObjectDataLoaderTest {
     private static final String UPSERT_EVENT = EventType.UPSERT.getValue();
     private static final String NVI_CONTEXT = "https://api.dev.nva.aws.unit.no/scientific-index/context";
     private static final String GSP_ENDPOINT = "/gsp";
-    private static final String NVI_CANDIDATES_FOLDER = "nvi-candidates";
-    private static final String RESOURCES_FOLDER = "resources";
+    private static final String NVI_PATH = "nvi-candidates";
+    private static final String RESOURCES_PATH = "resources";
     private static final String BUCKET_NAME = "notRelevant";
     private static final String HOST = "example.org";
     private static Context context;
@@ -96,7 +96,7 @@ class SingleObjectDataLoaderTest {
         handler.handleRequest(event, context);
         var identifier = indexDocument.indexDocument().identifier().toString();
         var expectedTriple = String.format("<" + UriWrapper.fromHost(HOST)
-                                                     .addChild(NVI_CANDIDATES_FOLDER)
+                                                     .addChild(NVI_PATH)
                                                      .addChild(identifier).toString() + "> "
                                            + "<https://nva.sikt.no/ontology/publication#identifier> "
                                            + "\"" + identifier + "\"" + " .");
@@ -128,7 +128,7 @@ class SingleObjectDataLoaderTest {
     })
     void shouldReplaceContextWhenJsonLdIsConsumed(String contextUri) throws IOException {
         var identifier = UUID.randomUUID();
-        var objectKey = UnixPath.of(NVI_CANDIDATES_FOLDER,
+        var objectKey = UnixPath.of(NVI_PATH,
                                     constructFileIdentifier(identifier));
         var uri = URI.create("https://example.org/"
                              + objectKey.toString().replace(".gz", ""));
@@ -169,7 +169,7 @@ class SingleObjectDataLoaderTest {
 
     // Possibly
     @ParameterizedTest(name = "Should extract and log folderName {0}")
-    @ValueSource(strings = {RESOURCES_FOLDER, NVI_CANDIDATES_FOLDER})
+    @ValueSource(strings = {RESOURCES_PATH, NVI_PATH})
     void shouldExtractAndLogObjectKey(String folderName) throws IOException {
         var document = IndexDocumentWithConsumptionAttributes.from(randomIndexDocument());
         var objectKey = setupExistingObjectInS3(folderName, document);
@@ -191,7 +191,7 @@ class SingleObjectDataLoaderTest {
     @ValueSource(strings = {"PutObject", "DeleteObject"})
     void shouldExtractAndLogOperationType(String eventType) throws IOException {
         var document = IndexDocumentWithConsumptionAttributes.from(randomIndexDocument());
-        var objectKey = setupExistingObjectInS3(NVI_CANDIDATES_FOLDER, document);
+        var objectKey = setupExistingObjectInS3(NVI_PATH, document);
         registerGraphForPostTestDeletion(document.indexDocument().id());
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), eventType);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
@@ -202,13 +202,13 @@ class SingleObjectDataLoaderTest {
     @ParameterizedTest
     @ValueSource(strings = {"someUnknownEventType", ""})
     void shouldThrowIllegalArgumentExceptionIfEventTypeIsUnknownOrBlank(String eventType) {
-        var key = UnixPath.of(RESOURCES_FOLDER, randomString()).toString();
+        var key = UnixPath.of(RESOURCES_PATH, randomString()).toString();
         var event = new PersistedResourceEvent(BUCKET_NAME, key, eventType);
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
 
     private static UnixPath constructObjectKey(IndexDocumentWithConsumptionAttributes updatedIndexDocument) {
-        return UnixPath.of(NVI_CANDIDATES_FOLDER,
+        return UnixPath.of(NVI_PATH,
                            constructFileIdentifier(updatedIndexDocument
                                                        .consumptionAttributes()
                                                        .documentIdentifier()));
@@ -232,7 +232,7 @@ class SingleObjectDataLoaderTest {
 
     private String generatePropertyTriple(IndexDocumentWithConsumptionAttributes document) {
         return String.format("<" + UriWrapper.fromHost(HOST)
-                                       .addChild(NVI_CANDIDATES_FOLDER)
+                                       .addChild(NVI_PATH)
                                        .addChild(document
                                                      .indexDocument()
                                                      .identifier()
@@ -278,7 +278,7 @@ class SingleObjectDataLoaderTest {
         return IndexDocument.builder()
                    .withId(UriWrapper
                                .fromHost(HOST)
-                               .addChild(NVI_CANDIDATES_FOLDER)
+                               .addChild(NVI_PATH)
                                .addChild(identifier.toString())
                                .getUri())
                    .withContext(NVI_CONTEXT)
