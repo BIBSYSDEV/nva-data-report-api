@@ -56,6 +56,8 @@ class FetchDataReportTest {
 
     private static final String GSP_ENDPOINT = "/gsp";
     private static final URI GRAPH = URI.create("https://example.org/graph");
+    public static final String OFFSET_ZERO = "0";
+    public static final String OFFSET_ONE = "1";
     private static FusekiServer server;
     private static DatabaseConnection databaseConnection;
 
@@ -125,11 +127,11 @@ class FetchDataReportTest {
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var pageSize = 1;
-        var firstRequest = generateHandlerRequest(buildRequest("0", valueOf(pageSize), reportType.getType()));
+        var firstRequest = generateHandlerRequest(buildRequest(OFFSET_ZERO, valueOf(pageSize), reportType.getType()));
         var firstOutput = executeRequest(handler, firstRequest);
         var firstRequestDataLines = extractDataLines(fromOutputStream(firstOutput, String.class).getBody());
         assertEquals(pageSize, firstRequestDataLines.size());
-        var secondRequest = generateHandlerRequest(buildRequest("1", valueOf(pageSize), reportType.getType()));
+        var secondRequest = generateHandlerRequest(buildRequest(OFFSET_ONE, valueOf(pageSize), reportType.getType()));
         var secondOutput = executeRequest(handler, secondRequest);
         var secondRequestDataLines = extractDataLines(fromOutputStream(secondOutput, String.class).getBody());
         assertEquals(pageSize, secondRequestDataLines.size());
