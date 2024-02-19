@@ -15,18 +15,25 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
-public class ResultSorter {
+public class ResultUtils {
 
     public static final String COLUMN_SPLIT_REGEX = "\\|";
     private static final String LINE_BREAK = "\n";
     private static final String EMPTY_STRING = "";
+    public static final int RESULT_HEADER_LAST_INDEX = 1;
+    public static final int RESULT_ENDING_FORMATTED_LINE = 1;
 
-    private ResultSorter() {
+    private ResultUtils() {
         // NO-OP
     }
 
     public static String sortResponse(MediaType type, String data) throws IOException {
         return CustomMediaType.TEXT_CSV.equals(type) ? sortCsv(data) : sortTextPlain(data);
+    }
+
+    public static List<String> extractDataLines(String data) {
+        var scanningResult = scanData(data);
+        return scanningResult.lines().subList(RESULT_HEADER_LAST_INDEX, scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
     }
 
     private static String sortCsv(String data) throws IOException {
