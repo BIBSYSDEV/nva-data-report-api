@@ -3,6 +3,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT DISTINCT
     ?publicationId
+    ?status
     ?publicationIdentifier
     ?contributorId
     ?contributorName
@@ -16,8 +17,12 @@ WHERE {
   GRAPH ?g {
     ?uri a :Publication ;
          :identifier ?publicationIdentifier ;
+         :status ?publicationStatus ;
          :modifiedDate ?modifiedDate ;
          :entityDescription/:contributor ?contributor .
+
+    BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
+
     ?contributor :identity ?personId ;
                  :affiliation ?affiliationUri .
 

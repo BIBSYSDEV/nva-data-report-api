@@ -3,6 +3,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT DISTINCT
     ?publicationId
+    ?status
     ?publicationIdentifier
     ?fundingSource
     ?fundingId
@@ -10,10 +11,13 @@ SELECT DISTINCT
 WHERE {
   GRAPH ?g {
     ?uri a :Publication ;
+                    :status ?publicationStatus ;
                     :modifiedDate ?modifiedDate ;
                     :identifier ?publicationIdentifier ;
                     :funding ?funding .
+
     BIND(STR(?uri) AS ?publicationId)
+    BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
     ?funding :source/:identifier ?fundingSource .
     ?funding :identifier ?fundingId .

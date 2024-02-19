@@ -27,6 +27,7 @@ public class TestPublication {
     private List<TestContributor> contributors;
     private List<TestFunding> fundings;
     private String publicationUri;
+    private String publicationStatus;
 
     public TestPublication() {
     }
@@ -38,6 +39,11 @@ public class TestPublication {
 
     public TestPublication withPublicationUri(String publicationUri) {
         this.publicationUri = publicationUri;
+        return this;
+    }
+
+    public TestPublication withPublicationStatus(String status) {
+        this.publicationStatus = status;
         return this;
     }
 
@@ -84,6 +90,7 @@ public class TestPublication {
                 var institution = extractStructuredAffiliationList(affiliation);
 
                 stringBuilder.append(publicationUri).append(DELIMITER)
+                    .append(publicationStatus).append(DELIMITER)
                     .append(identifier).append(DELIMITER)
                     .append(getLocalName(contributor)).append(DELIMITER)
                     .append(contributor.getIdentity().name()).append(DELIMITER)
@@ -102,6 +109,7 @@ public class TestPublication {
         var stringBuilder = new StringBuilder();
         for (TestContributor contributor : contributors) {
             stringBuilder.append(publicationUri).append(DELIMITER)
+                .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
                 .append(getLocalName(contributor)).append(DELIMITER)
                 .append(contributor.getIdentity().name()).append(DELIMITER)
@@ -116,6 +124,7 @@ public class TestPublication {
         var stringBuilder = new StringBuilder();
         for (TestFunding funding : fundings) {
             stringBuilder.append(publicationUri).append(DELIMITER)
+                .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
                 .append(funding.getFundingSource()).append(DELIMITER)
                 .append(funding.getId()).append(DELIMITER)
@@ -129,6 +138,7 @@ public class TestPublication {
         var stringBuilder = new StringBuilder();
         for (TestFunding funding : fundings) {
             stringBuilder.append(publicationUri).append(DELIMITER)
+                .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
                 .append(funding.getFundingSource()).append(DELIMITER)
                 .append(funding.getId())
@@ -140,6 +150,7 @@ public class TestPublication {
     public String getExpectedPublicationResponse() {
         var stringBuilder = new StringBuilder();
         stringBuilder.append(publicationUri).append(DELIMITER)
+            .append(publicationStatus).append(DELIMITER)
             .append(mainTitle).append(DELIMITER)
             .append(publicationCategory).append(DELIMITER)
             .append(date.getIsoDate()).append(DELIMITER)
@@ -175,6 +186,7 @@ public class TestPublication {
             .map(TestContributor::toModel)
             .forEach(entityDescription::withContributor);
         var publication = new PublicationGenerator(identifier, modifiedDate.toString())
+                              .withPublicationStatus(publicationStatus)
                               .withEntityDescription(entityDescription);
         fundings.stream().map(TestFunding::toModel).forEach(publication::withFunding);
 
