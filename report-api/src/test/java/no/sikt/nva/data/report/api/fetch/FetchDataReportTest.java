@@ -1,11 +1,15 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static java.lang.String.valueOf;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
-import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
+import static no.sikt.nva.data.report.api.fetch.formatter.ResultUtils.extractDataLines;
+import static no.sikt.nva.data.report.api.fetch.formatter.ResultUtils.sortResponse;
+import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.MediaType;
 import commons.db.DatabaseConnection;
@@ -31,7 +35,6 @@ import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import org.apache.jena.atlas.web.HttpException;
@@ -47,11 +50,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class FetchDataReportTest {
 
     private static final String GSP_ENDPOINT = "/gsp";
     private static final URI GRAPH = URI.create("https://example.org/graph");
+    public static final String OFFSET_ZERO = "0";
+    public static final String OFFSET_ONE = "1";
     private static FusekiServer server;
     private static DatabaseConnection databaseConnection;
 
@@ -86,9 +92,8 @@ class FetchDataReportTest {
         throws IOException {
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
-        var output = new ByteArrayOutputStream();
-        handler.handleRequest(generateHandlerRequest(report), output, new FakeContext());
-        var response = GatewayResponse.fromOutputStream(output, String.class);
+        var output = executeRequest(handler, generateHandlerRequest(report));
+        var response = fromOutputStream(output, String.class);
         assertEquals(400, response.getStatusCode());
     }
 
@@ -103,13 +108,34 @@ class FetchDataReportTest {
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
-        var output = new ByteArrayOutputStream();
-        handler.handleRequest(input, output, new FakeContext());
-        var response = GatewayResponse.fromOutputStream(output, String.class);
+        var output = executeRequest(handler, input);
+        var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
         var sortedResponse = sortResponse(getResponseType(request), response.getBody());
         assertEquals(expected, sortedResponse);
+    }
+
+    @ParameterizedTest
+    @EnumSource(ReportType.class)
+    void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
+        var testData = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
+                                                         Instant.now().minus(100, ChronoUnit.DAYS)),
+                                            new DatePair(new PublicationDate("2023", "10", "18"),
+                                                         Instant.now().minus(100, ChronoUnit.DAYS))));
+        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        var service = new QueryService(databaseConnection);
+        var handler = new FetchDataReport(service);
+        var pageSize = 1;
+        var firstRequest = generateHandlerRequest(buildRequest(OFFSET_ZERO, valueOf(pageSize), reportType.getType()));
+        var firstOutput = executeRequest(handler, firstRequest);
+        var firstRequestDataLines = extractDataLines(fromOutputStream(firstOutput, String.class).getBody());
+        assertEquals(pageSize, firstRequestDataLines.size());
+        var secondRequest = generateHandlerRequest(buildRequest(OFFSET_ONE, valueOf(pageSize), reportType.getType()));
+        var secondOutput = executeRequest(handler, secondRequest);
+        var secondRequestDataLines = extractDataLines(fromOutputStream(secondOutput, String.class).getBody());
+        assertEquals(pageSize, secondRequestDataLines.size());
+        assertNotEquals(firstRequestDataLines, secondRequestDataLines);
     }
 
     @Test
@@ -127,13 +153,30 @@ class FetchDataReportTest {
             "100"
         );
         var input = generateHandlerRequest(request);
-        var output = new ByteArrayOutputStream();
-        handler.handleRequest(input, output, new FakeContext());
-        var response = GatewayResponse.fromOutputStream(output, String.class);
+        var output = executeRequest(handler, input);
+        var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
         var sortedResponse = sortResponse(getResponseType(request), response.getBody());
         assertEquals(expected, sortedResponse);
+    }
+
+    private static ByteArrayOutputStream executeRequest(FetchDataReport handler, InputStream inputStream)
+        throws IOException {
+        var output = new ByteArrayOutputStream();
+        handler.handleRequest(inputStream, output, new FakeContext());
+        return output;
+    }
+
+    private static TestingRequest buildRequest(String offset, String pageSize, String reportType) {
+        return new TestingRequest(
+            TEXT_PLAIN.toString(),
+            reportType,
+            "2024-01-01",
+            "1998-01-01",
+            offset,
+            pageSize
+        );
     }
 
     private static MediaType getResponseType(TestingRequest request) {
