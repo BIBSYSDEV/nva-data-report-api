@@ -60,25 +60,43 @@ public class TestData {
     private static final String PUBLICATION_DATE = "publicationDate";
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
-    private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
-                                                                    CONTRIBUTOR_ID, CONTRIBUTOR_NAME, AFFILIATION_ID,
-                                                                    AFFILIATION_NAME, INSTITUTION_ID, FACULTY_ID,
+    private static String STATUS = "status";
+    private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                    PUBLICATION_IDENTIFIER,
+                                                                    CONTRIBUTOR_ID,
+                                                                    CONTRIBUTOR_NAME,
+                                                                    AFFILIATION_ID,
+                                                                    AFFILIATION_NAME,
+                                                                    INSTITUTION_ID, FACULTY_ID,
                                                                     DEPARTMENT_ID, GROUP_ID);
-    private static final List<String> FUNDING_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER, FUNDING_SOURCE,
+    private static final List<String> FUNDING_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                PUBLICATION_IDENTIFIER,
+                                                                FUNDING_SOURCE,
                                                                 FUNDING_ID, FUNDING_NAME);
-    private static final List<String> PUBLICATION_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_TITLE,
-                                                                    PUBLICATION_CATEGORY, PUBLICATION_DATE,
-                                                                    CHANNEL_TYPE, CHANNEL_IDENTIFIER, CHANNEL_NAME,
-                                                                    CHANNEL_ONLINE_ISSN, CHANNEL_PRINT_ISSN,
-                                                                    CHANNEL_LEVEL, PUBLICATION_IDENTIFIER);
-    private static final List<String> CONTRIBUTOR_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
-                                                                    CONTRIBUTOR_IDENTIFIER, CONTRIBUTOR_NAME,
-                                                                    CONTRIBUTOR_SEQUENCE_NUMBER, CONTRIBUTOR_ROLE);
-    private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, PUBLICATION_IDENTIFIER,
+    private static final List<String> PUBLICATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                    PUBLICATION_TITLE,
+                                                                    PUBLICATION_CATEGORY,
+                                                                    PUBLICATION_DATE,
+                                                                    CHANNEL_TYPE,
+                                                                    CHANNEL_IDENTIFIER,
+                                                                    CHANNEL_NAME,
+                                                                    CHANNEL_ONLINE_ISSN,
+                                                                    CHANNEL_PRINT_ISSN,
+                                                                    CHANNEL_LEVEL,
+                                                                    PUBLICATION_IDENTIFIER);
+    private static final List<String> CONTRIBUTOR_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                    PUBLICATION_IDENTIFIER,
+                                                                    CONTRIBUTOR_IDENTIFIER,
+                                                                    CONTRIBUTOR_NAME,
+                                                                    CONTRIBUTOR_SEQUENCE_NUMBER,
+                                                                    CONTRIBUTOR_ROLE);
+    private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                   PUBLICATION_IDENTIFIER,
                                                                    FUNDING_SOURCE, FUNDING_ID);
     private static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID,
                                                             CONTRIBUTOR_IDENTIFIER,
-                                                            AFFILIATION_ID, INSTITUTION_ID, INSTITUTION_POINTS,
+                                                            AFFILIATION_ID, INSTITUTION_ID,
+                                                            INSTITUTION_POINTS,
                                                             INSTITUTION_APPROVAL_STATUS);
     private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
     public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
@@ -153,7 +171,9 @@ public class TestData {
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NVI_HEADERS) + CRLF.getString();
         nviTestData.sort(this::sortByPublicationUri);
-        nviTestData.forEach(candidate -> candidate.publicationDetails().contributors().sort(this::sortByContributor));
+        nviTestData.forEach(candidate -> candidate.publicationDetails()
+                                             .contributors()
+                                             .sort(this::sortByContributor));
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedNviResponse)
                          .collect(Collectors.joining());
@@ -164,6 +184,7 @@ public class TestData {
         var identifier = UUID.randomUUID();
         return new TestPublication()
                    .withModifiedDate(modifiedDate)
+                   .withPublicationStatus("PUBLISHED")
                    .withPublicationDate(date)
                    .withPublicationUri(Constants.publicationUri(identifier))
                    .withPublicationIdentifier(identifier.toString())

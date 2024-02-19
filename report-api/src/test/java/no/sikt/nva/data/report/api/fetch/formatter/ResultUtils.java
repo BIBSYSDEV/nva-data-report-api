@@ -33,7 +33,9 @@ public class ResultUtils {
 
     public static List<String> extractDataLines(String data) {
         var scanningResult = scanData(data);
-        return scanningResult.lines().subList(RESULT_HEADER_LAST_INDEX, scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
+        return scanningResult.lines()
+                   .subList(RESULT_HEADER_LAST_INDEX,
+                            scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
     }
 
     private static String sortCsv(String data) throws IOException {

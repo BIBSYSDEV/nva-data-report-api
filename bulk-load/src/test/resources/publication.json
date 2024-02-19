@@ -2,7 +2,7 @@
   "type": "Publication",
   "id": "https://example.org/publication/__IDENTIFIER__",
   "identifier": "__IDENTIFIER__",
-  "status": "Draft",
+  "status": "PUBLISHED",
   "owner": "eier@example.org",
   "publisher": {
     "type": "Organization",
