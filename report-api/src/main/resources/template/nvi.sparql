@@ -8,12 +8,17 @@ SELECT DISTINCT
   ?institutionId
   ?institutionPoints
   ?institutionApprovalStatus
-  WHERE {
-    GRAPH ?g {
+  ?isApplicable
+WHERE {
+  GRAPH ?g {
+    {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
-        :publicationDetails ?publicationUri .
+        :publicationDetails ?publicationUri ;
+        :isApplicable ?isApplicableBoolean .
+
       BIND(STR(?publicationUri) AS ?publicationId)
+      BIND(STR(?isApplicableBoolean) AS ?isApplicable)
 
       ?publicationUri :contributor ?contributorId .
       ?contributorId a :NviContributor .
@@ -33,5 +38,19 @@ SELECT DISTINCT
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+    }
+    UNION
+    {
+      ?candidate a :NviCandidate ;
+        :modifiedDate ?modifiedDate ;
+        :publicationDetails ?publicationUri ;
+        :isApplicable ?isApplicableBoolean .
+      BIND(STR(?publicationUri) AS ?publicationId)
+      BIND(STR(?isApplicableBoolean) AS ?isApplicable)
+
+      FILTER(?isApplicableBoolean = false)
+      FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+      FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+    }
   }
 } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

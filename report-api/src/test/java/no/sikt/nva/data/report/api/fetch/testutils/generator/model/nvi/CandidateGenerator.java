@@ -18,6 +18,7 @@ public class CandidateGenerator extends TripleBasedBuilder {
     private static final Property MODIFIED_DATE = new PropertyImpl(ONTOLOGY_BASE_URI + "modifiedDate");
     private static final Property IDENTIFIER = new PropertyImpl(ONTOLOGY_BASE_URI + "identifier");
     private static final Property APPROVAL = new PropertyImpl(ONTOLOGY_BASE_URI + "approval");
+    private static final Property IS_APPLICABLE = new PropertyImpl(ONTOLOGY_BASE_URI + "isApplicable");
     private final Model model;
     private final Resource subject;
 
@@ -38,6 +39,11 @@ public class CandidateGenerator extends TripleBasedBuilder {
     public CandidateGenerator withApproval(ApprovalGenerator approval) {
         model.add(subject, APPROVAL, approval.getSubject());
         model.add(approval.build());
+        return this;
+    }
+
+    public CandidateGenerator withIsApplicable(boolean isApplicable) {
+        model.add(subject, IS_APPLICABLE, model.createTypedLiteral(isApplicable));
         return this;
     }
 

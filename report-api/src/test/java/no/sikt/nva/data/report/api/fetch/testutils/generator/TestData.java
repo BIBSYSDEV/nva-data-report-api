@@ -9,6 +9,7 @@ import java.math.RoundingMode;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class TestData {
     private static final String PUBLICATION_DATE = "publicationDate";
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
-    private static String STATUS = "status";
+    private static final String STATUS = "status";
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
                                                                     CONTRIBUTOR_ID,
@@ -93,11 +94,12 @@ public class TestData {
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
                                                                    FUNDING_SOURCE, FUNDING_ID);
+    public static final String IS_APPLICABLE = "isApplicable";
     private static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID,
                                                             CONTRIBUTOR_IDENTIFIER,
                                                             AFFILIATION_ID, INSTITUTION_ID,
                                                             INSTITUTION_POINTS,
-                                                            INSTITUTION_APPROVAL_STATUS);
+                                                            INSTITUTION_APPROVAL_STATUS, IS_APPLICABLE);
     private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
     public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     private final List<TestPublication> publicationTestData;
@@ -247,10 +249,23 @@ public class TestData {
         var publicationDetails = generatePublicationDetails();
         var approvals = generateApprovals(publicationDetails);
         return TestNviCandidate.builder()
+                   .withIsApplicable(true)
                    .withIdentifier(UUID.randomUUID().toString())
                    .withModifiedDate(modifiedDate)
                    .withPublicationDetails(publicationDetails)
                    .withApprovals(approvals)
+                   .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate) {
+        var publicationDetails = generatePublicationDetails();
+        return TestNviCandidate.builder()
+                   .withIsApplicable(false)
+                   .withIdentifier(UUID.randomUUID().toString())
+                   .withModifiedDate(modifiedDate)
+                   .withPublicationDetails(publicationDetails)
+                   .withApprovals(Collections.EMPTY_LIST)
                    .build();
     }
 
@@ -299,8 +314,10 @@ public class TestData {
     private List<TestNviCandidate> generateNviData(List<DatePair> dates) {
         var dataSet = new ArrayList<TestNviCandidate>();
         for (DatePair date : dates) {
-            var data = generateNviCandidate(date.modifiedDate);
-            dataSet.add(data);
+            var nviCandidate = generateNviCandidate(date.modifiedDate);
+            var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate);
+            dataSet.add(nviCandidate);
+            dataSet.add(nonApplicableNviCandidate);
         }
         return dataSet;
     }
