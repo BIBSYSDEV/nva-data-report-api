@@ -31,7 +31,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     public static final String DEFAULT_BATCH_SIZE = "1000";
     public static final String DELIMITER = "/";
     public static final String DEFAULT_START_MARKER = null;
-    public static final String START_MARKER_MESSAGE = "Start marker: {}";
+    public static final String INFO_MESSAGE = "Start marker: {}. Location: {}";
     private static final Logger logger = LoggerFactory.getLogger(GenerateKeyBatchesHandler.class);
     private static final Environment ENVIRONMENT = new Environment();
     public static final String INPUT_BUCKET = ENVIRONMENT.readEnv("EXPANDED_RESOURCES_BUCKET");
@@ -67,7 +67,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
                                 Context context) {
         var startMarker = getStartMarker(input);
         var location = getLocation(input);
-        logger.info(START_MARKER_MESSAGE, startMarker);
+        logger.info(INFO_MESSAGE, startMarker, location);
         var response = inputClient.listObjectsV2(createRequest(startMarker, location));
         var keys = getKeys(response);
         writeObject(location, toKeyString(keys));
