@@ -614,7 +614,7 @@ Resources:
     Type: 'AWS::EC2::VPCEndpoint'
     Properties:
       VpcId: !Ref VPC
-      ServiceName: com.amazonaws.eu-west-1.s3
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       RouteTableIds:
         - !Ref PrivateRouteTable
       VpcEndpointType: Gateway
@@ -628,6 +628,19 @@ Resources:
               - 's3:List*'
               - 's3:PutObject'
             Resource: '*'
+
+  EventBridgeVPCEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.events'
+      VpcEndpointType: 'Interface'
+      SubnetIds:
+        - !Ref LambdaSubnet1
+        - !Ref LambdaSubnet2
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
 
   #---- EventBus ----
 
