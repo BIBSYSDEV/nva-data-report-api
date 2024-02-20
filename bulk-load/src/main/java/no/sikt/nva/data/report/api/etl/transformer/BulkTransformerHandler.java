@@ -38,6 +38,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final Environment ENVIRONMENT = new Environment();
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
     private static final String LOADER_BUCKET = "LOADER_BUCKET";
+    private static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
     private static final String NQUADS = ".nquads";
     private static final String KEY_BATCHES_BUCKET
         = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
@@ -85,7 +86,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         }
 
         var keys = extractContent(batchKey);
-        var nquads = mapToIndexDocuments(keys, location).stream()
+        var nquads = mapToIndexDocuments(keys).stream()
                          .map(this::mapToNquads)
                          .collect(Collectors.joining(System.lineSeparator()));
         if (!nquads.isEmpty()) {
@@ -149,10 +150,10 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
     }
 
-    private List<JsonNode> mapToIndexDocuments(String content, String location) {
+    private List<JsonNode> mapToIndexDocuments(String content) {
         return extractIdentifiers(content)
                    .filter(Objects::nonNull)
-                   .map(key -> fetchS3Content(key, location))
+                   .map(this::fetchS3Content)
                    .map(this::unwrap)
                    .toList();
     }
@@ -167,8 +168,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                    : Stream.empty();
     }
 
-    private String fetchS3Content(String key, String location) {
-        var s3Driver = new S3Driver(s3ResourcesClient, location);
+    private String fetchS3Content(String key) {
+        var s3Driver = new S3Driver(s3ResourcesClient, ENVIRONMENT.readEnv(EXPANDED_RESOURCES_BUCKET));
         return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
     }
 
