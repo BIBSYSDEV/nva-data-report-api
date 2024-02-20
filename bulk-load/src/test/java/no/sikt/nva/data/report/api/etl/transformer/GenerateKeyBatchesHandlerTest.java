@@ -72,8 +72,9 @@ class GenerateKeyBatchesHandlerTest {
 
     @Test
     void shouldReadGenerateBatchesFromS3LocationProvidedInEventBody() throws JsonProcessingException {
-        var location = randomString();
+        var location = "requestedLocation";
         final var allFiles = putObjectsInInputBucket(SINGLE_BATCH_FILE_SIZE, location);
+        putObjectsInInputBucket(SINGLE_BATCH_FILE_SIZE, "someOtherLocation");
 
         handler.handleRequest(eventStream(location), outputStream, mock(Context.class));
 
