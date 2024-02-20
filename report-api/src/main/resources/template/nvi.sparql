@@ -14,8 +14,11 @@ WHERE {
     {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
-        :publicationDetails ?publicationUri .
+        :publicationDetails ?publicationUri ;
+        :isApplicable ?isApplicableBoolean .
+
       BIND(STR(?publicationUri) AS ?publicationId)
+      BIND(STR(?isApplicableBoolean) AS ?isApplicable)
 
       ?publicationUri :contributor ?contributorId .
       ?contributorId a :NviContributor .
@@ -41,8 +44,11 @@ WHERE {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
         :publicationDetails ?publicationUri ;
-        :isApplicable ?isApplicable .
+        :isApplicable ?isApplicableBoolean .
       BIND(STR(?publicationUri) AS ?publicationId)
+      BIND(STR(?isApplicableBoolean) AS ?isApplicable)
+
+      FILTER(?isApplicableBoolean = false)
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
     }
