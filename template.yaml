@@ -378,7 +378,7 @@ Resources:
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
-          PERSISTED_RESOURCES_BUCKET: !Ref ResourcesBucket
+          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           TOPIC: 'ReportApi.Bulk.KeyBasedBatch'
       Events:
@@ -402,7 +402,7 @@ Resources:
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
-          PERSISTED_RESOURCES_BUCKET: !Ref ResourcesBucket
+          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
           API_HOST: !Ref ApiDomain
