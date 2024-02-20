@@ -139,6 +139,7 @@ Resources:
                   - s3:Get*
                   - s3:List*
                   - events:*
+                  - s3:PutObject
                 Resource: '*'
         - PolicyName: neptuneAccessPolicy
           PolicyDocument:
