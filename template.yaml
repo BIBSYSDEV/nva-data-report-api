@@ -138,9 +138,17 @@ Resources:
                 Action:
                   - s3:Get*
                   - s3:List*
-                  - events:*
                   - s3:PutObject
                 Resource: '*'
+        - PolicyName: Events
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - events:*
+                Resource:
+                  - !GetAtt BatchLoadEventBus.Arn
         - PolicyName: neptuneAccessPolicy
           PolicyDocument:
             Version: 2012-10-17
