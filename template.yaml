@@ -91,6 +91,7 @@ Globals:
         API_HOST: !Ref ApiDomain
         QUERY_PATH: 'none'
         NEPTUNE_PORT: 8182
+        AWS_REGION: !Ref AWS::Region
 
 Resources:
 
@@ -358,7 +359,6 @@ Resources:
           NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
           NEPTUNE_PORT: 8182
           LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
-          AWS_REGION_NAME: !Ref AWS::Region
 
 
   ResetDatabaseButton:
@@ -415,7 +415,6 @@ Resources:
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
           API_HOST: !Ref ApiDomain
-          AWS_REGION_NAME: !Ref AWS::Region
           LOADER_BUCKET: !Sub s3://${LoaderBucket}
       Events:
         BatchIndexEvent:
