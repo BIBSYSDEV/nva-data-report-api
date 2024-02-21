@@ -423,9 +423,9 @@ Resources:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
+          LOADER_BUCKET: !Ref LoaderBucket
           TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
           API_HOST: !Ref ApiDomain
-          LOADER_BUCKET: !Sub s3://${LoaderBucket}
       Events:
         BatchIndexEvent:
           Type: EventBridgeRule
