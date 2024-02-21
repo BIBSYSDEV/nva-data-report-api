@@ -117,6 +117,6 @@ public class BulkLoadHandler implements RequestStreamHandler {
     }
 
     private static URI getLoaderSpecSource(Environment environment) {
-        return URI.create(environment.readEnv(LOADER_BUCKET) + "/files");
+        return URI.create("s3://" + environment.readEnv(LOADER_BUCKET) + "/files");
     }
 }
