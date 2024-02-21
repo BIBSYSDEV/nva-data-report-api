@@ -42,7 +42,6 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     private static final int MAX_KEYS = Integer.parseInt(
         ENVIRONMENT.readEnvOpt("BATCH_SIZE").orElse(DEFAULT_BATCH_SIZE));
     private static final String DEFAULT_LOCATION = "resources";
-    private static final String AWS_REGION_ENV_VARIABLE = "AWS_REGION_NAME";
     private final S3Client inputClient;
     private final S3Client outputClient;
     private final EventBridgeClient eventBridgeClient;
