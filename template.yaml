@@ -78,12 +78,6 @@ Globals:
   Function:
     Runtime: java21
     MemorySize: 1536
-    VpcConfig:
-      SecurityGroupIds:
-        - !Ref LambdaSecurityGroup
-      SubnetIds:
-        - !Ref LambdaSubnet1
-        - !Ref LambdaSubnet2
     Environment:
       Variables:
         NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
@@ -294,6 +288,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: report-api
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref LambdaSubnet1
+          - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
       Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
@@ -316,6 +316,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: data-loading
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref LambdaSubnet1
+          - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
       Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
@@ -339,6 +345,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: bulk-load
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref LambdaSubnet1
+          - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
       Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
@@ -357,6 +369,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: database-tools
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref LambdaSubnet1
+          - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
       Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
@@ -376,8 +394,6 @@ Resources:
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
-      Policies:
-        - VPCAccessPolicy: { }
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
@@ -402,8 +418,6 @@ Resources:
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
-      Policies:
-        - VPCAccessPolicy: { }
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
