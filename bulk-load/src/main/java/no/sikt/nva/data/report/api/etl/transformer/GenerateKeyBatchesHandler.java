@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
+import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
@@ -28,18 +28,18 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent, Void> {
 
-    public static final String DEFAULT_BATCH_SIZE = "1000";
-    public static final String DELIMITER = "/";
-    public static final String DEFAULT_START_MARKER = null;
-    public static final String INFO_MESSAGE = "Start marker: {}. Location: {}";
+    private static final String DEFAULT_BATCH_SIZE = "1000";
+    private static final String DELIMITER = "/";
+    private static final String DEFAULT_START_MARKER = null;
+    private static final String INFO_MESSAGE = "Start marker: {}. Location: {}";
+    private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
     private static final Logger logger = LoggerFactory.getLogger(GenerateKeyBatchesHandler.class);
     private static final Environment ENVIRONMENT = new Environment();
-    public static final String INPUT_BUCKET = ENVIRONMENT.readEnv("EXPANDED_RESOURCES_BUCKET");
-    public static final String OUTPUT_BUCKET = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
-    public static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
-    public static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
-    public static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
-    public static final int MAX_KEYS = Integer.parseInt(
+    private static final String INPUT_BUCKET = ENVIRONMENT.readEnv("EXPANDED_RESOURCES_BUCKET");
+    private static final String OUTPUT_BUCKET = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
+    private static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
+    private static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
+    private static final int MAX_KEYS = Integer.parseInt(
         ENVIRONMENT.readEnvOpt("BATCH_SIZE").orElse(DEFAULT_BATCH_SIZE));
     private static final String DEFAULT_LOCATION = "resources";
     private static final String AWS_REGION_ENV_VARIABLE = "AWS_REGION_NAME";
@@ -61,6 +61,11 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         this.eventBridgeClient = eventBridgeClient;
     }
 
+    @JacocoGenerated
+    public static S3Client defaultS3Client() {
+        return S3Driver.defaultS3Client().build();
+    }
+
     @Override
     protected Void processInput(KeyBatchRequestEvent input,
                                 AwsEventBridgeEvent<KeyBatchRequestEvent> event,
@@ -75,10 +80,6 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         var eventsResponse = sendEvent(constructRequestEntry(lastEvaluatedKey, context, location));
         logger.info(eventsResponse.toString());
         return null;
-    }
-
-    private String getLocation(KeyBatchRequestEvent event) {
-        return isNotEmptyEvent(event) ? event.getLocation() : DEFAULT_LOCATION;
     }
 
     private static boolean isNotEmptyEvent(KeyBatchRequestEvent event) {
@@ -137,6 +138,10 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
                    .build();
     }
 
+    private String getLocation(KeyBatchRequestEvent event) {
+        return isNotEmptyEvent(event) ? event.getLocation() : DEFAULT_LOCATION;
+    }
+
     private PutEventsResponse sendEvent(PutEventsRequestEntry event) {
         return eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
     }
@@ -148,15 +153,5 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
                           .key(key)
                           .build();
         outputClient.putObject(request, RequestBody.fromBytes(object.getBytes(UTF_8)));
-    }
-
-    @JacocoGenerated
-    public static S3Client defaultS3Client() {
-        var awsRegion = ENVIRONMENT.readEnvOpt(AWS_REGION_ENV_VARIABLE)
-                            .orElse(Region.EU_WEST_1.toString());
-        return S3Client.builder()
-                   .region(Region.of(awsRegion))
-                   .httpClient(UrlConnectionHttpClient.builder().build())
-                   .build();
     }
 }
