@@ -42,6 +42,8 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     private static final int MAX_KEYS = Integer.parseInt(
         ENVIRONMENT.readEnvOpt("BATCH_SIZE").orElse(DEFAULT_BATCH_SIZE));
     private static final String DEFAULT_LOCATION = "resources";
+    private static final String LAST_KEY_IN_BATCH_MESSAGE = "Last key in batch: {}";
+    private static final String WROTE_ITEMS_MESSAGE = "Wrote {} items to {}";
     private final S3Client inputClient;
     private final S3Client outputClient;
     private final EventBridgeClient eventBridgeClient;
@@ -73,8 +75,10 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         var location = getLocation(input);
         logger.info(INFO_MESSAGE, startMarker, location);
         var response = inputClient.listObjectsV2(createRequest(startMarker, location));
+        logger.info(LAST_KEY_IN_BATCH_MESSAGE, response.contents().getLast());
         var keys = getKeys(response);
         writeObject(location, toKeyString(keys));
+        logger.info(WROTE_ITEMS_MESSAGE, keys.size(), OUTPUT_BUCKET);
         var lastEvaluatedKey = getLastEvaluatedKey(keys);
         var eventsResponse = sendEvent(constructRequestEntry(lastEvaluatedKey, context, location));
         logger.info(eventsResponse.toString());
