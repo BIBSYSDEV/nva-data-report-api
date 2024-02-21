@@ -91,7 +91,7 @@ Globals:
         API_HOST: !Ref ApiDomain
         QUERY_PATH: 'none'
         NEPTUNE_PORT: 8182
-        AWS_REGION: !Ref AWS::Region
+        AWS_REGION_NAME: !Ref AWS::Region
 
 Resources:
 
