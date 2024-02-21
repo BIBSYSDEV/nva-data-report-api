@@ -74,7 +74,9 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         var startMarker = getStartMarker(input);
         var location = getLocation(input);
         logger.info(INFO_MESSAGE, startMarker, location);
-        var response = inputClient.listObjectsV2(createRequest(startMarker, location));
+        var request = createRequest(startMarker, location);
+        logger.info("Requesting data from {}", request.bucket());
+        var response = inputClient.listObjectsV2(request);
         logger.info(LAST_KEY_IN_BATCH_MESSAGE, response.contents().getLast());
         var keys = getKeys(response);
         writeObject(location, toKeyString(keys));
