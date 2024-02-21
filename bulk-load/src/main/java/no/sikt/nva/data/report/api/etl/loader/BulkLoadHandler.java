@@ -78,8 +78,10 @@ public class BulkLoadHandler implements RequestStreamHandler {
 
     private static HttpRequest createRequest() {
         var environment = new Environment();
+        var loaderSpec = createLoaderSpec(environment);
+        logger.info("Creating request with spec: {}", loaderSpec);
         return HttpRequest.newBuilder()
-                   .POST(BodyPublishers.ofString(createLoaderSpec(environment)))
+                   .POST(BodyPublishers.ofString(loaderSpec))
                    .header(CONTENT_TYPE, APPLICATION_JSON)
                    .uri(createUri(environment))
                    .build();
