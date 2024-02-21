@@ -20,15 +20,16 @@ import org.slf4j.LoggerFactory;
 
 public class BulkLoadHandler implements RequestStreamHandler {
 
-    public static final Logger logger = LoggerFactory.getLogger(BulkLoadHandler.class);
-    public static final String NEPTUNE_ENDPOINT = "NEPTUNE_ENDPOINT";
-    public static final String NEPTUNE_PORT = "NEPTUNE_PORT";
-    public static final String CONTENT_TYPE = "Content-Type";
-    public static final String APPLICATION_JSON = "application/json";
-    public static final String LOADER_IAM_ROLE = "LOADER_IAM_ROLE";
-    public static final String AWS_REGION = "AWS_REGION_NAME";
-    public static final String LOADER_BUCKET = "LOADER_BUCKET";
-    public static final int HTTP_OK = 200;
+    private static final Logger logger = LoggerFactory.getLogger(BulkLoadHandler.class);
+    private static final String NEPTUNE_ENDPOINT = "NEPTUNE_ENDPOINT";
+    private static final String NEPTUNE_PORT = "NEPTUNE_PORT";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String APPLICATION_JSON = "application/json";
+    private static final String LOADER_IAM_ROLE = "LOADER_IAM_ROLE";
+    private static final String AWS_REGION = "AWS_REGION_NAME";
+    private static final String LOADER_BUCKET = "LOADER_BUCKET";
+    private static final int HTTP_OK = 200;
+    private static final String LOADER_PATH = "loader";
     private final HttpClient httpClient;
 
     @JacocoGenerated
@@ -99,9 +100,12 @@ public class BulkLoadHandler implements RequestStreamHandler {
     }
 
     private static URI createUri(Environment environment) {
-        return UriWrapper.fromHost(environment.readEnv(NEPTUNE_ENDPOINT),
+        var uri = UriWrapper.fromHost(environment.readEnv(NEPTUNE_ENDPOINT),
                                    Integer.parseInt(environment.readEnv(NEPTUNE_PORT)))
+                   .addChild(LOADER_PATH)
                    .getUri();
+        logger.info("Using URI: {}", uri);
+        return uri;
     }
 
     private static String createLoaderSpec(Environment environment) {
