@@ -384,6 +384,8 @@ Resources:
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
+      Policies:
+        - VPCAccessPolicy: { }
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
@@ -408,6 +410,8 @@ Resources:
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
+      Policies:
+        - VPCAccessPolicy: { }
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
