@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -129,7 +130,17 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     }
 
     private static List<String> getKeys(ListObjectsV2Response response) {
-        return response.contents().stream().map(S3Object::key).toList();
+        var commonPrefixes = response.commonPrefixes().stream()
+                                                .map(CommonPrefix::prefix)
+                                                .toList();
+        return response.contents().stream()
+                   .map(S3Object::key)
+                   .filter(key -> excludeBucketFolder(key, commonPrefixes))
+                   .toList();
+    }
+
+    private static boolean excludeBucketFolder(String key, List<String> commonPrefixes) {
+        return !commonPrefixes.contains(key);
     }
 
     private static String getLastEvaluatedKey(List<String> keys) {
