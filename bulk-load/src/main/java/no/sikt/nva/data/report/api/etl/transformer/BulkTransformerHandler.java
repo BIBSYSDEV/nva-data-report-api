@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.util.Objects.nonNull;
+import static no.sikt.nva.data.report.api.etl.transformer.util.GzipUtil.compress;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,7 +39,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
     private static final String LOADER_BUCKET = "LOADER_BUCKET";
     private static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
-    private static final String NQUADS = ".nquads";
+    private static final String NQUADS_GZIPPED = ".nquads.gz";
     private static final String KEY_BATCHES_BUCKET
         = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
     private static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
@@ -88,7 +89,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                          .map(this::mapToNquads)
                          .collect(Collectors.joining(System.lineSeparator()));
         if (!nquads.isEmpty()) {
-            persistNquads(nquads);
+            var payload = attempt(() -> compress(nquads)).orElseThrow();
+            persistNquads(payload);
         }
         logger.info(LAST_CONSUMED_BATCH, batchResponse.contents().getFirst());
         return null;
@@ -122,12 +124,12 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
     }
 
-    private void persistNquads(String nquads) {
+    private void persistNquads(byte[] nquads) {
         var request = PutObjectRequest.builder()
                           .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
-                          .key(UUID.randomUUID() + NQUADS)
+                          .key(UUID.randomUUID() + NQUADS_GZIPPED)
                           .build();
-        s3OutputClient.putObject(request, RequestBody.fromString(nquads));
+        s3OutputClient.putObject(request, RequestBody.fromBytes(nquads));
     }
 
     private String mapToNquads(JsonNode content) {
