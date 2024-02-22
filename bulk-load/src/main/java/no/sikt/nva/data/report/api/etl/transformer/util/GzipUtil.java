@@ -6,7 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-public class GzipUtil {
+public final class GzipUtil {
 
     private static final int ONE_KILOBYTE = 1024;
     private static final int EOS = -1;
@@ -16,6 +16,7 @@ public class GzipUtil {
         // NO-OP
     }
 
+    @SuppressWarnings("PMD.AssignementInOperand")
     public static byte[] compress(String uncompressedData) throws IOException {
         var inputStream = new ByteArrayInputStream(uncompressedData.getBytes(UTF_8));
         var outputStream = new ByteArrayOutputStream();
@@ -23,7 +24,7 @@ public class GzipUtil {
         try (var gzip = new GZIPOutputStream(outputStream)) {
             var buffer = new byte[ONE_KILOBYTE];
             int len;
-            while((len=inputStream.read(buffer)) != EOS){
+            while ((len = inputStream.read(buffer)) != EOS) {
                 gzip.write(buffer, ZERO_OFFSET, len);
             }
         }
