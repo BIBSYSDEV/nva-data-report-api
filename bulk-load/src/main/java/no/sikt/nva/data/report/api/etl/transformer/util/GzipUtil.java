@@ -16,7 +16,7 @@ public final class GzipUtil {
         // NO-OP
     }
 
-    @SuppressWarnings("PMD.AssignementInOperand")
+    @SuppressWarnings("PMD.AssignmentInOperand")
     public static byte[] compress(String uncompressedData) throws IOException {
         var inputStream = new ByteArrayInputStream(uncompressedData.getBytes(UTF_8));
         var outputStream = new ByteArrayOutputStream();
