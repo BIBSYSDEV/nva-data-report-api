@@ -70,9 +70,9 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     protected Void processInput(KeyBatchRequestEvent input,
                                 AwsEventBridgeEvent<KeyBatchRequestEvent> event,
                                 Context context) {
-        input = nonNull(input) ? input : new KeyBatchRequestEvent(null, null, null);
-        var startMarker = input.getStartMarker();
-        var location = input.getLocation();
+        var requestEvent = nonNull(input) ? input : new KeyBatchRequestEvent();
+        var startMarker = requestEvent.getStartMarker();
+        var location = requestEvent.getLocation();
         logger.info(INFO_MESSAGE, startMarker, location);
         var request = createRequest(startMarker, location);
         logger.info("Requesting data from {}", request.bucket());

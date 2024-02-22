@@ -22,6 +22,10 @@ public class KeyBatchRequestEvent implements JsonSerializable, EventBody {
     @JsonProperty(LOCATION_JSON_NAME)
     private final String location;
 
+    protected KeyBatchRequestEvent() {
+        this(null, null, null);
+    }
+
     @JsonCreator
     public KeyBatchRequestEvent(@JsonProperty(START_MARKER_JSON_NAME) String startMarker,
                                 @JsonProperty(TOPIC_JSON_NAME) String topic,
