@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
@@ -9,9 +10,11 @@ import nva.commons.core.JacocoGenerated;
 
 public class KeyBatchRequestEvent implements JsonSerializable, EventBody {
 
-    public static final String START_MARKER_JSON_NAME = "startMarker";
-    public static final String TOPIC_JSON_NAME = "topic";
-    public static final String LOCATION_JSON_NAME = "location";
+    private static final String START_MARKER_JSON_NAME = "startMarker";
+    private static final String TOPIC_JSON_NAME = "topic";
+    private static final String LOCATION_JSON_NAME = "location";
+    private static final String DEFAULT_LOCATION = "resources";
+
     @JsonProperty(START_MARKER_JSON_NAME)
     private final String startMarker;
     @JsonProperty(TOPIC_JSON_NAME)
@@ -29,7 +32,7 @@ public class KeyBatchRequestEvent implements JsonSerializable, EventBody {
     }
 
     public String getLocation() {
-        return location;
+        return nonNull(location) ? location : DEFAULT_LOCATION;
     }
 
     @JacocoGenerated

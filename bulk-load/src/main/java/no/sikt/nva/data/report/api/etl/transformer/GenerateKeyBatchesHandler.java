@@ -1,7 +1,6 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Objects.nonNull;
 import static java.util.UUID.randomUUID;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.time.Instant;
@@ -31,7 +30,6 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
 
     private static final String DEFAULT_BATCH_SIZE = "1000";
     private static final String DELIMITER = "/";
-    private static final String DEFAULT_START_MARKER = null;
     private static final String INFO_MESSAGE = "Start marker: {}. Location: {}";
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
     private static final Logger logger = LoggerFactory.getLogger(GenerateKeyBatchesHandler.class);
@@ -42,7 +40,6 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     private static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
     private static final int MAX_KEYS = Integer.parseInt(
         ENVIRONMENT.readEnvOpt("BATCH_SIZE").orElse(DEFAULT_BATCH_SIZE));
-    private static final String DEFAULT_LOCATION = "resources";
     private static final String LAST_KEY_IN_BATCH_MESSAGE = "Last key in batch: {}";
     private static final String WROTE_ITEMS_MESSAGE = "Wrote {} items to {}";
     private final S3Client inputClient;
@@ -72,8 +69,8 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     protected Void processInput(KeyBatchRequestEvent input,
                                 AwsEventBridgeEvent<KeyBatchRequestEvent> event,
                                 Context context) {
-        var startMarker = getStartMarker(input);
-        var location = getLocation(input);
+        var startMarker = input.getStartMarker();
+        var location = input.getLocation();
         logger.info(INFO_MESSAGE, startMarker, location);
         var request = createRequest(startMarker, location);
         logger.info("Requesting data from {}", request.bucket());
@@ -86,10 +83,6 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         var eventsResponse = sendEvent(constructRequestEntry(lastEvaluatedKey, context, location));
         logger.info(eventsResponse.toString());
         return null;
-    }
-
-    private static boolean isNotEmptyEvent(KeyBatchRequestEvent event) {
-        return nonNull(event) && nonNull(event.getLocation());
     }
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
@@ -105,14 +98,6 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
                    .resources(context.getInvokedFunctionArn())
                    .time(Instant.now())
                    .build();
-    }
-
-    private static String getStartMarker(KeyBatchRequestEvent input) {
-        return notEmptyEvent(input) ? input.getStartMarker() : DEFAULT_START_MARKER;
-    }
-
-    private static boolean notEmptyEvent(KeyBatchRequestEvent event) {
-        return nonNull(event) && nonNull(event.getStartMarker());
     }
 
     private static ListObjectsV2Request createRequest(String startMarker, String location) {
@@ -152,10 +137,6 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         return EventBridgeClient.builder()
                    .httpClientBuilder(UrlConnectionHttpClient.builder())
                    .build();
-    }
-
-    private String getLocation(KeyBatchRequestEvent event) {
-        return isNotEmptyEvent(event) ? event.getLocation() : DEFAULT_LOCATION;
     }
 
     private PutEventsResponse sendEvent(PutEventsRequestEntry event) {

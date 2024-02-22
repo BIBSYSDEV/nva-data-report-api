@@ -74,7 +74,7 @@ class GenerateKeyBatchesHandlerTest {
     void shouldReadGenerateBatchesFromS3LocationProvidedInEventBody() throws JsonProcessingException {
         var location = "requestedLocation";
         final var allFiles = putObjectsInInputBucket(SINGLE_BATCH_FILE_SIZE, location);
-        putObjectsInInputBucket(SINGLE_BATCH_FILE_SIZE, "someOtherLocation");
+        putObjectsInInputBucket(SINGLE_BATCH_FILE_SIZE, "resources");
 
         handler.handleRequest(eventStream(location), outputStream, mock(Context.class));
 
@@ -106,7 +106,7 @@ class GenerateKeyBatchesHandlerTest {
 
     private InputStream eventStream(String location) throws JsonProcessingException {
         var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
-        event.setDetail(new KeyBatchRequestEvent(null, KeyBatchRequestEvent.TOPIC_JSON_NAME, location));
+        event.setDetail(new KeyBatchRequestEvent(null, "topic", location));
         var jsonString = objectMapperWithEmpty.writeValueAsString(event);
         return IoUtils.stringToStream(jsonString);
     }
