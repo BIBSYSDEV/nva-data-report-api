@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.nonNull;
 import static java.util.UUID.randomUUID;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.time.Instant;
@@ -69,6 +70,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     protected Void processInput(KeyBatchRequestEvent input,
                                 AwsEventBridgeEvent<KeyBatchRequestEvent> event,
                                 Context context) {
+        input = nonNull(input) ? input : new KeyBatchRequestEvent(null, null, null);
         var startMarker = input.getStartMarker();
         var location = input.getLocation();
         logger.info(INFO_MESSAGE, startMarker, location);

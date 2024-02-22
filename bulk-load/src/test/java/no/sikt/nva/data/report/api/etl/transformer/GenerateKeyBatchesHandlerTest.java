@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.etl.transformer;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -99,6 +100,14 @@ class GenerateKeyBatchesHandlerTest {
         assertEquals(startMarkerForNextIteration, actual);
     }
 
+    @Test
+    void shouldProcessWithDefaultsWhenInputEventIsNull() {
+        putObjectsInInputBucket(MULTIPLE_BATCH_FILE_SIZE, DEFAULT_LOCATION);
+        assertDoesNotThrow(() -> handler.handleRequest(nullEventStream(),
+                                                       outputStream,
+                                                       mock(Context.class)));
+    }
+
     private static String getBucketPath(UriWrapper uri) {
         return Path.of(UnixPath.fromString(uri.toString()).getPathElementByIndexFromEnd(1), uri.getLastPathElement())
                    .toString();
@@ -107,6 +116,13 @@ class GenerateKeyBatchesHandlerTest {
     private InputStream eventStream(String location) throws JsonProcessingException {
         var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
         event.setDetail(new KeyBatchRequestEvent(null, "topic", location));
+        var jsonString = objectMapperWithEmpty.writeValueAsString(event);
+        return IoUtils.stringToStream(jsonString);
+    }
+
+    private InputStream nullEventStream() throws JsonProcessingException {
+        var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
+        event.setDetail(null);
         var jsonString = objectMapperWithEmpty.writeValueAsString(event);
         return IoUtils.stringToStream(jsonString);
     }
