@@ -21,7 +21,7 @@ public class GzipUtil {
         var outputStream = new ByteArrayOutputStream();
 
         try (var gzip = new GZIPOutputStream(outputStream)) {
-            byte[] buffer = new byte[ONE_KILOBYTE];
+            var buffer = new byte[ONE_KILOBYTE];
             int len;
             while((len=inputStream.read(buffer)) != EOS){
                 gzip.write(buffer, ZERO_OFFSET, len);
