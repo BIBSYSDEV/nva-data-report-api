@@ -1,8 +1,10 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
@@ -14,7 +16,13 @@ public record TestNviCandidate(String identifier,
                                boolean isApplicable,
                                Instant modifiedDate,
                                TestPublicationDetails publicationDetails,
-                               List<TestApproval> approvals) {
+                               List<TestApproval> approvals,
+                               BigDecimal totalPoints,
+                               BigDecimal publicationTypeChannelLevelPoints,
+                               int creatorShareCount,
+                               BigDecimal internationalCollaborationFactor,
+                               String reportedPeriod,
+                               String globalApprovalStatus) {
 
     public static final String DELIMITER = ",";
 
@@ -51,12 +59,8 @@ public record TestNviCandidate(String identifier,
 
     private void generateExpectedLinesForNonApplicableCandidate(StringBuilder stringBuilder) {
         stringBuilder.append(publicationDetails().id())
-            .append(DELIMITER)
-            .append(DELIMITER)
-            .append(DELIMITER)
-            .append(DELIMITER)
-            .append(DELIMITER)
-            .append(DELIMITER)
+            .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
+            .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
             .append(isApplicable())
             .append(CRLF.getString());
     }
@@ -76,7 +80,13 @@ public record TestNviCandidate(String identifier,
     private CandidateGenerator getCandidateGenerator(PublicationDetailsGenerator publicationDetails) {
         return new CandidateGenerator(identifier, modifiedDate.toString())
                    .withIsApplicable(isApplicable)
-                   .withPublicationDetails(publicationDetails);
+                   .withPublicationDetails(publicationDetails)
+                   .withPoints(totalPoints.toString())
+                   .withPublicationTypeChannelLevelPoints(publicationTypeChannelLevelPoints.toString())
+                   .withCreatorShareCount(String.valueOf(creatorShareCount))
+                   .withInternationalCollaborationFactor(internationalCollaborationFactor.toString())
+                   .withReportedPeriod(reportedPeriod)
+                   .withGlobalApprovalStatus(globalApprovalStatus);
     }
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor) {
@@ -93,6 +103,12 @@ public record TestNviCandidate(String identifier,
             .append(approval.institutionId()).append(DELIMITER)
             .append(approval.points()).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
+            .append(globalApprovalStatus).append(DELIMITER)
+            .append(Objects.nonNull(reportedPeriod) ? reportedPeriod : "").append(DELIMITER)
+            .append(totalPoints).append(DELIMITER)
+            .append(publicationTypeChannelLevelPoints).append(DELIMITER)
+            .append(creatorShareCount).append(DELIMITER)
+            .append(internationalCollaborationFactor).append(DELIMITER)
             .append(isApplicable())
             .append(CRLF.getString());
     }
@@ -117,6 +133,12 @@ public record TestNviCandidate(String identifier,
         private Instant modifiedDate;
         private TestPublicationDetails publicationDetails;
         private List<TestApproval> approvals;
+        private BigDecimal totalPoints;
+        private BigDecimal publicationTypeChannelLevelPoints;
+        private int creatorShareCount;
+        private BigDecimal internationalCollaborationFactor;
+        private String reportedPeriod;
+        private String globalApprovalStatus;
 
         private Builder() {
         }
@@ -146,8 +168,40 @@ public record TestNviCandidate(String identifier,
             return this;
         }
 
+        public Builder withTotalPoints(BigDecimal totalPoints) {
+            this.totalPoints = totalPoints;
+            return this;
+        }
+
+        public Builder withPublicationTypeChannelLevelPoints(BigDecimal publicationTypeChannelLevelPoints) {
+            this.publicationTypeChannelLevelPoints = publicationTypeChannelLevelPoints;
+            return this;
+        }
+
+        public Builder withCreatorShareCount(int creatorShareCount) {
+            this.creatorShareCount = creatorShareCount;
+            return this;
+        }
+
+        public Builder withInternationalCollaborationFactor(BigDecimal internationalCollaborationFactor) {
+            this.internationalCollaborationFactor = internationalCollaborationFactor;
+            return this;
+        }
+
+        public Builder withReportedPeriod(String reportedPeriod) {
+            this.reportedPeriod = reportedPeriod;
+            return this;
+        }
+
+        public Builder withGlobalApprovalStatus(String globalApprovalStatus) {
+            this.globalApprovalStatus = globalApprovalStatus;
+            return this;
+        }
+
         public TestNviCandidate build() {
-            return new TestNviCandidate(identifier, isApplicable, modifiedDate, publicationDetails, approvals);
+            return new TestNviCandidate(identifier, isApplicable, modifiedDate, publicationDetails, approvals,
+                                        totalPoints, publicationTypeChannelLevelPoints, creatorShareCount,
+                                        internationalCollaborationFactor, reportedPeriod, globalApprovalStatus);
         }
     }
 }
