@@ -6,6 +6,7 @@ import static java.util.UUID.randomUUID;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
@@ -77,14 +78,20 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         var request = createRequest(startMarker, location);
         logger.info("Requesting data from {}", request.bucket());
         var response = inputClient.listObjectsV2(request);
-        logger.info(LAST_KEY_IN_BATCH_MESSAGE, response.contents().getLast());
         var keys = getKeys(response);
         writeObject(location, toKeyString(keys));
         logger.info(WROTE_ITEMS_MESSAGE, keys.size(), OUTPUT_BUCKET);
-        var lastEvaluatedKey = getLastEvaluatedKey(keys);
+        getLastEvaluatedKey(keys)
+            .ifPresent(lastEvaluatedKey -> emitNextRequest(context,
+                                                           lastEvaluatedKey,
+                                                           location));
+        return null;
+    }
+
+    private void emitNextRequest(Context context, String lastEvaluatedKey, String location) {
+        logger.info(LAST_KEY_IN_BATCH_MESSAGE, lastEvaluatedKey);
         var eventsResponse = sendEvent(constructRequestEntry(lastEvaluatedKey, context, location));
         logger.info(eventsResponse.toString());
-        return null;
     }
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
@@ -130,8 +137,8 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         return !commonPrefixes.contains(key);
     }
 
-    private static String getLastEvaluatedKey(List<String> keys) {
-        return keys.getLast();
+    private static Optional<String> getLastEvaluatedKey(List<String> keys) {
+        return Optional.ofNullable(keys.getLast());
     }
 
     @JacocoGenerated
