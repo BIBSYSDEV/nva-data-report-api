@@ -8,6 +8,12 @@ SELECT DISTINCT
   ?institutionId
   ?institutionPoints
   ?institutionApprovalStatus
+  ?globalApprovalStatus
+  ?reportedPeriod
+  ?totalPoints
+  ?publicationTypeChannelLevelPoints
+  ?authorShareCount
+  ?internationalCollaborationFactor
   ?isApplicable
 WHERE {
   GRAPH ?g {
@@ -15,7 +21,16 @@ WHERE {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
         :publicationDetails ?publicationUri ;
-        :isApplicable ?isApplicableBoolean .
+        :isApplicable ?isApplicableBoolean ;
+        :points ?totalPoints ;
+        :globalApprovalStatus ?globalApprovalStatus ;
+        :internationalCollaborationFactor ?internationalCollaborationFactor ;
+        :creatorShareCount ?authorShareCount ;
+        :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+
+      OPTIONAL {
+        ?candidate :reportedPeriod ?reportedPeriod .
+      }
 
       BIND(STR(?publicationUri) AS ?publicationId)
       BIND(STR(?isApplicableBoolean) AS ?isApplicable)

@@ -4,6 +4,7 @@ import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
@@ -103,7 +104,7 @@ public record TestNviCandidate(String identifier,
             .append(approval.points()).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus).append(DELIMITER)
-            .append(reportedPeriod).append(DELIMITER)
+            .append(Objects.nonNull(reportedPeriod) ? reportedPeriod : "").append(DELIMITER)
             .append(totalPoints).append(DELIMITER)
             .append(publicationTypeChannelLevelPoints).append(DELIMITER)
             .append(creatorShareCount).append(DELIMITER)
