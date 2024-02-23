@@ -6,6 +6,7 @@ import static java.util.UUID.randomUUID;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.events.handlers.EventHandler;
@@ -138,7 +139,11 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     }
 
     private static Optional<String> getLastEvaluatedKey(List<String> keys) {
-        return Optional.ofNullable(keys.getLast());
+        try {
+            return Optional.of(keys.getLast());
+        } catch (NoSuchElementException exception) {
+            return Optional.empty();
+        }
     }
 
     @JacocoGenerated
