@@ -142,10 +142,6 @@ public record TestNviCandidate(String identifier,
         private Builder() {
         }
 
-        public static Builder aTestNviCandidate() {
-            return new Builder();
-        }
-
         public Builder withIdentifier(String identifier) {
             this.identifier = identifier;
             return this;

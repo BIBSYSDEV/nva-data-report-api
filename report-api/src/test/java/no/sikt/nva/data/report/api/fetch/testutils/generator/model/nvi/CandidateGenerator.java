@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 
+import static java.util.Objects.nonNull;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.ONTOLOGY_BASE_URI;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
@@ -78,7 +79,9 @@ public class CandidateGenerator extends TripleBasedBuilder {
     }
 
     public CandidateGenerator withReportedPeriod(String reportedPeriod) {
-        model.add(subject, REPORTED_PERIOD, model.createTypedLiteral(reportedPeriod));
+        if (nonNull(reportedPeriod)) {
+            model.add(subject, REPORTED_PERIOD, model.createTypedLiteral(reportedPeriod));
+        }
         return this;
     }
 

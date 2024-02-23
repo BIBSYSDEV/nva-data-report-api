@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval.ApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate.Builder;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
@@ -63,7 +64,7 @@ public class TestData {
     private static final String PUBLICATION_DATE = "publicationDate";
     private static final String TOTAL_POINTS = "totalPoints";
     private static final String PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS = "publicationTypeChannelLevelPoints";
-    private static final String CREATOR_SHARE_COUNT = "creatorShareCount";
+    private static final String AUTHOR_SHARE_COUNT = "authorShareCount";
     private static final String INTERNATIONAL_COLLABORATION_FACTOR = "internationalCollaborationFactor";
     private static final String REPORTED_PERIOD = "reportedPeriod";
     private static final String GLOBAL_APPROVAL_STATUS = "globalApprovalStatus";
@@ -111,7 +112,7 @@ public class TestData {
                                                             REPORTED_PERIOD,
                                                             TOTAL_POINTS,
                                                             PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
-                                                            CREATOR_SHARE_COUNT,
+                                                            AUTHOR_SHARE_COUNT,
                                                             INTERNATIONAL_COLLABORATION_FACTOR,
                                                             IS_APPLICABLE);
     private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
@@ -258,9 +259,9 @@ public class TestData {
                    .build();
     }
 
-    private static TestNviCandidate buildCandidate(boolean isApplicable, Instant modifiedDate,
-                                                   TestPublicationDetails publicationDetails,
-                                                   List<TestApproval> approvals) {
+    private static Builder getCandidateBuilder(boolean isApplicable, Instant modifiedDate,
+                                               TestPublicationDetails publicationDetails,
+                                               List<TestApproval> approvals) {
         return TestNviCandidate.builder()
                    .withIsApplicable(isApplicable)
                    .withIdentifier(UUID.randomUUID().toString())
@@ -269,11 +270,9 @@ public class TestData {
                    .withApprovals(approvals)
                    .withCreatorShareCount(countCombinationsOfCreatorsAndAffiliations(publicationDetails))
                    .withInternationalCollaborationFactor(BigDecimal.ONE)
-                   .withReportedPeriod("2021")
                    .withGlobalApprovalStatus(ApprovalStatus.PENDING.getValue())
                    .withPublicationTypeChannelLevelPoints(randomBigDecimal())
-                   .withTotalPoints(randomBigDecimal())
-                   .build();
+                   .withTotalPoints(randomBigDecimal());
     }
 
     private static int countCombinationsOfCreatorsAndAffiliations(TestPublicationDetails publicationDetails) {
@@ -287,12 +286,20 @@ public class TestData {
     private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
         var publicationDetails = generatePublicationDetails();
         var approvals = generateApprovals(publicationDetails);
-        return buildCandidate(true, modifiedDate, publicationDetails, approvals);
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals).build();
+    }
+
+    private TestNviCandidate generateReportedNviCandidate(Instant modifiedDate) {
+        var publicationDetails = generatePublicationDetails();
+        var approvals = generateApprovals(publicationDetails);
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals)
+                   .withReportedPeriod("2021")
+                   .build();
     }
 
     @SuppressWarnings("unchecked")
     private TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate) {
-        return buildCandidate(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST);
+        return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST).build();
     }
 
     private TestPublicationDetails generatePublicationDetails() {
@@ -342,8 +349,10 @@ public class TestData {
         for (DatePair date : dates) {
             var nviCandidate = generateNviCandidate(date.modifiedDate);
             var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate);
+            var reportedCandidate = generateReportedNviCandidate(date.modifiedDate);
             dataSet.add(nviCandidate);
             dataSet.add(nonApplicableNviCandidate);
+            dataSet.add(reportedCandidate);
         }
         return dataSet;
     }
