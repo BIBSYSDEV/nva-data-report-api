@@ -79,17 +79,14 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         var request = createRequest(startMarker, location);
         logger.info("Requesting data from {}", request.bucket());
         var response = inputClient.listObjectsV2(request);
-        var keys = getKeys(response);
-        writeObject(location, toKeyString(keys));
-        logger.info(WROTE_ITEMS_MESSAGE, keys.size(), OUTPUT_BUCKET);
-        getLastEvaluatedKey(keys)
-            .ifPresent(lastEvaluatedKey -> emitNextRequest(context,
-                                                           lastEvaluatedKey,
-                                                           location));
+
+        getKeys(response)
+            .flatMap(strings -> writeObject(location, strings))
+            .ifPresent(lastEvaluatedKey -> emitNextRequest(context, location, lastEvaluatedKey));
         return null;
     }
 
-    private void emitNextRequest(Context context, String lastEvaluatedKey, String location) {
+    private void emitNextRequest(Context context, String location, String lastEvaluatedKey) {
         logger.info(LAST_KEY_IN_BATCH_MESSAGE, lastEvaluatedKey);
         var eventsResponse = sendEvent(constructRequestEntry(lastEvaluatedKey, context, location));
         logger.info(eventsResponse.toString());
@@ -124,14 +121,15 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         return values.stream().collect(Collectors.joining(System.lineSeparator()));
     }
 
-    private static List<String> getKeys(ListObjectsV2Response response) {
+    private static Optional<List<String>> getKeys(ListObjectsV2Response response) {
         var commonPrefixes = response.commonPrefixes().stream()
                                                 .map(CommonPrefix::prefix)
                                                 .toList();
-        return response.contents().stream()
+        var keys = response.contents().stream()
                    .map(S3Object::key)
                    .filter(key -> excludeBucketFolder(key, commonPrefixes))
                    .toList();
+        return keys.isEmpty() ? Optional.empty() : Optional.of(keys);
     }
 
     private static boolean excludeBucketFolder(String key, List<String> commonPrefixes) {
@@ -157,12 +155,15 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         return eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
     }
 
-    private void writeObject(String location, String object) {
+    private Optional<String> writeObject(String location, List<String> keys) {
         var key = location + DELIMITER + randomUUID();
+        var object = toKeyString(keys);
         var request = PutObjectRequest.builder()
                           .bucket(OUTPUT_BUCKET)
                           .key(key)
                           .build();
         outputClient.putObject(request, RequestBody.fromBytes(object.getBytes(UTF_8)));
+        logger.info(WROTE_ITEMS_MESSAGE, keys.size(), OUTPUT_BUCKET);
+        return getLastEvaluatedKey(keys);
     }
 }
