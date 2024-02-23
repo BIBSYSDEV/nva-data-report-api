@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +26,8 @@ public record TestNviCandidate(String identifier,
                                String globalApprovalStatus) {
 
     public static final String DELIMITER = ",";
+    public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
+    public static final int NVI_POINT_SCALE = 4;
 
     public static Builder builder() {
         return new Builder();
@@ -61,8 +64,7 @@ public record TestNviCandidate(String identifier,
         stringBuilder.append(publicationDetails().id())
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
-            .append(isApplicable())
-            .append(CRLF.getString());
+            .append(DELIMITER).append(isApplicable()).append(CRLF.getString());
     }
 
     private void addApprovals(CandidateGenerator nviCandidate) {
@@ -97,11 +99,13 @@ public record TestNviCandidate(String identifier,
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
         var approval = generateExpectedApprovals(affiliation);
+        var calculatedContributorPoints = calculateContributorPoints(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
             .append(approval.institutionId()).append(DELIMITER)
             .append(approval.points()).append(DELIMITER)
+            .append(calculatedContributorPoints).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus).append(DELIMITER)
             .append(Objects.nonNull(reportedPeriod) ? reportedPeriod : "").append(DELIMITER)
@@ -111,6 +115,20 @@ public record TestNviCandidate(String identifier,
             .append(internationalCollaborationFactor).append(DELIMITER)
             .append(isApplicable())
             .append(CRLF.getString());
+    }
+
+    private BigDecimal calculateContributorPoints(TestNviOrganization affiliation) {
+        //For each candidate
+        //For each approval institutionId
+        //Count number of contributor affiliations with top level organization equal to approval institutionId
+        var numberOfContributorsForTopLevelAffiliation =
+            publicationDetails.contributors().stream()
+                .flatMap(contributor -> contributor.affiliations().stream())
+                .filter(affiliation1 -> affiliation1.getTopLevelOrganization()
+                                            .equals(affiliation.getTopLevelOrganization()))
+                .count();
+        return totalPoints.divide(BigDecimal.valueOf(numberOfContributorsForTopLevelAffiliation), ROUNDING_MODE)
+                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE);
     }
 
     private TestApproval generateExpectedApprovals(TestNviOrganization affiliation) {

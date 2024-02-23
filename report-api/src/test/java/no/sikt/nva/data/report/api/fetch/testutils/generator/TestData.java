@@ -13,6 +13,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConsta
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ROLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_SEQUENCE_NUMBER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.DEPARTMENT_ID;
@@ -107,6 +108,7 @@ public class TestData {
                                                             CONTRIBUTOR_IDENTIFIER,
                                                             AFFILIATION_ID, INSTITUTION_ID,
                                                             INSTITUTION_POINTS,
+                                                            CONTRIBUTOR_POINTS,
                                                             INSTITUTION_APPROVAL_STATUS,
                                                             GLOBAL_APPROVAL_STATUS,
                                                             REPORTED_PERIOD,

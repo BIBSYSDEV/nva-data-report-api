@@ -28,6 +28,7 @@ public final class HeaderConstants {
     public static final String CHANNEL_PRINT_ISSN = "channelPrintIssn";
     public static final String CHANNEL_LEVEL = "channelLevel";
     public static final String INSTITUTION_POINTS = "institutionPoints";
+    public static final String CONTRIBUTOR_POINTS = "contributorPoints";
     public static final String INSTITUTION_APPROVAL_STATUS = "institutionApprovalStatus";
     public static final String PUBLICATION_DATE = "publicationDate";
     public static final String TOTAL_POINTS = "totalPoints";
