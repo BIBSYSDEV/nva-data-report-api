@@ -1,6 +1,41 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.AFFILIATION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.AFFILIATION_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.AUTHOR_SHARE_COUNT;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_LEVEL;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_ONLINE_ISSN;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_PRINT_ISSN;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_TYPE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ROLE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_SEQUENCE_NUMBER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.DEPARTMENT_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FACULTY_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FUNDING_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FUNDING_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FUNDING_SOURCE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.GLOBAL_APPROVAL_STATUS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.GROUP_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INSTITUTION_APPROVAL_STATUS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INSTITUTION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INSTITUTION_POINTS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INTERNATIONAL_COLLABORATION_FACTOR;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.IS_APPLICABLE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_CATEGORY;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_DATE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_TITLE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.REPORTED_PERIOD;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.STATUS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.TOTAL_POINTS;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
@@ -31,46 +66,11 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 
 public class TestData {
-
-    public static final String PUBLICATION_ID = "publicationId";
-    public static final String CONTRIBUTOR_IDENTIFIER = "contributorIdentifier";
-    private static final String IS_APPLICABLE = "isApplicable";
-    private static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
-    private static final String PUBLICATION_IDENTIFIER = "publicationIdentifier";
-    private static final String PUBLICATION_CATEGORY = "publicationCategory";
-    private static final String PUBLICATION_TITLE = "publicationTitle";
-    private static final String CONTRIBUTOR_SEQUENCE_NUMBER = "contributorSequenceNumber";
-    private static final String CONTRIBUTOR_ROLE = "contributorRole";
-    private static final String CONTRIBUTOR_ID = "contributorId";
-    private static final String CONTRIBUTOR_NAME = "contributorName";
-    private static final String AFFILIATION_ID = "affiliationId";
-    private static final String AFFILIATION_NAME = "affiliationName";
-    private static final String INSTITUTION_ID = "institutionId";
-    private static final String FACULTY_ID = "facultyId";
-    private static final String DEPARTMENT_ID = "departmentId";
-    private static final String GROUP_ID = "groupId";
-    private static final String FUNDING_SOURCE = "fundingSource";
-    private static final String FUNDING_ID = "fundingId";
-    private static final String FUNDING_NAME = "fundingName";
-    private static final String CHANNEL_TYPE = "channelType";
-    private static final String CHANNEL_IDENTIFIER = "channelIdentifier";
-    private static final String CHANNEL_NAME = "channelName";
-    private static final String CHANNEL_ONLINE_ISSN = "channelOnlineIssn";
-    private static final String CHANNEL_PRINT_ISSN = "channelPrintIssn";
-    private static final String CHANNEL_LEVEL = "channelLevel";
     private static final String DELIMITER = ",";
-    private static final String INSTITUTION_POINTS = "institutionPoints";
-    private static final String INSTITUTION_APPROVAL_STATUS = "institutionApprovalStatus";
-    private static final String PUBLICATION_DATE = "publicationDate";
-    private static final String TOTAL_POINTS = "totalPoints";
-    private static final String PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS = "publicationTypeChannelLevelPoints";
-    private static final String AUTHOR_SHARE_COUNT = "authorShareCount";
-    private static final String INTERNATIONAL_COLLABORATION_FACTOR = "internationalCollaborationFactor";
-    private static final String REPORTED_PERIOD = "reportedPeriod";
-    private static final String GLOBAL_APPROVAL_STATUS = "globalApprovalStatus";
+    private static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
+    private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
-    private static final String STATUS = "status";
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
                                                                     CONTRIBUTOR_ID,
@@ -115,9 +115,7 @@ public class TestData {
                                                             AUTHOR_SHARE_COUNT,
                                                             INTERNATIONAL_COLLABORATION_FACTOR,
                                                             IS_APPLICABLE);
-    private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
     private final List<TestPublication> publicationTestData;
-
     private final List<TestNviCandidate> nviTestData;
     private final Model model;
 
