@@ -33,6 +33,8 @@ public class TestData {
 
     public static final String PUBLICATION_ID = "publicationId";
     public static final String CONTRIBUTOR_IDENTIFIER = "contributorIdentifier";
+    private static final String IS_APPLICABLE = "isApplicable";
+    private static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     private static final String PUBLICATION_IDENTIFIER = "publicationIdentifier";
     private static final String PUBLICATION_CATEGORY = "publicationCategory";
     private static final String PUBLICATION_TITLE = "publicationTitle";
@@ -59,6 +61,12 @@ public class TestData {
     private static final String INSTITUTION_POINTS = "institutionPoints";
     private static final String INSTITUTION_APPROVAL_STATUS = "institutionApprovalStatus";
     private static final String PUBLICATION_DATE = "publicationDate";
+    private static final String TOTAL_POINTS = "totalPoints";
+    private static final String PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS = "publicationTypeChannelLevelPoints";
+    private static final String CREATOR_SHARE_COUNT = "creatorShareCount";
+    private static final String INTERNATIONAL_COLLABORATION_FACTOR = "internationalCollaborationFactor";
+    private static final String REPORTED_PERIOD = "reportedPeriod";
+    private static final String GLOBAL_APPROVAL_STATUS = "globalApprovalStatus";
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
     private static final String STATUS = "status";
@@ -94,14 +102,19 @@ public class TestData {
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
                                                                    FUNDING_SOURCE, FUNDING_ID);
-    public static final String IS_APPLICABLE = "isApplicable";
     private static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID,
                                                             CONTRIBUTOR_IDENTIFIER,
                                                             AFFILIATION_ID, INSTITUTION_ID,
                                                             INSTITUTION_POINTS,
-                                                            INSTITUTION_APPROVAL_STATUS, IS_APPLICABLE);
+                                                            INSTITUTION_APPROVAL_STATUS,
+                                                            GLOBAL_APPROVAL_STATUS,
+                                                            REPORTED_PERIOD,
+                                                            TOTAL_POINTS,
+                                                            PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
+                                                            CREATOR_SHARE_COUNT,
+                                                            INTERNATIONAL_COLLABORATION_FACTOR,
+                                                            IS_APPLICABLE);
     private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
-    public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     private final List<TestPublication> publicationTestData;
 
     private final List<TestNviCandidate> nviTestData;
@@ -245,28 +258,41 @@ public class TestData {
                    .build();
     }
 
-    private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
-        var publicationDetails = generatePublicationDetails();
-        var approvals = generateApprovals(publicationDetails);
+    private static TestNviCandidate buildCandidate(boolean isApplicable, Instant modifiedDate,
+                                                   TestPublicationDetails publicationDetails,
+                                                   List<TestApproval> approvals) {
         return TestNviCandidate.builder()
-                   .withIsApplicable(true)
+                   .withIsApplicable(isApplicable)
                    .withIdentifier(UUID.randomUUID().toString())
                    .withModifiedDate(modifiedDate)
                    .withPublicationDetails(publicationDetails)
                    .withApprovals(approvals)
+                   .withCreatorShareCount(countCombinationsOfCreatorsAndAffiliations(publicationDetails))
+                   .withInternationalCollaborationFactor(BigDecimal.ONE)
+                   .withReportedPeriod("2021")
+                   .withGlobalApprovalStatus(ApprovalStatus.PENDING.getValue())
+                   .withPublicationTypeChannelLevelPoints(randomBigDecimal())
+                   .withTotalPoints(randomBigDecimal())
                    .build();
+    }
+
+    private static int countCombinationsOfCreatorsAndAffiliations(TestPublicationDetails publicationDetails) {
+        return publicationDetails.contributors()
+                   .stream()
+                   .flatMap(contributor -> contributor.affiliations().stream())
+                   .toList()
+                   .size();
+    }
+
+    private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
+        var publicationDetails = generatePublicationDetails();
+        var approvals = generateApprovals(publicationDetails);
+        return buildCandidate(true, modifiedDate, publicationDetails, approvals);
     }
 
     @SuppressWarnings("unchecked")
     private TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate) {
-        var publicationDetails = generatePublicationDetails();
-        return TestNviCandidate.builder()
-                   .withIsApplicable(false)
-                   .withIdentifier(UUID.randomUUID().toString())
-                   .withModifiedDate(modifiedDate)
-                   .withPublicationDetails(publicationDetails)
-                   .withApprovals(Collections.EMPTY_LIST)
-                   .build();
+        return buildCandidate(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST);
     }
 
     private TestPublicationDetails generatePublicationDetails() {

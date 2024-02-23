@@ -19,6 +19,14 @@ public class CandidateGenerator extends TripleBasedBuilder {
     private static final Property IDENTIFIER = new PropertyImpl(ONTOLOGY_BASE_URI + "identifier");
     private static final Property APPROVAL = new PropertyImpl(ONTOLOGY_BASE_URI + "approval");
     private static final Property IS_APPLICABLE = new PropertyImpl(ONTOLOGY_BASE_URI + "isApplicable");
+    private static final Property POINTS = new PropertyImpl(ONTOLOGY_BASE_URI + "points");
+    private static final Property PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS = new PropertyImpl(
+        ONTOLOGY_BASE_URI + "publicationTypeChannelLevelPoints");
+    private static final Property CREATOR_SHARE_COUNT = new PropertyImpl(ONTOLOGY_BASE_URI + "creatorShareCount");
+    private static final Property INTERNATIONAL_COLLABORATION_FACTOR = new PropertyImpl(
+        ONTOLOGY_BASE_URI + "internationalCollaborationFactor");
+    private static final Property REPORTED_PERIOD = new PropertyImpl(ONTOLOGY_BASE_URI + "reportedPeriod");
+    private static final Property GLOBAL_APPROVAL_STATUS = new PropertyImpl(ONTOLOGY_BASE_URI + "globalApprovalStatus");
     private final Model model;
     private final Resource subject;
 
@@ -44,6 +52,38 @@ public class CandidateGenerator extends TripleBasedBuilder {
 
     public CandidateGenerator withIsApplicable(boolean isApplicable) {
         model.add(subject, IS_APPLICABLE, model.createTypedLiteral(isApplicable));
+        return this;
+    }
+
+    public CandidateGenerator withPoints(String points) {
+        model.add(subject, POINTS, model.createTypedLiteral(points));
+        return this;
+    }
+
+    public CandidateGenerator withPublicationTypeChannelLevelPoints(String publicationTypeChannelLevelPoints) {
+        model.add(subject, PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
+                  model.createTypedLiteral(publicationTypeChannelLevelPoints));
+        return this;
+    }
+
+    public CandidateGenerator withCreatorShareCount(String creatorShareCount) {
+        model.add(subject, CREATOR_SHARE_COUNT, model.createTypedLiteral(creatorShareCount));
+        return this;
+    }
+
+    public CandidateGenerator withInternationalCollaborationFactor(String internationalCollaborationFactor) {
+        model.add(subject, INTERNATIONAL_COLLABORATION_FACTOR,
+                  model.createTypedLiteral(internationalCollaborationFactor));
+        return this;
+    }
+
+    public CandidateGenerator withReportedPeriod(String reportedPeriod) {
+        model.add(subject, REPORTED_PERIOD, model.createTypedLiteral(reportedPeriod));
+        return this;
+    }
+
+    public CandidateGenerator withGlobalApprovalStatus(String globalApprovalStatus) {
+        model.add(subject, GLOBAL_APPROVAL_STATUS, model.createTypedLiteral(globalApprovalStatus));
         return this;
     }
 
