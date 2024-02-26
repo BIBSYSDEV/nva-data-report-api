@@ -6,6 +6,7 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
@@ -98,7 +99,7 @@ public record TestNviCandidate(String identifier,
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
-        var approval = generateExpectedApprovals(affiliation);
+        var approval = findExpectedApproval(affiliation);
         var calculatedContributorPoints = calculateContributorPoints(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
@@ -118,20 +119,23 @@ public record TestNviCandidate(String identifier,
     }
 
     private BigDecimal calculateContributorPoints(TestNviOrganization affiliation) {
-        //For each candidate
-        //For each approval institutionId
-        //Count number of contributor affiliations with top level organization equal to approval institutionId
-        var numberOfContributorsForTopLevelAffiliation =
-            publicationDetails.contributors().stream()
-                .flatMap(contributor -> contributor.affiliations().stream())
-                .filter(affiliation1 -> affiliation1.getTopLevelOrganization()
-                                            .equals(affiliation.getTopLevelOrganization()))
-                .count();
-        return totalPoints.divide(BigDecimal.valueOf(numberOfContributorsForTopLevelAffiliation), ROUNDING_MODE)
+        var topLevelOrganization = affiliation.getTopLevelOrganization();
+        var contributorCount = countNumberOfContributorsWithTopLevelAffiliation(topLevelOrganization);
+        var approvalPoints = Optional.ofNullable(findExpectedApproval(affiliation))
+                                 .map(TestApproval::points)
+                                 .orElseThrow();
+        return approvalPoints.divide(BigDecimal.valueOf(contributorCount), ROUNDING_MODE)
                    .setScale(NVI_POINT_SCALE, ROUNDING_MODE);
     }
 
-    private TestApproval generateExpectedApprovals(TestNviOrganization affiliation) {
+    private long countNumberOfContributorsWithTopLevelAffiliation(String topLevelOrganization) {
+        return publicationDetails.contributors().stream()
+                   .flatMap(contributor -> contributor.affiliations().stream())
+                   .filter(affiliation -> affiliation.getTopLevelOrganization().equals(topLevelOrganization))
+                   .count();
+    }
+
+    private TestApproval findExpectedApproval(TestNviOrganization affiliation) {
         return approvals().stream()
                    .filter(testApproval -> testApproval.institutionId()
                                                .toString()
