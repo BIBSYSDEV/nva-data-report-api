@@ -4,6 +4,20 @@ This repository contains the NVA data report API.
 
 ## How to run a bulk upload
 
+The steps below can be outlined briefly as:
+
+- Pre-run
+    - Stop incoming live-update events
+    - Delete data from previous runs
+    - Delete all data in database
+- Bulk upload
+    - Generate batches of document keys for upload
+    - Transform the data to a format compatible with the bulk-upload action
+    - Initiate bulk upload
+    - Verify data integrity
+- Post-run
+    - Start incoming live-update events
+
 ### Pre-run steps
 
 1. Remove all objects from S3 bucket `loader-input-files-{accountName}`
@@ -14,7 +28,8 @@ This repository contains the NVA data report API.
    _Edit_ -> _Off_
 3. Press `ResetDatabaseButton` (Trigger `DatabaseResetHandler`). This might take around a minute to
    complete.
-4. Verify that database is empty. Example sparql queries:
+4. Verify that database is empty. You can use SageMaker notebook to query the database*. Example
+   sparql queries:
    ```
    SELECT (COUNT(DISTINCT ?g) as ?gCount) WHERE {GRAPH ?g {?s ?p ?o}}
    ```
@@ -43,7 +58,7 @@ This repository contains the NVA data report API.
 6. To check progress for bulk upload to Neptune. Trigger `BulkDataLoader` with the following input:
     ```json
     {
-     "loadId": "{copy the loadId from the logs, its an UUID}"
+     "loadId": "{copy loadId UUID from test log}"
     }
     ```
 7. Verify that expected count is in database. Query for counting distinct named graphs:
@@ -58,3 +73,6 @@ This repository contains the NVA data report API.
    to
    <br> _S3_ -> _persisted-resources-{accountName}_ -> _Properties_ -> _Amazon EventBridge_ ->
    _Edit_ -> _On_
+
+*Note: You can use SageMaker notebook to query the database. Notebook can be opened from the AWS
+console through _SageMaker_ -> _Notebooks_ -> _Notebook instances_ -> _Open JupyterLab_
