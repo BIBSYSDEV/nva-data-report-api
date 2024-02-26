@@ -100,13 +100,12 @@ public record TestNviCandidate(String identifier,
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
         var approval = findExpectedApproval(affiliation);
-        var calculatedContributorPoints = calculateAffiliationPoints(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
             .append(approval.institutionId()).append(DELIMITER)
             .append(approval.points()).append(DELIMITER)
-            .append(calculatedContributorPoints).append(DELIMITER)
+            .append(calculateAffiliationPoints(affiliation)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus).append(DELIMITER)
             .append(Objects.nonNull(reportedPeriod) ? reportedPeriod : "").append(DELIMITER)
