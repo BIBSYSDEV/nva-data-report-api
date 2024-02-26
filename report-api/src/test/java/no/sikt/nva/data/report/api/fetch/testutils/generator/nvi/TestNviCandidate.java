@@ -100,7 +100,7 @@ public record TestNviCandidate(String identifier,
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
         var approval = findExpectedApproval(affiliation);
-        var calculatedContributorPoints = calculateContributorPoints(affiliation);
+        var calculatedContributorPoints = calculateAffiliationPoints(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
@@ -118,7 +118,7 @@ public record TestNviCandidate(String identifier,
             .append(CRLF.getString());
     }
 
-    private BigDecimal calculateContributorPoints(TestNviOrganization affiliation) {
+    private BigDecimal calculateAffiliationPoints(TestNviOrganization affiliation) {
         var topLevelOrganization = affiliation.getTopLevelOrganization();
         var contributorCount = countNumberOfContributorsWithTopLevelAffiliation(topLevelOrganization);
         var approvalPoints = Optional.ofNullable(findExpectedApproval(affiliation))
