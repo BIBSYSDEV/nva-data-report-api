@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.util.UUID.randomUUID;
+import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,11 +32,13 @@ import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
+import nva.commons.logutils.LogUtils;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
@@ -181,6 +184,31 @@ class BulkTransformerHandlerTest {
 
         var exception = assertThrows(RuntimeException.class, indexDocument::getDocumentIdentifier);
         assertEquals("Missing identifier in resource", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenInputJsonIsNonsense() throws IOException {
+        final var loggerAppender = LogUtils.getTestingAppenderForRootLogger();
+        var documents = new ArrayList<>(createExpectedDocuments(1));
+        var node = objectMapper.createObjectNode()
+                       .set("no", objectMapper.createObjectNode());
+        var invalidDocument = new IndexDocument(randomConsumptionAttribute(), node);
+        documents.add(invalidDocument);
+        insertResourceInPersistedResourcesBucket(invalidDocument);
+        var batch = documents.stream()
+                        .map(IndexDocument::getDocumentIdentifier)
+                        .collect(Collectors.joining(System.lineSeparator()));
+        var batchKey = randomString();
+        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
+        Executable executable = () -> handler.handleRequest(eventStream(null),
+                                                            outputStream,
+                                                            mock(Context.class));
+        assertThrows(MissingIdException.class, executable);
+        assertTrue(loggerAppender.getMessages().contains("Missing id-node in content"));
     }
 
     private boolean modelHasData(String contentString) {

@@ -50,6 +50,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String LINE_BREAK = "\n";
     private static final String ID_POINTER = "/id";
     private static final String NT_EXTENSION = ".nt";
+    private static final String MISSING_ID_NODE_IN_CONTENT_ERROR = "Missing id-node in content: {}";
 
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
@@ -157,8 +158,16 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private String mapToNquads(JsonNode content) {
-        var graphName = URI.create(content.at(ID_POINTER).textValue() + NT_EXTENSION);
-        return Nquads.transform(content.toString(), graphName).toString();
+        return Nquads.transform(content.toString(), extractGraphName(content)).toString();
+    }
+
+    private static URI extractGraphName(JsonNode content) {
+        var id = content.at(ID_POINTER);
+        if (id.isMissingNode()) {
+            logger.error(MISSING_ID_NODE_IN_CONTENT_ERROR, content);
+            throw new MissingIdException();
+        }
+        return URI.create(id.textValue() + NT_EXTENSION);
     }
 
     private String extractContent(String key) {
