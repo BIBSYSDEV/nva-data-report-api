@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static java.lang.String.valueOf;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
@@ -56,8 +57,8 @@ class FetchDataReportTest {
 
     private static final String GSP_ENDPOINT = "/gsp";
     private static final URI GRAPH = URI.create("https://example.org/graph");
-    public static final String OFFSET_ZERO = "0";
-    public static final String OFFSET_ONE = "1";
+    private static final String OFFSET_ZERO = "0";
+    private static final String OFFSET_ONE = "1";
     private static FusekiServer server;
     private static DatabaseConnection databaseConnection;
 
@@ -180,9 +181,15 @@ class FetchDataReportTest {
     }
 
     private static MediaType getResponseType(TestingRequest request) {
-        return TEXT_CSV.toString().equals(request.acceptHeader().get(ACCEPT))
+        var requestedContentType = request.acceptHeader().get(ACCEPT);
+        return isCsvOrExcel(requestedContentType)
                    ? TEXT_CSV
                    : TEXT_PLAIN;
+    }
+
+    private static boolean isCsvOrExcel(String requestedContentType) {
+        return TEXT_CSV.toString().equals(requestedContentType) || MICROSOFT_EXCEL.toString()
+                                                                       .equals(requestedContentType);
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
