@@ -36,12 +36,12 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
         return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL);
     }
 
-    @Override
     protected String processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         var reportRequest = ReportRequest.fromRequestInfo(requestInfo);
         var reportFormat = reportRequest.getReportFormat();
-        var formatter = isCsvOrExcel(reportFormat) ? new CsvFormatter() : new PlainTextFormatter();
-        return queryService.getResult(reportRequest, formatter);
+        var result = queryService.getResult(reportRequest, getFormatter(reportFormat));
+        setIsBase64EncodedIfReportFormatExcel(reportFormat);
+        return result;
     }
 
     @Override
@@ -49,7 +49,17 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
         return 200;
     }
 
-    private static boolean isCsvOrExcel(ReportFormat reportFormat) {
-        return ReportFormat.CSV.equals(reportFormat) || ReportFormat.EXCEL.equals(reportFormat);
+    private static ResponseFormatter getFormatter(ReportFormat reportFormat) {
+        return switch (reportFormat) {
+            case CSV -> new CsvFormatter();
+            case EXCEL -> new ExcelFormatter();
+            case TEXT -> new PlainTextFormatter();
+        };
+    }
+
+    private void setIsBase64EncodedIfReportFormatExcel(ReportFormat reportFormat) {
+        if (EXCEL.equals(reportFormat)) {
+            setIsBase64Encoded(true);
+        }
     }
 }

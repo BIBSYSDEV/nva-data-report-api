@@ -170,6 +170,17 @@ public class ValidRequestSource implements ArgumentsProvider {
                              PAGE_SIZE
                          )
                 )
+            ),
+            Arguments.of(
+                Named.of("nvi — application/vnd.ms-excel", new TestingRequest(
+                             MICROSOFT_EXCEL.toString(),
+                             "nvi",
+                             "2024-01-01",
+                             "1998-01-01",
+                             "0",
+                             "10"
+                         )
+                )
             )
         );
     }
