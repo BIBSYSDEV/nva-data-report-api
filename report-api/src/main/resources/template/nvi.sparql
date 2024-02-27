@@ -56,7 +56,7 @@ WHERE {
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
       {
-        SELECT (COUNT(DISTINCT ?contributorId) AS ?numberOfAffiliationsForInstitution){
+        SELECT ?publicationUri ?organizationUri (COUNT(DISTINCT ?contributorId) AS ?numberOfAffiliationsForInstitution){
           ?candidate a :NviCandidate ;
                   :modifiedDate ?modifiedDate ;
                   :publicationDetails ?publicationUri ;
@@ -73,7 +73,7 @@ WHERE {
 
           FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
         }
-        GROUP BY ?publicationUri
+        GROUP BY ?publicationUri ?organizationUri
       }
       BIND(STR(ROUND((xsd:decimal(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?pointsForAffiliation)
     }
