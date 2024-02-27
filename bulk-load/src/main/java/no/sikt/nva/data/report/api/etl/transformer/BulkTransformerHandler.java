@@ -9,8 +9,8 @@ import commons.db.utils.DocumentUnwrapper;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -79,26 +80,48 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         var location = getLocation(input);
         var batchResponse = fetchSingleBatch(startMarker);
 
-        var batchKey = batchResponse.contents().getFirst().key();
-        if (Boolean.TRUE.equals(batchResponse.isTruncated())) {
-            sendEvent(constructRequestEntry(batchKey, context, location));
-        }
+        emitNextEvent(batchResponse, location, context);
 
-        var keys = extractContent(batchKey);
-        var nquads = mapToIndexDocuments(keys).stream()
-                         .map(this::mapToNquads)
-                         .collect(Collectors.joining(System.lineSeparator()));
-        if (!nquads.isEmpty()) {
-            var payload = attempt(() -> compress(nquads)).orElseThrow();
-            persistNquads(payload);
-        }
-        logger.info(LAST_CONSUMED_BATCH, batchResponse.contents().getFirst());
+        batchResponse.getKey()
+            .map(this::extractContent)
+            .filter(keys -> !keys.isEmpty())
+            .map(this::mapToIndexDocuments)
+            .map(this::aggregateNquads)
+            .map(nquads -> attempt(() -> compress(nquads)).orElseThrow())
+            .map(this::persistNquads)
+            .filter(Boolean.TRUE::equals)
+            .ifPresent(x -> deleteBatch(batchResponse.getKey().get()));
+
+        logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
         return null;
     }
 
+    private String aggregateNquads(Stream<JsonNode> element) {
+        return element.map(this::mapToNquads)
+                   .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    private void emitNextEvent(ListingResponse batchResponse,
+                                 String location,
+                                 Context context) {
+        if (batchResponse.isTruncated()) {
+            sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
+                                            location,
+                                            context));
+        }
+    }
+
+    private void deleteBatch(String batchKey) {
+        var request = DeleteObjectRequest.builder()
+                          .bucket(KEY_BATCHES_BUCKET)
+                          .key(batchKey)
+                          .build();
+        s3BatchesClient.deleteObject(request);
+    }
+
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
-                                                               Context context,
-                                                               String location) {
+                                                               String location,
+                                                               Context context) {
         return PutEventsRequestEntry.builder()
                    .eventBusName(EVENT_BUS)
                    .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location)
@@ -124,12 +147,13 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
     }
 
-    private void persistNquads(byte[] nquads) {
+    private boolean persistNquads(byte[] nquads) {
         var request = PutObjectRequest.builder()
                           .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
                           .key(UUID.randomUUID() + NQUADS_GZIPPED)
                           .build();
-        s3OutputClient.putObject(request, RequestBody.fromBytes(nquads));
+        var response = s3OutputClient.putObject(request, RequestBody.fromBytes(nquads));
+        return response.sdkHttpResponse().isSuccessful();
     }
 
     private String mapToNquads(JsonNode content) {
@@ -147,25 +171,25 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : null;
     }
 
-    private ListObjectsV2Response fetchSingleBatch(String startMarker) {
-        return s3BatchesClient.listObjectsV2(
+    private ListingResponse fetchSingleBatch(String startMarker) {
+        var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
                 .startAfter(startMarker)
                 .maxKeys(1)
                 .build());
+        return new ListingResponse(response);
     }
 
     private void sendEvent(PutEventsRequestEntry event) {
         eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
     }
 
-    private List<JsonNode> mapToIndexDocuments(String content) {
+    private Stream<JsonNode> mapToIndexDocuments(String content) {
         return extractIdentifiers(content)
                    .filter(Objects::nonNull)
                    .map(this::fetchS3Content)
-                   .map(this::unwrap)
-                   .toList();
+                   .map(this::unwrap);
     }
 
     private JsonNode unwrap(String json) {
@@ -182,4 +206,29 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         var s3Driver = new S3Driver(s3ResourcesClient, ENVIRONMENT.readEnv(EXPANDED_RESOURCES_BUCKET));
         return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
     }
+
+    private static class ListingResponse {
+
+        private final boolean truncated;
+        private final String key;
+
+        public ListingResponse(ListObjectsV2Response response) {
+            this.truncated = Boolean.TRUE.equals(response.isTruncated());
+            this.key = extractKey(response);
+        }
+
+        private static String extractKey(ListObjectsV2Response response) {
+            var contents = response.contents();
+            return contents.isEmpty() ? null : contents.getFirst().key();
+        }
+
+        public boolean isTruncated() {
+            return truncated;
+        }
+
+        public Optional<String> getKey() {
+            return Optional.ofNullable(key);
+        }
+    }
 }
+
