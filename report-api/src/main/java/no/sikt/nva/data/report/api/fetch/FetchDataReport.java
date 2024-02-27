@@ -50,6 +50,6 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
     }
 
     private static boolean isCsvOrExcel(ReportFormat reportFormat) {
-        return reportFormat.equals(ReportFormat.CSV) || reportFormat.equals(ReportFormat.EXCEL);
+        return ReportFormat.CSV.equals(reportFormat) || ReportFormat.EXCEL.equals(reportFormat);
     }
 }
