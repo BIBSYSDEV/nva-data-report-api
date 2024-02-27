@@ -165,8 +165,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         if (id.isMissingNode()) {
             throw new MissingIdException();
         }
-        var idString = id.textValue();
-        return URI.create(idString + NT_EXTENSION);
+        return URI.create(id.textValue() + NT_EXTENSION);
     }
 
     private String extractContent(String key) {
