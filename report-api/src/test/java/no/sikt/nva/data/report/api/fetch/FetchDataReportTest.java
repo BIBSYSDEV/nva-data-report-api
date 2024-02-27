@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
@@ -181,15 +182,7 @@ class FetchDataReportTest {
     }
 
     private static MediaType getResponseType(TestingRequest request) {
-        var requestedContentType = request.acceptHeader().get(ACCEPT);
-        return isCsvOrExcel(requestedContentType)
-                   ? TEXT_CSV
-                   : TEXT_PLAIN;
-    }
-
-    private static boolean isCsvOrExcel(String requestedContentType) {
-        return TEXT_CSV.toString().equals(requestedContentType) || MICROSOFT_EXCEL.toString()
-                                                                       .equals(requestedContentType);
+        return ReportFormat.fromMediaType(request.acceptHeader().get(ACCEPT)).getMediaType();
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
@@ -234,8 +227,7 @@ class FetchDataReportTest {
             case PUBLICATION -> test.getPublicationResponseData();
             case NVI -> test.getNviResponseData();
         };
-
-        return TEXT_CSV.equals(responseType)
+        return responseType.equals(TEXT_CSV) || responseType.equals(MICROSOFT_EXCEL)
                    ? data
                    : generateTable(data);
     }
