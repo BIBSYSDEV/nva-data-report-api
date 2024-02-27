@@ -297,6 +297,17 @@ public class TestData {
                    .build();
     }
 
+    private TestNviCandidate generateCoPublishedNviCandidate(Instant modifiedDate) {
+        var publicationDetails = TestPublicationDetails.builder()
+                                     .withId(randomUri().toString())
+                                     .withContributors(
+                                         new ArrayList<>(List.of(generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER),
+                                                                 generateNviContributor("90.0.0.0"))))
+                                     .build();
+        var approvals = generateApprovals(publicationDetails);
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals).build();
+    }
+
     @SuppressWarnings("unchecked")
     private TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate) {
         return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST).build();
@@ -350,9 +361,11 @@ public class TestData {
             var nviCandidate = generateNviCandidate(date.modifiedDate);
             var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate);
             var reportedCandidate = generateReportedNviCandidate(date.modifiedDate);
+            var coPublishedCandidate = generateCoPublishedNviCandidate(date.modifiedDate);
             dataSet.add(nviCandidate);
             dataSet.add(nonApplicableNviCandidate);
             dataSet.add(reportedCandidate);
+            dataSet.add(coPublishedCandidate);
         }
         return dataSet;
     }

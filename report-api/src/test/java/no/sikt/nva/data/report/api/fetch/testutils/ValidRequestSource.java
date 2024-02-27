@@ -10,6 +10,9 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 
 public class ValidRequestSource implements ArgumentsProvider {
 
+    private static final String PAGE_SIZE = "100";
+    public static final String OFFSET = "0";
+
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
         return Stream.of(
@@ -19,8 +22,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "affiliation",
                              "2024-01-01T03:02:11Z",
                              "1998-01-01T05:09:32Z",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -30,8 +33,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "affiliation",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -41,8 +44,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "affiliation",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -52,8 +55,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "contributor",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -63,8 +66,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "contributor",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -74,8 +77,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "funding",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -85,8 +88,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "funding",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -96,8 +99,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "identifier",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -107,8 +110,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "identifier",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -118,8 +121,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "publication",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -129,8 +132,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "publication",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -140,8 +143,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "nvi",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             ),
@@ -151,8 +154,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "nvi",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             )
