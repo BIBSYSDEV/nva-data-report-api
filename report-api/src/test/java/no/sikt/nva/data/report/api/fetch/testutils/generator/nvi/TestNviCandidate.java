@@ -124,7 +124,8 @@ public record TestNviCandidate(String identifier,
                                  .map(TestApproval::points)
                                  .orElseThrow();
         return approvalPoints.divide(BigDecimal.valueOf(contributorCount), ROUNDING_MODE)
-                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE);
+                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE)
+                   .stripTrailingZeros();
     }
 
     private long countNumberOfContributorsWithTopLevelAffiliation(String topLevelOrganization) {
