@@ -227,7 +227,7 @@ class FetchDataReportTest {
             case PUBLICATION -> test.getPublicationResponseData();
             case NVI -> test.getNviResponseData();
         };
-        return responseType.equals(TEXT_CSV) || responseType.equals(MICROSOFT_EXCEL)
+        return TEXT_CSV.equals(responseType) || MICROSOFT_EXCEL.equals(responseType)
                    ? data
                    : generateTable(data);
     }
