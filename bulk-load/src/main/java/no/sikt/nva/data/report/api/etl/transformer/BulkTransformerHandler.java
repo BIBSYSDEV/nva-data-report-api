@@ -157,8 +157,16 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private String mapToNquads(JsonNode content) {
-        var graphName = URI.create(content.at(ID_POINTER).textValue() + NT_EXTENSION);
-        return Nquads.transform(content.toString(), graphName).toString();
+        return Nquads.transform(content.toString(), extractGraphName(content)).toString();
+    }
+
+    private static URI extractGraphName(JsonNode content) {
+        var id = content.at(ID_POINTER);
+        if (id.isMissingNode()) {
+            throw new MissingIdException();
+        }
+        var idString = id.textValue();
+        return URI.create(idString + NT_EXTENSION);
     }
 
     private String extractContent(String key) {

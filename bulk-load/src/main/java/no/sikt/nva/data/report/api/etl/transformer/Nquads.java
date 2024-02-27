@@ -1,11 +1,7 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.nio.file.Files;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
