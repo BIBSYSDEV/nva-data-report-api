@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 class BulkTransformerHandlerTest {
 
@@ -149,6 +150,22 @@ class BulkTransformerHandlerTest {
             assertEquals(batchKey, emittedEvent.getStartMarker());
             assertEquals(DEFAULT_LOCATION, emittedEvent.getLocation());
         }
+    }
+
+    @Test
+    void shouldDeleteConsumedBatches() throws IOException {
+        var expectedDocuments = createExpectedDocuments(1);
+        var batch = expectedDocuments.stream()
+                        .map(IndexDocument::getDocumentIdentifier)
+                        .collect(Collectors.joining(System.lineSeparator()));
+        var batchKey = randomString();
+        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        assertThrows(NoSuchKeyException.class, () -> s3BatchesDriver.getFile(UnixPath.of(batchKey)));
     }
 
     // TODO: Remove test once we have figured out how the GraphName should be provided.

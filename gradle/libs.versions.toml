@@ -1,16 +1,15 @@
 [versions]
 junit = { strictly = '5.10.0' }
-nva = { strictly = '1.36.12' }
+nva = { strictly = '1.37.4' }
 zalando = { strictly = '0.27.1' }
-awsLambdaJavaCore = { strictly = '1.2.2' }
+awsLambdaJavaCore = { strictly = '1.2.3' }
 awsLambdaEvents = { strictly = '3.11.4' }
-log4j = { strictly = '2.22.0' }
-slf4j = { strictly = '2.0.9' }
-awslog4j2 = { strictly = '1.5.1' }
-awsSdk2 = { strictly = '2.20.141' }
+log4j = { strictly = '2.22.1' }
+slf4j = { strictly = '2.0.11' }
+awsSdk2 = { strictly = '2.23.12' }
 awsSdk2Events = { strictly = '3.11.4' }
-jena = { strictly = '4.10.0' }
-jackson = { require = '2.15.3' }
+jena = { require = '4.10.0' }
+jackson = { require = '2.16.1' }
 guava = { strictly = '32.1.2-jre' }
 mockito = { strictly = '5.3.1' }
 
@@ -26,29 +25,21 @@ nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref 
 nva-s3 = { group = 'com.github.bibsysdev', name = 's3', version.ref = 'nva' }
 nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nva' }
 nva-commons-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nva' }
-nva-commons-auth = { group = 'com.github.bibsysdev', name = 'auth', version.ref = 'nva' }
 nva-commons-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nva' }
 nva-eventhandlers = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nva' }
 nva-identifiers = { group = 'com.github.bibsysdev', name = 'identifiers', version.ref = 'nva' }
 
 jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
 jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }
-jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-annotations', version.ref = 'jackson' }
-jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
-jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
 
 aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
-aws-sdk2-urlconnectionclient = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-s3 = { group = 'software.amazon.awssdk', name = 's3', version.ref = 'awsSdk2' }
 aws-sdk2-sqs = { group = 'software.amazon.awssdk', name = 'sqs', version.ref = 'awsSdk2' }
-aws-sdk2-core = { group = 'software.amazon.awssdk', name = 'sdk-core', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
-aws-sdk2-httpClientApi = { group = 'software.amazon.awssdk', name = 'http-client-spi', version.ref = 'awsSdk2' }
 aws-sdk2-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsSdk2Events'}
 
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaJavaCore' }
 aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
-aws-lambda-log4j2 = { group = 'com.amazonaws', name = 'aws-lambda-java-log4j2', version.ref = 'awslog4j2' }
 
 log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
 log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.ref = 'log4j' }
@@ -71,3 +62,4 @@ mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mo
 jena = ['jena-core', 'jena-arq', 'jena-rdfconnection']
 logging = ['log4j-core', 'log4j-api', 'log4j-slf4j2-impl', 'slf4j-api', 'nva-logutils']
 testing = [ 'junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'mockito-core' ]
+jackson = ['jackson-core', 'jackson-databind']

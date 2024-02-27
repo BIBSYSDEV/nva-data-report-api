@@ -13,9 +13,11 @@ dependencies {
     implementation libs.bundles.logging
     implementation libs.jackson.core
     implementation libs.jackson.databind
-    implementation libs.jena.arq
+    implementation(libs.jena.arq) {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
 
-    testImplementation('com.github.bibsysdev:nvatestutils:1.36.12') {
+    testImplementation(libs.nva.testutils) {
         exclude group: 'org.wiremock', module: 'wiremock'
     }
     testImplementation libs.jena.fuseki
