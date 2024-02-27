@@ -32,6 +32,7 @@ import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
+import nva.commons.logutils.LogUtils;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
@@ -187,6 +188,7 @@ class BulkTransformerHandlerTest {
 
     @Test
     void shouldThrowExceptionWhenInputJsonIsNonsense() throws IOException {
+        final var loggerAppender = LogUtils.getTestingAppenderForRootLogger();
         var documents = new ArrayList<>(createExpectedDocuments(1));
         var node = objectMapper.createObjectNode()
                        .set("no", objectMapper.createObjectNode());
@@ -206,6 +208,7 @@ class BulkTransformerHandlerTest {
                                                             outputStream,
                                                             mock(Context.class));
         assertThrows(MissingIdException.class, executable);
+        assertTrue(loggerAppender.getMessages().contains("Missing id-node in content"));
     }
 
     private boolean modelHasData(String contentString) {
