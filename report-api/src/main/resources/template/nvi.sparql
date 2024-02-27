@@ -7,7 +7,7 @@ SELECT DISTINCT
   ?affiliationId
   ?institutionId
   ?institutionPoints
-  ?contributorPoints
+  ?pointsForAffiliation
   ?institutionApprovalStatus
   ?globalApprovalStatus
   ?reportedPeriod
@@ -75,8 +75,7 @@ WHERE {
         }
         GROUP BY ?publicationUri
       }
-      BIND(STR(round((xsd:float(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?contributorPoints)
-
+      BIND(STR(ROUND((xsd:decimal(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?pointsForAffiliation)
     }
     UNION
     {
