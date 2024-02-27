@@ -7,6 +7,7 @@ SELECT DISTINCT
   ?affiliationId
   ?institutionId
   ?institutionPoints
+  ?pointsForAffiliation
   ?institutionApprovalStatus
   ?globalApprovalStatus
   ?reportedPeriod
@@ -53,6 +54,28 @@ WHERE {
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+
+      {
+        SELECT ?publicationUri ?organizationUri (COUNT(DISTINCT ?contributorId) AS ?numberOfAffiliationsForInstitution){
+          ?candidate a :NviCandidate ;
+                  :modifiedDate ?modifiedDate ;
+                  :publicationDetails ?publicationUri ;
+                  :approval ?approval .
+
+          ?publicationUri :contributor ?contributorId .
+                ?contributorId a :NviContributor .
+
+          ?contributorId :affiliation ?affiliationUri .
+          ?affiliationUri a ?NviOrganization .
+
+          ?approval a :Approval ;
+            :institutionId ?organizationUri .
+
+          FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+        }
+        GROUP BY ?publicationUri ?organizationUri
+      }
+      BIND(STR(ROUND((xsd:decimal(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?pointsForAffiliation)
     }
     UNION
     {

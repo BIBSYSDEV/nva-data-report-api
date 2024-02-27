@@ -13,6 +13,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConsta
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.POINTS_FOR_AFFILIATION;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ROLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_SEQUENCE_NUMBER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.DEPARTMENT_ID;
@@ -107,6 +108,7 @@ public class TestData {
                                                             CONTRIBUTOR_IDENTIFIER,
                                                             AFFILIATION_ID, INSTITUTION_ID,
                                                             INSTITUTION_POINTS,
+                                                            POINTS_FOR_AFFILIATION,
                                                             INSTITUTION_APPROVAL_STATUS,
                                                             GLOBAL_APPROVAL_STATUS,
                                                             REPORTED_PERIOD,
@@ -295,6 +297,17 @@ public class TestData {
                    .build();
     }
 
+    private TestNviCandidate generateCoPublishedNviCandidate(Instant modifiedDate) {
+        var publicationDetails = TestPublicationDetails.builder()
+                                     .withId(randomUri().toString())
+                                     .withContributors(
+                                         new ArrayList<>(List.of(generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER),
+                                                                 generateNviContributor("90.0.0.0"))))
+                                     .build();
+        var approvals = generateApprovals(publicationDetails);
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals).build();
+    }
+
     @SuppressWarnings("unchecked")
     private TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate) {
         return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST).build();
@@ -348,9 +361,11 @@ public class TestData {
             var nviCandidate = generateNviCandidate(date.modifiedDate);
             var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate);
             var reportedCandidate = generateReportedNviCandidate(date.modifiedDate);
+            var coPublishedCandidate = generateCoPublishedNviCandidate(date.modifiedDate);
             dataSet.add(nviCandidate);
             dataSet.add(nonApplicableNviCandidate);
             dataSet.add(reportedCandidate);
+            dataSet.add(coPublishedCandidate);
         }
         return dataSet;
     }

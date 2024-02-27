@@ -2,9 +2,11 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
@@ -24,8 +26,9 @@ public record TestNviCandidate(String identifier,
                                String reportedPeriod,
                                String globalApprovalStatus) {
 
-    public static final String DELIMITER = ",";
-
+    private static final String DELIMITER = ",";
+    private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
+    private static final int NVI_POINT_SCALE = 4;
     public static Builder builder() {
         return new Builder();
     }
@@ -61,8 +64,7 @@ public record TestNviCandidate(String identifier,
         stringBuilder.append(publicationDetails().id())
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
-            .append(isApplicable())
-            .append(CRLF.getString());
+            .append(DELIMITER).append(isApplicable()).append(CRLF.getString());
     }
 
     private void addApprovals(CandidateGenerator nviCandidate) {
@@ -96,12 +98,13 @@ public record TestNviCandidate(String identifier,
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
-        var approval = generateExpectedApprovals(affiliation);
+        var approval = findExpectedApproval(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
             .append(approval.institutionId()).append(DELIMITER)
             .append(approval.points()).append(DELIMITER)
+            .append(calculateAffiliationPoints(affiliation)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus).append(DELIMITER)
             .append(Objects.nonNull(reportedPeriod) ? reportedPeriod : "").append(DELIMITER)
@@ -113,7 +116,25 @@ public record TestNviCandidate(String identifier,
             .append(CRLF.getString());
     }
 
-    private TestApproval generateExpectedApprovals(TestNviOrganization affiliation) {
+    private BigDecimal calculateAffiliationPoints(TestNviOrganization affiliation) {
+        var topLevelOrganization = affiliation.getTopLevelOrganization();
+        var contributorCount = countNumberOfContributorsWithTopLevelAffiliation(topLevelOrganization);
+        var approvalPoints = Optional.ofNullable(findExpectedApproval(affiliation))
+                                 .map(TestApproval::points)
+                                 .orElseThrow();
+        return approvalPoints.divide(BigDecimal.valueOf(contributorCount), ROUNDING_MODE)
+                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE)
+                   .stripTrailingZeros();
+    }
+
+    private long countNumberOfContributorsWithTopLevelAffiliation(String topLevelOrganization) {
+        return publicationDetails.contributors().stream()
+                   .flatMap(contributor -> contributor.affiliations().stream())
+                   .filter(affiliation -> affiliation.getTopLevelOrganization().equals(topLevelOrganization))
+                   .count();
+    }
+
+    private TestApproval findExpectedApproval(TestNviOrganization affiliation) {
         return approvals().stream()
                    .filter(testApproval -> testApproval.institutionId()
                                                .toString()
