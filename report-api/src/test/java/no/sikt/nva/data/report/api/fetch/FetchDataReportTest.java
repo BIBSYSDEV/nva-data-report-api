@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static java.lang.String.valueOf;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
@@ -23,6 +24,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
@@ -56,8 +58,8 @@ class FetchDataReportTest {
 
     private static final String GSP_ENDPOINT = "/gsp";
     private static final URI GRAPH = URI.create("https://example.org/graph");
-    public static final String OFFSET_ZERO = "0";
-    public static final String OFFSET_ONE = "1";
+    private static final String OFFSET_ZERO = "0";
+    private static final String OFFSET_ONE = "1";
     private static FusekiServer server;
     private static DatabaseConnection databaseConnection;
 
@@ -180,9 +182,7 @@ class FetchDataReportTest {
     }
 
     private static MediaType getResponseType(TestingRequest request) {
-        return TEXT_CSV.toString().equals(request.acceptHeader().get(ACCEPT))
-                   ? TEXT_CSV
-                   : TEXT_PLAIN;
+        return ReportFormat.fromMediaType(request.acceptHeader().get(ACCEPT)).getMediaType();
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
@@ -227,8 +227,7 @@ class FetchDataReportTest {
             case PUBLICATION -> test.getPublicationResponseData();
             case NVI -> test.getNviResponseData();
         };
-
-        return TEXT_CSV.equals(responseType)
+        return TEXT_CSV.equals(responseType) || MICROSOFT_EXCEL.equals(responseType)
                    ? data
                    : generateTable(data);
     }

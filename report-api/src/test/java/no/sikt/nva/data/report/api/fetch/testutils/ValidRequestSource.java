@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils;
 
+import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import java.util.stream.Stream;
@@ -156,6 +157,17 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "1998-01-01",
                              OFFSET,
                              PAGE_SIZE
+                         )
+                )
+            ),
+            Arguments.of(
+                Named.of("nvi — application/vnd.ms-excel", new TestingRequest(
+                             MICROSOFT_EXCEL.toString(),
+                             "nvi",
+                             "2024-01-01",
+                             "1998-01-01",
+                             "0",
+                             "10"
                          )
                 )
             )

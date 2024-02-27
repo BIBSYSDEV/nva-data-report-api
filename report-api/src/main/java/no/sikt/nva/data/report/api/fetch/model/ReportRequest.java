@@ -56,7 +56,7 @@ public class ReportRequest {
                          Integer offset,
                          Integer pageSize)
         throws BadRequestException {
-        this(ReportFormat.fromString(reportFormat), ReportType.parse(reportType), InstantUtil.before(before),
+        this(ReportFormat.fromMediaType(reportFormat), ReportType.parse(reportType), InstantUtil.before(before),
              InstantUtil.after(after), offset, pageSize);
     }
 

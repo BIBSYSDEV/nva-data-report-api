@@ -17,18 +17,20 @@ import org.apache.commons.csv.CSVRecord;
 
 public class ResultUtils {
 
-    public static final String COLUMN_SPLIT_REGEX = "\\|";
+    private static final int RESULT_HEADER_LAST_INDEX = 1;
+    private static final int RESULT_ENDING_FORMATTED_LINE = 1;
+    private static final String COLUMN_SPLIT_REGEX = "\\|";
     private static final String LINE_BREAK = "\n";
     private static final String EMPTY_STRING = "";
-    public static final int RESULT_HEADER_LAST_INDEX = 1;
-    public static final int RESULT_ENDING_FORMATTED_LINE = 1;
 
     private ResultUtils() {
         // NO-OP
     }
 
     public static String sortResponse(MediaType type, String data) throws IOException {
-        return CustomMediaType.TEXT_CSV.equals(type) ? sortCsv(data) : sortTextPlain(data);
+        return CustomMediaType.TEXT_CSV.equals(type) || MediaType.MICROSOFT_EXCEL.equals(type)
+                   ? sortCsv(data)
+                   : sortTextPlain(data);
     }
 
     public static List<String> extractDataLines(String data) {
