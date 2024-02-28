@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 public class ValidRequestSource implements ArgumentsProvider {
 
     private static final String PAGE_SIZE = "100";
-    public static final String OFFSET = "0";
+    private static final String OFFSET = "0";
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
@@ -166,8 +166,8 @@ public class ValidRequestSource implements ArgumentsProvider {
                              "nvi",
                              "2024-01-01",
                              "1998-01-01",
-                             "0",
-                             "10"
+                             OFFSET,
+                             PAGE_SIZE
                          )
                 )
             )
