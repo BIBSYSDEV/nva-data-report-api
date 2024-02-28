@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
+import static no.sikt.nva.data.report.api.fetch.formatter.ResultUtils.addNumberOfDelimiters;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusTestData.NVI_INSTITUTION_STATUS_HEADERS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviTestData.NVI_HEADERS;
@@ -163,10 +164,6 @@ public class TestData {
         var values = addNumberOfDelimiters(stringBuilder, NVI_INSTITUTION_STATUS_HEADERS.size()-1)
                          .append(CRLF.getString());
         return headers + values;
-    }
-
-    private static StringBuilder addNumberOfDelimiters(StringBuilder stringBuilder, int numberOfDelimiters) {
-        return stringBuilder.append(DELIMITER.repeat(Math.max(0, numberOfDelimiters)));
     }
 
     private static TestPublication generatePublication(PublicationDate date, Instant modifiedDate) {

@@ -6,6 +6,7 @@ import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
@@ -22,6 +23,7 @@ public class ResultUtils {
     private static final String COLUMN_SPLIT_REGEX = "\\|";
     private static final String LINE_BREAK = "\n";
     private static final String EMPTY_STRING = "";
+    private static final String DELIMITER = ",";
 
     private ResultUtils() {
         // NO-OP
@@ -68,10 +70,18 @@ public class ResultUtils {
         try (var printer = new CSVPrinter(stringBuilder, format)) {
             printer.printRecord(csvParser.getHeaderMap().keySet());
             for (CSVRecord record : recordList) {
+                if (Arrays.stream(record.values()).allMatch(EMPTY_STRING::equals)) {
+                    addNumberOfDelimiters(stringBuilder, record.size() - 1);
+                    continue;
+                }
                 printer.printRecord(record);
             }
         }
         return stringBuilder.toString();
+    }
+
+    public static StringBuilder addNumberOfDelimiters(StringBuilder stringBuilder, int numberOfDelimiters) {
+        return stringBuilder.append(DELIMITER.repeat(Math.max(0, numberOfDelimiters)));
     }
 
     private static List<String> sortDataLines(ScanningResult scanningResult) {
