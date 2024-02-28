@@ -1,10 +1,9 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
-public final class HeaderConstants {
+public final class PublicationHeaders {
 
     public static final String PUBLICATION_ID = "publicationId";
     public static final String CONTRIBUTOR_IDENTIFIER = "contributorIdentifier";
-    public static final String IS_APPLICABLE = "isApplicable";
     public static final String PUBLICATION_IDENTIFIER = "publicationIdentifier";
     public static final String PUBLICATION_CATEGORY = "publicationCategory";
     public static final String PUBLICATION_TITLE = "publicationTitle";
@@ -27,19 +26,10 @@ public final class HeaderConstants {
     public static final String CHANNEL_ONLINE_ISSN = "channelOnlineIssn";
     public static final String CHANNEL_PRINT_ISSN = "channelPrintIssn";
     public static final String CHANNEL_LEVEL = "channelLevel";
-    public static final String INSTITUTION_POINTS = "institutionPoints";
-    public static final String POINTS_FOR_AFFILIATION = "pointsForAffiliation";
-    public static final String INSTITUTION_APPROVAL_STATUS = "institutionApprovalStatus";
-    public static final String PUBLICATION_DATE = "publicationDate";
-    public static final String TOTAL_POINTS = "totalPoints";
-    public static final String PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS = "publicationTypeChannelLevelPoints";
-    public static final String AUTHOR_SHARE_COUNT = "authorShareCount";
-    public static final String INTERNATIONAL_COLLABORATION_FACTOR = "internationalCollaborationFactor";
-    public static final String REPORTED_PERIOD = "reportedPeriod";
-    public static final String GLOBAL_APPROVAL_STATUS = "globalApprovalStatus";
     public static final String STATUS = "status";
+    public static final String PUBLICATION_DATE = "publicationDate";
 
-    private HeaderConstants() {
+    private PublicationHeaders() {
         // NO-OP
     }
 }

@@ -226,7 +226,9 @@ class FetchDataReportTest {
             case IDENTIFIER -> test.getIdentifierResponseData();
             case PUBLICATION -> test.getPublicationResponseData();
             case NVI -> test.getNviResponseData();
+            case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
         };
+
         return TEXT_CSV.equals(responseType) || MICROSOFT_EXCEL.equals(responseType)
                    ? data
                    : generateTable(data);

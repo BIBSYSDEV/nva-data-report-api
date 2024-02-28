@@ -1,7 +1,7 @@
 package no.sikt.nva.data.report.api.fetch.formatter;
 
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.io.StringReader;
