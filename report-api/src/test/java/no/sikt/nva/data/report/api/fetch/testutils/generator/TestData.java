@@ -13,7 +13,6 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConsta
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_NAME;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.POINTS_FOR_AFFILIATION;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ROLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_SEQUENCE_NUMBER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.DEPARTMENT_ID;
@@ -28,6 +27,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConsta
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INSTITUTION_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.IS_APPLICABLE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.POINTS_FOR_AFFILIATION;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_CATEGORY;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_DATE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_ID;
@@ -67,6 +67,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 
 public class TestData {
+
     private static final String DELIMITER = ",";
     private static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
