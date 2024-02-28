@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch.testutils;
 
 import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import java.util.stream.Stream;
+import no.sikt.nva.data.report.api.fetch.testutils.TestingRequest;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
