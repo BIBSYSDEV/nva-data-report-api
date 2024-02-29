@@ -10,7 +10,8 @@ public enum ReportType {
     FUNDING("funding"),
     IDENTIFIER("identifier"),
     PUBLICATION("publication"),
-    NVI("nvi");
+    NVI("nvi"),
+    NVI_INSTITUTION_STATUS("nvi-institution-status");
 
     public static final String DELIMITER = ", ";
     public static final String BAD_REQUEST_MESSAGE_TEMPLATE = "Bad request. Acceptable report types: %s";

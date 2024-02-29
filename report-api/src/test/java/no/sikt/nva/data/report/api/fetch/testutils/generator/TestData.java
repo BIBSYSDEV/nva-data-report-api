@@ -1,61 +1,43 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
+import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.addNumberOfDelimiters;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.AFFILIATION_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.AFFILIATION_NAME;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.AUTHOR_SHARE_COUNT;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_IDENTIFIER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_LEVEL;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_NAME;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_ONLINE_ISSN;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_PRINT_ISSN;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CHANNEL_TYPE;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_NAME;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_ROLE;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.CONTRIBUTOR_SEQUENCE_NUMBER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.DEPARTMENT_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FACULTY_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FUNDING_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FUNDING_NAME;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.FUNDING_SOURCE;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.GLOBAL_APPROVAL_STATUS;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.GROUP_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INSTITUTION_APPROVAL_STATUS;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INSTITUTION_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INSTITUTION_POINTS;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.INTERNATIONAL_COLLABORATION_FACTOR;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.IS_APPLICABLE;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.POINTS_FOR_AFFILIATION;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_CATEGORY;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_DATE;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_ID;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_IDENTIFIER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_TITLE;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.REPORTED_PERIOD;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.STATUS;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.HeaderConstants.TOTAL_POINTS;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusTestData.NVI_INSTITUTION_STATUS_HEADERS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviTestData.NVI_HEADERS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.AFFILIATION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.AFFILIATION_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CHANNEL_LEVEL;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CHANNEL_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CHANNEL_ONLINE_ISSN;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CHANNEL_PRINT_ISSN;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CHANNEL_TYPE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_ROLE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_SEQUENCE_NUMBER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.DEPARTMENT_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.FACULTY_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.FUNDING_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.FUNDING_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.FUNDING_SOURCE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.GROUP_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.INSTITUTION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_CATEGORY;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_DATE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_TITLE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.STATUS;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval.ApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate.Builder;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestChannel;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestContributor;
@@ -68,11 +50,9 @@ import org.apache.jena.rdf.model.ModelFactory;
 
 public class TestData {
 
+    public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
+    public static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
     private static final String DELIMITER = ",";
-    private static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
-    private static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
-    private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
-    private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
                                                                     CONTRIBUTOR_ID,
@@ -105,19 +85,6 @@ public class TestData {
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
                                                                    FUNDING_SOURCE, FUNDING_ID);
-    private static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID,
-                                                            CONTRIBUTOR_IDENTIFIER,
-                                                            AFFILIATION_ID, INSTITUTION_ID,
-                                                            INSTITUTION_POINTS,
-                                                            POINTS_FOR_AFFILIATION,
-                                                            INSTITUTION_APPROVAL_STATUS,
-                                                            GLOBAL_APPROVAL_STATUS,
-                                                            REPORTED_PERIOD,
-                                                            TOTAL_POINTS,
-                                                            PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
-                                                            AUTHOR_SHARE_COUNT,
-                                                            INTERNATIONAL_COLLABORATION_FACTOR,
-                                                            IS_APPLICABLE);
     private final List<TestPublication> publicationTestData;
     private final List<TestNviCandidate> nviTestData;
     private final Model model;
@@ -125,15 +92,9 @@ public class TestData {
     public TestData(List<DatePair> dates) {
         this.model = ModelFactory.createDefaultModel();
         this.publicationTestData = generatePublicationData(dates);
-        this.nviTestData = generateNviData(dates);
+        this.nviTestData = NviTestData.generateNviData(dates);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
-    }
-
-    public static BigDecimal randomBigDecimal() {
-        var randomBigDecimal = MIN_BIG_DECIMAL.add(
-            BigDecimal.valueOf(Math.random()).multiply(MAX_BIG_DECIMAL.subtract(MIN_BIG_DECIMAL)));
-        return randomBigDecimal.setScale(4, RoundingMode.HALF_UP);
     }
 
     public Model getModel() {
@@ -197,6 +158,13 @@ public class TestData {
         return headers + values;
     }
 
+    public String getNviInstitutionStatusResponseData() {
+        var headers = String.join(DELIMITER, NVI_INSTITUTION_STATUS_HEADERS) + CRLF.getString();
+        var stringBuilder = new StringBuilder();
+        var values = addNumberOfDelimiters(stringBuilder, NVI_INSTITUTION_STATUS_HEADERS.size() - 1);
+        return headers + values;
+    }
+
     private static TestPublication generatePublication(PublicationDate date, Instant modifiedDate) {
         var identifier = UUID.randomUUID();
         return new TestPublication()
@@ -243,98 +211,6 @@ public class TestData {
         return new TestOrganization(organizationUri(SOME_SUB_UNIT_IDENTIFIER), "My university");
     }
 
-    private static List<TestApproval> generateApprovals(TestPublicationDetails publicationDetails) {
-        return publicationDetails.contributors().stream()
-                   .flatMap(contributor -> contributor.affiliations().stream())
-                   .map(TestNviOrganization::getTopLevelOrganization)
-                   .distinct()
-                   .map(TestData::generateApproval)
-                   .toList();
-    }
-
-    private static TestApproval generateApproval(String topLevelOrganization) {
-        return TestApproval.builder()
-                   .withInstitutionId(URI.create(topLevelOrganization))
-                   .withApprovalStatus(randomElement(ApprovalStatus.values()))
-                   .withPoints(randomBigDecimal())
-                   .build();
-    }
-
-    private static Builder getCandidateBuilder(boolean isApplicable, Instant modifiedDate,
-                                               TestPublicationDetails publicationDetails,
-                                               List<TestApproval> approvals) {
-        return TestNviCandidate.builder()
-                   .withIsApplicable(isApplicable)
-                   .withIdentifier(UUID.randomUUID().toString())
-                   .withModifiedDate(modifiedDate)
-                   .withPublicationDetails(publicationDetails)
-                   .withApprovals(approvals)
-                   .withCreatorShareCount(countCombinationsOfCreatorsAndAffiliations(publicationDetails))
-                   .withInternationalCollaborationFactor(BigDecimal.ONE)
-                   .withGlobalApprovalStatus(ApprovalStatus.PENDING.getValue())
-                   .withPublicationTypeChannelLevelPoints(randomBigDecimal())
-                   .withTotalPoints(randomBigDecimal());
-    }
-
-    private static int countCombinationsOfCreatorsAndAffiliations(TestPublicationDetails publicationDetails) {
-        return publicationDetails.contributors()
-                   .stream()
-                   .flatMap(contributor -> contributor.affiliations().stream())
-                   .toList()
-                   .size();
-    }
-
-    private TestNviCandidate generateNviCandidate(Instant modifiedDate) {
-        var publicationDetails = generatePublicationDetails();
-        var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals).build();
-    }
-
-    private TestNviCandidate generateReportedNviCandidate(Instant modifiedDate) {
-        var publicationDetails = generatePublicationDetails();
-        var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals)
-                   .withReportedPeriod("2021")
-                   .build();
-    }
-
-    private TestNviCandidate generateCoPublishedNviCandidate(Instant modifiedDate) {
-        var publicationDetails = TestPublicationDetails.builder()
-                                     .withId(randomUri().toString())
-                                     .withContributors(
-                                         new ArrayList<>(List.of(generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER),
-                                                                 generateNviContributor("90.0.0.0"))))
-                                     .build();
-        var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals).build();
-    }
-
-    @SuppressWarnings("unchecked")
-    private TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate) {
-        return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST).build();
-    }
-
-    private TestPublicationDetails generatePublicationDetails() {
-        return TestPublicationDetails.builder()
-                   .withId(randomUri().toString())
-                   .withContributors(new ArrayList<>(List.of(generateNviContributor(SOME_SUB_UNIT_IDENTIFIER),
-                                                             generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER))))
-                   .build();
-    }
-
-    private TestNviContributor generateNviContributor(String organizationIdentifier) {
-        return TestNviContributor.builder()
-                   .withId(randomUri().toString())
-                   .withAffiliations(List.of(generateNviAffiliation(organizationIdentifier)))
-                   .build();
-    }
-
-    private TestNviOrganization generateNviAffiliation(String organizationIdentifier) {
-        return TestNviOrganization.builder()
-                   .withId(organizationUri(organizationIdentifier))
-                   .build();
-    }
-
     private void addPublicationDataToModel(List<TestPublication> testData) {
         testData.stream()
             .map(TestPublication::generateModel)
@@ -352,21 +228,6 @@ public class TestData {
         for (DatePair date : dates) {
             var data = generatePublication(date.publicationDate, date.modifiedDate);
             dataSet.add(data);
-        }
-        return dataSet;
-    }
-
-    private List<TestNviCandidate> generateNviData(List<DatePair> dates) {
-        var dataSet = new ArrayList<TestNviCandidate>();
-        for (DatePair date : dates) {
-            var nviCandidate = generateNviCandidate(date.modifiedDate);
-            var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate);
-            var reportedCandidate = generateReportedNviCandidate(date.modifiedDate);
-            var coPublishedCandidate = generateCoPublishedNviCandidate(date.modifiedDate);
-            dataSet.add(nviCandidate);
-            dataSet.add(nonApplicableNviCandidate);
-            dataSet.add(reportedCandidate);
-            dataSet.add(coPublishedCandidate);
         }
         return dataSet;
     }

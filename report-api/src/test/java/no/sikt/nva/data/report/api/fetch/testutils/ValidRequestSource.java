@@ -158,6 +158,28 @@ public class ValidRequestSource implements ArgumentsProvider {
                              PAGE_SIZE
                          )
                 )
+            ),
+            Arguments.of(
+                Named.of("nvi institution report — text/csv", new TestingRequest(
+                             TEXT_CSV.toString(),
+                             "nvi-institution-status",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
+            ),
+            Arguments.of(
+                Named.of("nvi institution report — text/plain", new TestingRequest(
+                             TEXT_PLAIN.toString(),
+                             "nvi-institution-status",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
             )
         );
     }

@@ -4,8 +4,8 @@ import static java.lang.String.valueOf;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
-import static no.sikt.nva.data.report.api.fetch.formatter.ResultUtils.extractDataLines;
-import static no.sikt.nva.data.report.api.fetch.formatter.ResultUtils.sortResponse;
+import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.extractDataLines;
+import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -131,7 +131,8 @@ class FetchDataReportTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ReportType.class)
+    @EnumSource(value = ReportType.class, names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION",
+        "NVI",})
     void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
@@ -231,6 +232,7 @@ class FetchDataReportTest {
             case IDENTIFIER -> test.getIdentifierResponseData();
             case PUBLICATION -> test.getPublicationResponseData();
             case NVI -> test.getNviResponseData();
+            case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
         };
 
         return TEXT_CSV.equals(responseType)

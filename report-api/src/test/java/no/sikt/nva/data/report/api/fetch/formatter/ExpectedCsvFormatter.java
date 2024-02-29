@@ -43,7 +43,7 @@ public class ExpectedCsvFormatter {
                 .mapToInt(row -> row[index].length())
                 .map(ExpectedCsvFormatter::addQuoteLength)
                 .max()
-                .orElseThrow(),
+                .orElse(0),
             headers[index].length());
     }
 
