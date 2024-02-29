@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.net.MediaType;
 import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
 import java.io.ByteArrayOutputStream;
@@ -126,7 +125,7 @@ class FetchDataReportTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getResponseType(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
         assertEquals(expected, sortedResponse);
     }
 
@@ -169,7 +168,7 @@ class FetchDataReportTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getResponseType(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
         assertEquals(expected, sortedResponse);
     }
 
@@ -191,8 +190,8 @@ class FetchDataReportTest {
         );
     }
 
-    private static MediaType getResponseType(TestingRequest request) {
-        return ReportFormat.fromMediaType(request.acceptHeader().get(ACCEPT)).getMediaType();
+    private static ReportFormat getReportFormat(TestingRequest request) {
+        return ReportFormat.fromMediaType(request.acceptHeader().get(ACCEPT));
     }
 
     private static InputStream generateHandlerRequest(TestingRequest request) throws JsonProcessingException {
@@ -224,7 +223,7 @@ class FetchDataReportTest {
 
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
     private String getExpected(TestingRequest request, TestData test) throws BadRequestException {
-        var responseType = getResponseType(request);
+        var responseType = getReportFormat(request);
         var data = switch (ReportType.parse(request.reportType())) {
             case AFFILIATION -> test.getAffiliationResponseData();
             case CONTRIBUTOR -> test.getContributorResponseData();
@@ -235,7 +234,7 @@ class FetchDataReportTest {
             case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
         };
 
-        return TEXT_CSV.equals(responseType)
+        return ReportFormat.CSV.equals(responseType)
                    ? data
                    : generateTable(data);
     }

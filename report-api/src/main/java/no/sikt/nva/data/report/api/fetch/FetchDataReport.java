@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
+import static com.google.common.net.MediaType.OOXML_SHEET;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.model.ReportFormat.EXCEL;
@@ -36,7 +37,7 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
 
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
-        return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL);
+        return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL, OOXML_SHEET);
     }
 
     protected String processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
