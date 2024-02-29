@@ -29,6 +29,7 @@ public record TestNviCandidate(String identifier,
     private static final String DELIMITER = ",";
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private static final int NVI_POINT_SCALE = 4;
+
     public static Builder builder() {
         return new Builder();
     }

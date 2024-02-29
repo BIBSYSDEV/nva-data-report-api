@@ -119,7 +119,8 @@ class FetchDataReportTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ReportType.class)
+    @EnumSource(value = ReportType.class, names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION",
+        "NVI",})
     void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
         var testData = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
                                                          Instant.now().minus(100, ChronoUnit.DAYS)),

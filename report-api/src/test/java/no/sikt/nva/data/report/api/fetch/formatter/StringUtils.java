@@ -15,6 +15,7 @@ public final class StringUtils {
 
     private static final String LINE_BREAK = "\n";
     private static final String DELIMITER = ",";
+
     private StringUtils() {
         // NO-OP
     }
