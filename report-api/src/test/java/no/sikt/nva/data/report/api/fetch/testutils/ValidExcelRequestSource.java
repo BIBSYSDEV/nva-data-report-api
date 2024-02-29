@@ -1,8 +1,8 @@
 package no.sikt.nva.data.report.api.fetch.testutils;
 
 import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
+import static com.google.common.net.MediaType.OOXML_SHEET;
 import java.util.stream.Stream;
-import no.sikt.nva.data.report.api.fetch.testutils.TestingRequest;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
@@ -28,8 +28,32 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                 )
             ),
             Arguments.of(
+                Named.of("affiliation — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                         new TestingRequest(
+                             OOXML_SHEET.toString(),
+                             "affiliation",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
+            ),
+            Arguments.of(
                 Named.of("contributor — application/vnd.ms-excel", new TestingRequest(
                              MICROSOFT_EXCEL.toString(),
+                             "contributor",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
+            ),
+            Arguments.of(
+                Named.of("contributor — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                         new TestingRequest(
+                             OOXML_SHEET.toString(),
                              "contributor",
                              "2024-01-01",
                              "1998-01-01",
@@ -50,8 +74,32 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                 )
             ),
             Arguments.of(
+                Named.of("funding — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                         new TestingRequest(
+                             OOXML_SHEET.toString(),
+                             "funding",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
+            ),
+            Arguments.of(
                 Named.of("identifier — application/vnd.ms-excel", new TestingRequest(
                              MICROSOFT_EXCEL.toString(),
+                             "identifier",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
+            ),
+            Arguments.of(
+                Named.of("identifier — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                         new TestingRequest(
+                             OOXML_SHEET.toString(),
                              "identifier",
                              "2024-01-01",
                              "1998-01-01",
@@ -71,6 +119,18 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                          )
                 )
             ),
+            Arguments.of(
+                Named.of("publication — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                         new TestingRequest(
+                             OOXML_SHEET.toString(),
+                             "publication",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
+            ),
             Arguments.of(Named.of("nvi — application/vnd.ms-excel", new TestingRequest(
                                       MICROSOFT_EXCEL.toString(),
                                       "nvi",
@@ -80,6 +140,17 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                                       PAGE_SIZE
                                   )
                          )
+            ),
+            Arguments.of(
+                Named.of("nvi — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new TestingRequest(
+                             OOXML_SHEET.toString(),
+                             "nvi",
+                             "2024-01-01",
+                             "1998-01-01",
+                             OFFSET,
+                             PAGE_SIZE
+                         )
+                )
             )
         );
     }
