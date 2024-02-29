@@ -1,13 +1,13 @@
-package no.sikt.nva.data.report.api.fetch.testutils;
+package no.sikt.nva.data.report.api.fetch.testutils.requests;
 
 import java.util.Map;
 
-public record TestingRequest(String accept,
-                             String reportType,
-                             String before,
-                             String after,
-                             String offset,
-                             String pageSize) {
+public record FetchDataReportRequest(String accept,
+                                     String reportType,
+                                     String before,
+                                     String after,
+                                     String offset,
+                                     String pageSize) {
 
     public Map<String, String> queryParameters() {
         return Map.of(
