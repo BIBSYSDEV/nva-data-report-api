@@ -315,6 +315,35 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
+  # ---- Handler ----
+  FetchNviInstitutionReportHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: report-api
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref LambdaSubnet1
+          - !Ref LambdaSubnet2
+      Policies:
+        - VPCAccessPolicy: { }
+      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /nvi/institution
+            Method: get
+            RestApiId: !Ref DataReportApi
+
   DataLoadingHandler:
     Type: AWS::Serverless::Function
     Properties:
