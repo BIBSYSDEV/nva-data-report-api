@@ -1,6 +1,5 @@
 package no.sikt.nva.data.report.api.fetch;
 
-import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static java.lang.String.valueOf;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
@@ -11,6 +10,7 @@ import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.MediaType;
 import commons.db.DatabaseConnection;
@@ -22,13 +22,14 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
 import no.sikt.nva.data.report.api.fetch.testutils.TestingRequest;
+import no.sikt.nva.data.report.api.fetch.testutils.ValidExcelRequestSource;
 import no.sikt.nva.data.report.api.fetch.testutils.ValidRequestSource;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
@@ -100,12 +101,23 @@ class FetchDataReportTest {
     }
 
     @ParameterizedTest
+    @ArgumentsSource(ValidExcelRequestSource.class)
+    void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(TestingRequest request) throws IOException {
+        var testData = new TestData(generateDatePairs(2));
+        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        var service = new QueryService(databaseConnection);
+        var handler = new FetchDataReport(service);
+        var input = generateHandlerRequest(request);
+        var output = executeRequest(handler, input);
+        var response = fromOutputStream(output, String.class);
+        assertEquals(200, response.getStatusCode());
+        assertTrue(response.getIsBase64Encoded());
+    }
+
+    @ParameterizedTest
     @ArgumentsSource(ValidRequestSource.class)
     void shouldReturnFormattedResult(TestingRequest request) throws IOException, BadRequestException {
-        var testData = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
-                                                         Instant.now().minus(100, ChronoUnit.DAYS)),
-                                            new DatePair(new PublicationDate("2023", "10", "18"),
-                                                         Instant.now().minus(100, ChronoUnit.DAYS))));
+        var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
@@ -122,10 +134,7 @@ class FetchDataReportTest {
     @EnumSource(value = ReportType.class, names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION",
         "NVI",})
     void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
-        var testData = new TestData(List.of(new DatePair(new PublicationDate("2023", "02", "02"),
-                                                         Instant.now().minus(100, ChronoUnit.DAYS)),
-                                            new DatePair(new PublicationDate("2023", "10", "18"),
-                                                         Instant.now().minus(100, ChronoUnit.DAYS))));
+        var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
@@ -143,7 +152,7 @@ class FetchDataReportTest {
 
     @Test
     void shouldRetrieveManyHits() throws IOException, BadRequestException {
-        var testData = new TestData(getRandomTestList());
+        var testData = new TestData(generateDatePairs(20));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
@@ -200,15 +209,11 @@ class FetchDataReportTest {
         }
     }
 
-    private List<DatePair> getRandomTestList() {
-        int i = 20;
-        var pairs = new ArrayList<DatePair>();
-        while (i > 0) {
-            pairs.add(new DatePair(new PublicationDate("2024", "02", "02"),
-                                   Instant.now().minus(100, ChronoUnit.DAYS)));
-            i--;
-        }
-        return pairs;
+    private List<DatePair> generateDatePairs(int numberOfDatePairs) {
+        return IntStream.range(0, numberOfDatePairs)
+                   .mapToObj(i -> new DatePair(new PublicationDate("2024", "02", "02"),
+                                               Instant.now().minus(100, ChronoUnit.DAYS)))
+                   .toList();
     }
 
     private String toTriples(Model model) {
@@ -230,7 +235,7 @@ class FetchDataReportTest {
             case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
         };
 
-        return TEXT_CSV.equals(responseType) || MICROSOFT_EXCEL.equals(responseType)
+        return TEXT_CSV.equals(responseType)
                    ? data
                    : generateTable(data);
     }

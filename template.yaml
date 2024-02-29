@@ -228,6 +228,8 @@ Resources:
           Name: AWS::Include
           Parameters:
             Location: ./docs/openapi.yaml
+      BinaryMediaTypes:
+        - application/vnd.ms-excel
 
   ApiPermission:
     Type: AWS::Lambda::Permission

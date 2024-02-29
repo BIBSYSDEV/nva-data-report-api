@@ -4,12 +4,15 @@ plugins {
 
 dependencies {
     implementation(project(':data-report-commons'))
-    implementation libs.guava
-    implementation libs.bundles.jena
     implementation libs.nva.commons.core
-    implementation libs.nva.json
-    implementation libs.jackson.databind
     implementation libs.nva.commons.apigateway
+    implementation libs.nva.json
+    implementation libs.bundles.jena
+    implementation libs.jackson.databind
+    implementation libs.guava
+    implementation group: 'org.apache.poi', name: 'poi', version: '5.2.4'
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.4'
+
     testImplementation libs.jena.fuseki
     testImplementation(project(':testing-utils'))
     testImplementation 'com.opencsv:opencsv:5.9'
