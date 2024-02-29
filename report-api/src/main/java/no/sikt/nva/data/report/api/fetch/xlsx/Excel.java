@@ -10,13 +10,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public final class Excel {
-
-    private final Workbook workbook;
-
-    private Excel(Workbook workbook) {
-        this.workbook = workbook;
-    }
+public record Excel(Workbook workbook) {
 
     public static Excel fromJava(List<String> headers, List<List<String>> data) {
         var excel = new Excel(new XSSFWorkbook());

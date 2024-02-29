@@ -4,8 +4,10 @@ import static java.lang.String.valueOf;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
+import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.extractDataLines;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
+import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +24,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
@@ -33,6 +37,7 @@ import no.sikt.nva.data.report.api.fetch.testutils.ValidRequestSource;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
+import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
@@ -45,6 +50,7 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -100,6 +106,22 @@ class FetchDataReportTest {
     }
 
     @ParameterizedTest
+    @ArgumentsSource(ValidRequestSource.class)
+    void shouldReturnFormattedResult(TestingRequest request) throws IOException, BadRequestException {
+        var testData = new TestData(generateDatePairs(2));
+        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        var service = new QueryService(databaseConnection);
+        var handler = new FetchDataReport(service);
+        var input = generateHandlerRequest(request);
+        var output = executeRequest(handler, input);
+        var response = fromOutputStream(output, String.class);
+        assertEquals(200, response.getStatusCode());
+        var expected = getExpected(request, testData);
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
+        assertEquals(expected, sortedResponse);
+    }
+
+    @ParameterizedTest
     @ArgumentsSource(ValidExcelRequestSource.class)
     void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(TestingRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
@@ -114,19 +136,19 @@ class FetchDataReportTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(ValidRequestSource.class)
-    void shouldReturnFormattedResult(TestingRequest request) throws IOException, BadRequestException {
+    @ArgumentsSource(ValidExcelRequestSource.class)
+    void shouldReturnDataInExcelSheetWhenContentTypeIsExcel(TestingRequest request)
+        throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
         var output = executeRequest(handler, input);
-        var response = fromOutputStream(output, String.class);
-        assertEquals(200, response.getStatusCode());
-        var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
-        assertEquals(expected, sortedResponse);
+        var expected = getExpectedExcel(request, testData);
+        var decodedResponse = Base64.getDecoder().decode(fromOutputStream(output, String.class).getBody());
+        var actual = new Excel(new XSSFWorkbook(new ByteArrayInputStream(decodedResponse)));
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @ParameterizedTest
@@ -208,6 +230,18 @@ class FetchDataReportTest {
         }
     }
 
+    private static String getExpectedResponseData(TestingRequest request, TestData test) throws BadRequestException {
+        return switch (ReportType.parse(request.reportType())) {
+            case AFFILIATION -> test.getAffiliationResponseData();
+            case CONTRIBUTOR -> test.getContributorResponseData();
+            case FUNDING -> test.getFundingResponseData();
+            case IDENTIFIER -> test.getIdentifierResponseData();
+            case PUBLICATION -> test.getPublicationResponseData();
+            case NVI -> test.getNviResponseData();
+            case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
+        };
+    }
+
     private List<DatePair> generateDatePairs(int numberOfDatePairs) {
         return IntStream.range(0, numberOfDatePairs)
                    .mapToObj(i -> new DatePair(new PublicationDate("2024", "02", "02"),
@@ -224,18 +258,14 @@ class FetchDataReportTest {
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
     private String getExpected(TestingRequest request, TestData test) throws BadRequestException {
         var responseType = getReportFormat(request);
-        var data = switch (ReportType.parse(request.reportType())) {
-            case AFFILIATION -> test.getAffiliationResponseData();
-            case CONTRIBUTOR -> test.getContributorResponseData();
-            case FUNDING -> test.getFundingResponseData();
-            case IDENTIFIER -> test.getIdentifierResponseData();
-            case PUBLICATION -> test.getPublicationResponseData();
-            case NVI -> test.getNviResponseData();
-            case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
-        };
-
-        return ReportFormat.CSV.equals(responseType)
+        var data = getExpectedResponseData(request, test);
+        return TEXT_CSV.equals(responseType)
                    ? data
                    : generateTable(data);
+    }
+
+    private Excel getExpectedExcel(TestingRequest request, TestData test) throws BadRequestException {
+        var data = getExpectedResponseData(request, test);
+        return generateExcel(data);
     }
 }
