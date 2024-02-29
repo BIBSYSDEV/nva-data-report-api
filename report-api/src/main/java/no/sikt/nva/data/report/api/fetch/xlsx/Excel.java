@@ -1,6 +1,5 @@
 package no.sikt.nva.data.report.api.fetch.xlsx;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
