@@ -7,7 +7,7 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.g
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.extractDataLines;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
-import static no.sikt.nva.data.report.api.fetch.testutils.ExcelComparer.assertExcelEquals;
+import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -149,7 +149,7 @@ class FetchDataReportTest {
         var expected = getExpectedExcel(request, testData);
         var decodedResponse = Base64.getDecoder().decode(fromOutputStream(output, String.class).getBody());
         var actual = new Excel(new XSSFWorkbook(new ByteArrayInputStream(decodedResponse)));
-        assertExcelEquals(expected, actual);
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @ParameterizedTest

@@ -12,7 +12,9 @@ public class ExpectedExcelFormatter {
     public static Excel generateExcel(String csvString) {
         try (CSVReader csvReader = new CSVReader(new StringReader(csvString))) {
             var headers = Arrays.stream(csvReader.readNext()).toList();
-            var rows = csvReader.readAll().stream().map(array -> Arrays.stream(array).toList()).toList();
+            var rows = csvReader.readAll().stream()
+                           .map(array -> Arrays.stream(array).toList())
+                           .toList();
 
             return Excel.fromJava(headers, rows);
         } catch (CsvException | IOException e) {

@@ -9,19 +9,18 @@ import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
-public final class ExcelComparer {
+public final class ExcelAsserter {
 
-    public static void assertExcelEquals(Excel expected, Excel actual) {
+    public static void assertEqualsInAnyOrder(Excel expected, Excel actual) {
         try (var expectedWorkbook = expected.workbook(); var actualWorkbook = actual.workbook()) {
-            assertEquals(expectedWorkbook.getNumberOfSheets(), actualWorkbook.getNumberOfSheets());
+            assertSameNumberOfSheets(expectedWorkbook, actualWorkbook);
             IntStream.range(0, expectedWorkbook.getNumberOfSheets()).forEach(i -> {
                 var expectedSheet = expectedWorkbook.getSheetAt(i);
                 var actualSheet = actualWorkbook.getSheetAt(i);
-                assertEquals(expectedSheet.getPhysicalNumberOfRows(), actualSheet.getPhysicalNumberOfRows());
-
+                assertSameNumberOfRows(expectedSheet, actualSheet);
                 assertEqualHeaders(expectedSheet, actualSheet);
-
                 var expectedData = getData(expectedSheet, expectedSheet.getPhysicalNumberOfRows());
                 var actualData = getData(actualSheet, actualSheet.getPhysicalNumberOfRows());
                 assertEquals(new HashSet<>(expectedData), new HashSet<>(actualData));
@@ -29,6 +28,14 @@ public final class ExcelComparer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void assertSameNumberOfRows(Sheet expectedSheet, Sheet actualSheet) {
+        assertEquals(expectedSheet.getPhysicalNumberOfRows(), actualSheet.getPhysicalNumberOfRows());
+    }
+
+    private static void assertSameNumberOfSheets(Workbook expectedWorkbook, Workbook actualWorkbook) {
+        assertEquals(expectedWorkbook.getNumberOfSheets(), actualWorkbook.getNumberOfSheets());
     }
 
     private static void assertEqualHeaders(Sheet expectedSheet, Sheet actualSheet) {

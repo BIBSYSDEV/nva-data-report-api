@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.formatter;
 
+import static java.util.Objects.nonNull;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import commons.formatter.ResponseFormatter;
 import java.io.ByteArrayOutputStream;
@@ -10,7 +11,6 @@ import java.util.Base64.Encoder;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.RDFNode;
 
 public class ExcelFormatter implements ResponseFormatter {
 
@@ -39,8 +39,8 @@ public class ExcelFormatter implements ResponseFormatter {
             var row = resultSet.next();
             var rowData = new ArrayList<String>();
             for (String header : headers) {
-                RDFNode cell = row.get(header);
-                rowData.add(cell != null ? cell.toString() : EMPTY_STRING);
+                var cell = row.get(header);
+                rowData.add(nonNull(cell) ? cell.toString() : EMPTY_STRING);
             }
             data.add(rowData);
         }
