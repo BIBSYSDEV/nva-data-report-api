@@ -230,6 +230,7 @@ Resources:
             Location: ./docs/openapi.yaml
       BinaryMediaTypes:
         - application/vnd.ms-excel
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 
   ApiPermission:
     Type: AWS::Lambda::Permission

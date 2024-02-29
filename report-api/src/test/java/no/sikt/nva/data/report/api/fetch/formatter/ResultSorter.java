@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.CustomMediaType;
 import no.sikt.nva.data.report.api.fetch.formatter.StringUtils.ScanningResult;
+import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -28,8 +29,8 @@ public class ResultSorter {
         // NO-OP
     }
 
-    public static String sortResponse(MediaType type, String data) throws IOException {
-        return CustomMediaType.TEXT_CSV.equals(type) || MediaType.MICROSOFT_EXCEL.equals(type)
+    public static String sortResponse(ReportFormat type, String data) throws IOException {
+        return ReportFormat.CSV.equals(type)
                    ? sortCsv(data)
                    : sortTextPlain(data);
     }
