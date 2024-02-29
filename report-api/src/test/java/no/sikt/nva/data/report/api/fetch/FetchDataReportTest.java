@@ -7,6 +7,7 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.g
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.extractDataLines;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
+import static no.sikt.nva.data.report.api.fetch.testutils.ExcelComparer.assertExcelEquals;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -240,31 +241,6 @@ class FetchDataReportTest {
             case NVI -> test.getNviResponseData();
             case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
         };
-    }
-
-    private void assertExcelEquals(Excel expected, Excel actual) {
-        try (var expectedWorkbook = expected.workbook(); var actualWorkbook = actual.workbook()) {
-            assertEquals(expectedWorkbook.getNumberOfSheets(), actualWorkbook.getNumberOfSheets());
-            IntStream.range(0, expectedWorkbook.getNumberOfSheets()).forEach(i -> {
-                var expectedSheet = expectedWorkbook.getSheetAt(i);
-                var actualSheet = actualWorkbook.getSheetAt(i);
-                assertEquals(expectedSheet.getPhysicalNumberOfRows(), actualSheet.getPhysicalNumberOfRows());
-
-                IntStream.range(0, expectedSheet.getPhysicalNumberOfRows()).forEach(j -> {
-                    var expectedRow = expectedSheet.getRow(j);
-                    var actualRow = actualSheet.getRow(j);
-                    assertEquals(expectedRow.getPhysicalNumberOfCells(), actualRow.getPhysicalNumberOfCells());
-
-                    IntStream.range(0, expectedRow.getPhysicalNumberOfCells()).forEach(k -> {
-                        var expectedCell = expectedRow.getCell(k);
-                        var actualCell = actualRow.getCell(k);
-                        assertEquals(expectedCell.getStringCellValue(), actualCell.getStringCellValue());
-                    });
-                });
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private List<DatePair> generateDatePairs(int numberOfDatePairs) {
