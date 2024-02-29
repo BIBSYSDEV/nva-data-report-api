@@ -257,9 +257,9 @@ class FetchDataReportTest {
 
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
     private String getExpected(TestingRequest request, TestData test) throws BadRequestException {
-        var responseType = getReportFormat(request);
+        var reportFormat = getReportFormat(request);
         var data = getExpectedResponseData(request, test);
-        return TEXT_CSV.equals(responseType)
+        return ReportFormat.CSV.equals(reportFormat)
                    ? data
                    : generateTable(data);
     }
