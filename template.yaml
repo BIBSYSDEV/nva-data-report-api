@@ -450,6 +450,13 @@ Resources:
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 's3:DeleteObject'
+              Resource: !Ref KeyBatchesBucket
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
