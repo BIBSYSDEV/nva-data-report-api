@@ -4,9 +4,11 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.g
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayInputStream;
@@ -23,22 +25,44 @@ import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import org.apache.jena.riot.Lang;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
+    public static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
+    private FetchNviInstitutionReport handler;
+
+    @BeforeEach
+    void setUp() {
+        handler = new FetchNviInstitutionReport(new QueryService(databaseConnection));
+    }
+
+    @Test
+    void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() {
+        var request = new FetchNviInstitutionReportRequest("text/plain");
+        try (var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI)) {
+            assertThrows(UnauthorizedException.class,
+                         () -> handler.handleRequest(unAuthorizedRequest, new ByteArrayOutputStream(),
+                                                     new FakeContext()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @ParameterizedTest
     @MethodSource("fetchNviInstitutionReportRequestProvider")
     void shouldReturnFormattedResult(FetchNviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var service = new QueryService(databaseConnection);
-        var handler = new FetchNviInstitutionReport(service);
-        var input = generateHandlerRequest(request);
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
@@ -54,9 +78,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var service = new QueryService(databaseConnection);
-        var handler = new FetchNviInstitutionReport(service);
-        var input = generateHandlerRequest(request);
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
@@ -70,9 +92,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var service = new QueryService(databaseConnection);
-        var handler = new FetchNviInstitutionReport(service);
-        var input = generateHandlerRequest(request);
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var expected = getExpectedExcel(testData);
@@ -92,10 +112,11 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
                              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")));
     }
 
-    private static InputStream generateHandlerRequest(FetchNviInstitutionReportRequest request)
+    private static InputStream generateHandlerRequest(FetchNviInstitutionReportRequest request, AccessRight accessRight)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
                    .withHeaders(request.acceptHeader())
+                   .withAccessRights(randomUri(), accessRight)
                    .build();
     }
 
