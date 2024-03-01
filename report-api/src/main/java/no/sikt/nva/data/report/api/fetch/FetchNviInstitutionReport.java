@@ -16,8 +16,10 @@ import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.JacocoGenerated;
 
 public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
@@ -41,7 +43,8 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     }
 
     @Override
-    protected String processInput(Void unused, RequestInfo requestInfo, Context context) {
+    protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws UnauthorizedException {
+        validateAccessRights(requestInfo);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var result = queryService.getResult(ReportType.NVI_INSTITUTION_STATUS, getFormatter(reportFormat));
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
@@ -59,6 +62,12 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
             case EXCEL -> new ExcelFormatter();
             case TEXT -> new PlainTextFormatter();
         };
+    }
+
+    private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
+        if (!requestInfo.userIsAuthorized(AccessRight.MANAGE_NVI)) {
+            throw new UnauthorizedException();
+        }
     }
 
     private void setIsBase64EncodedIfReportFormatExcel(ReportFormat reportFormat) {

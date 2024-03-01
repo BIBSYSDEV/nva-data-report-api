@@ -8,7 +8,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayInputStream;
@@ -26,7 +25,6 @@ import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.UnauthorizedException;
 import org.apache.jena.riot.Lang;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.zalando.problem.Problem;
 
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
@@ -46,15 +45,13 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     @Test
-    void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() {
+    void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
         var request = new FetchNviInstitutionReportRequest("text/plain");
-        try (var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI)) {
-            assertThrows(UnauthorizedException.class,
-                         () -> handler.handleRequest(unAuthorizedRequest, new ByteArrayOutputStream(),
-                                                     new FakeContext()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI);
+        var output = new ByteArrayOutputStream();
+        handler.handleRequest(unAuthorizedRequest, output, new FakeContext());
+        var response = fromOutputStream(output, Problem.class);
+        assertEquals(401, response.getStatusCode());
     }
 
     @ParameterizedTest
