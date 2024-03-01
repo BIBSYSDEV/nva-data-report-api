@@ -71,7 +71,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
         var service = new QueryService(databaseConnection);
-        var handler = new FetchDataReport(service);
+        var handler = new FetchNviInstitutionReport(service);
         var input = generateHandlerRequest(request);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());

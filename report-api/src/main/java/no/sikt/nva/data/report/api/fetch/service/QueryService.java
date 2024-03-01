@@ -4,6 +4,7 @@ import commons.db.DatabaseConnection;
 import commons.formatter.ResponseFormatter;
 import java.nio.file.Path;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
+import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -25,6 +26,17 @@ public class QueryService {
     public String getResult(ReportRequest reportRequest, ResponseFormatter formatter) {
         var query = getQuery(reportRequest);
         return databaseConnection.getResult(query, formatter);
+    }
+
+    public String getResult(ReportType reportType, ResponseFormatter formatter) {
+        var query = getQuery(reportType);
+        return databaseConnection.getResult(query, formatter);
+    }
+
+    private Query getQuery(ReportType reportType) {
+        var template = Path.of(TEMPLATE_DIRECTORY, reportType.getType() + SPARQL);
+        var sparqlTemplate = IoUtils.stringFromResources(template);
+        return QueryFactory.create(sparqlTemplate);
     }
 
     private Query getQuery(ReportRequest reportRequest) {
