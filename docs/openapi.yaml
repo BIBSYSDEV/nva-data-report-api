@@ -198,24 +198,6 @@ paths:
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema:
                 format: binary
-        '401':
-          description: "Unauthorized"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        '404':
-          description: "Report not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        '500':
-          description: "Internal Server Error"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
 components:
   schemas:
     Problem:
