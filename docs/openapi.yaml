@@ -128,6 +128,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /nvi/institution:
+    get:
+      description: Get institution report for nvi for current year. Supporting text/csv download according to <https://www.rfc-editor.org/rfc/rfc4180>, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/ld+json.
+      security:
+        - CognitoUserPool: [
+          'https://api.nva.unit.no/scopes/backend',
+          'https://api.nva.unit.no/scopes/frontend',
+          'aws.cognito.signin.user.admin'
+        ]
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FetchNviInstitutionReportHandler.Arn}:live/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: string
+              example: |
+                | ------------- | ------------- | ---------------- | 
+                | columnHeader1 | columnHeader2 | columnHeaders... |
+                | ------------- | ------------- | ---------------- |
+                | row1 value1   | row1 value2   | row1 value3      |
+                | row2 value1   | row2 value2   | row2 value3      |
+                | row... value1 | row... value2 | row... value3    |
+                | ------------- | ------------- | ---------------- |
+            text/csv:
+              schema:
+                type: string
+                format: string
+              example: |
+                columnHeader1,columnHeader2,columnHeaders...
+                "row1 value1","row1 value2","row1 value3"
+                "row2 value1","row2 value2","row2 value3"
+                "row... value1","row... value2""row... value3"
+            application/ld+json:
+              schema:
+                type: object
+              example: |
+                {
+                  "@context": "https://nva.sikt.no/report/type/context",
+                  "results": [
+                    {
+                      "columnName1": "Row 1 Value 1",
+                      "columnName2": "Row 1 Value 2",
+                      "columnName...": "Row 1 Value..."
+                    },
+                    {
+                      "columnName1": "Row 2 Value 1",
+                      "columnName2": "Row 2 Value 2",
+                      "columnName...": "Row 2 Value..."
+                    },
+                    {
+                      "columnName1": "Row... Value 1",
+                      "columnName2": "Row... Value 2",
+                      "columnName...": "Row... Value..."
+                    }
+                  ]
+                }
+            application/vnd.ms-excel:
+              schema:
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                format: binary
 components:
   schemas:
     Problem:
