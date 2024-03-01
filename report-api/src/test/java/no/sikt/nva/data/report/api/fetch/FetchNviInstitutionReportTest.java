@@ -28,7 +28,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
@@ -37,7 +36,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnFormattedResult(FetchNviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var handler = new FetchNviInstitutionReport();
+        var service = new QueryService(databaseConnection);
+        var handler = new FetchNviInstitutionReport(service);
         var input = generateHandlerRequest(request);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
@@ -54,7 +54,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var handler = new FetchNviInstitutionReport();
+        var service = new QueryService(databaseConnection);
+        var handler = new FetchNviInstitutionReport(service);
         var input = generateHandlerRequest(request);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
