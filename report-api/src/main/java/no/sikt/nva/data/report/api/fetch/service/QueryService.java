@@ -33,8 +33,12 @@ public class QueryService {
         return databaseConnection.getResult(query, formatter);
     }
 
+    private static Path constructPath(ReportType reportType) {
+        return Path.of(TEMPLATE_DIRECTORY, reportType.getType() + SPARQL);
+    }
+
     private Query getQuery(ReportType reportType) {
-        var template = Path.of(TEMPLATE_DIRECTORY, reportType.getType() + SPARQL);
+        var template = constructPath(reportType);
         var sparqlTemplate = IoUtils.stringFromResources(template);
         return QueryFactory.create(sparqlTemplate);
     }
@@ -44,7 +48,7 @@ public class QueryService {
     }
 
     private String generateQuery(ReportRequest reportRequest) {
-        var template = Path.of(TEMPLATE_DIRECTORY, reportRequest.getReportType().getType() + SPARQL);
+        var template = constructPath(reportRequest.getReportType());
         var sparqlTemplate = IoUtils.stringFromResources(template);
         return sparqlTemplate.replace(BEFORE_PLACEHOLDER, reportRequest.getBefore().toString())
                    .replace(AFTER_PLACEHOLDER, reportRequest.getAfter().toString())
