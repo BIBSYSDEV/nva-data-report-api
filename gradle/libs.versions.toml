@@ -36,7 +36,7 @@ aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge',
 aws-sdk2-s3 = { group = 'software.amazon.awssdk', name = 's3', version.ref = 'awsSdk2' }
 aws-sdk2-sqs = { group = 'software.amazon.awssdk', name = 'sqs', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
-aws-sdk2-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsSdk2Events'}
+aws-sdk2-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsSdk2Events' }
 
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaJavaCore' }
 aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
@@ -61,5 +61,5 @@ mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mo
 [bundles]
 jena = ['jena-core', 'jena-arq', 'jena-rdfconnection']
 logging = ['log4j-core', 'log4j-api', 'log4j-slf4j2-impl', 'slf4j-api', 'nva-logutils']
-testing = [ 'junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'mockito-core' ]
+testing = ['junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'mockito-core', 'zalando']
 jackson = ['jackson-core', 'jackson-databind']
