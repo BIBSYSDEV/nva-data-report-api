@@ -4,8 +4,10 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.g
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
+import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,6 +27,7 @@ import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.GatewayResponse;
 import org.apache.jena.riot.Lang;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
 
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
@@ -49,9 +53,12 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var request = new FetchNviInstitutionReportRequest("text/plain");
         var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI);
         var output = new ByteArrayOutputStream();
-        handler.handleRequest(unAuthorizedRequest, output, new FakeContext());
-        var response = fromOutputStream(output, Problem.class);
-        assertEquals(401, response.getStatusCode());
+        var context = new FakeContext();
+        handler.handleRequest(unAuthorizedRequest, output, context);
+        var response = fromOutputStream(output, GatewayResponse.class);
+        var actualProblem = objectMapper.readValue(response.getBody(), Problem.class);
+        var expectedProblem = getExpectedProblem(context.getAwsRequestId());
+        assertEquals(expectedProblem, objectMapper.writeValueAsString(actualProblem));
     }
 
     @ParameterizedTest
@@ -96,6 +103,15 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var decodedResponse = Base64.getDecoder().decode(fromOutputStream(output, String.class).getBody());
         var actual = new Excel(new XSSFWorkbook(new ByteArrayInputStream(decodedResponse)));
         assertEqualsInAnyOrder(expected, actual);
+    }
+
+    private static String getExpectedProblem(String requestId) {
+        return attempt(() -> objectMapper.writeValueAsString(Problem.builder()
+                                                                 .withStatus(Status.UNAUTHORIZED)
+                                                                 .withTitle("Unauthorized")
+                                                                 .withDetail("Unauthorized")
+                                                                 .with("requestId", requestId)
+                                                                 .build())).orElseThrow();
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportRequestProvider() {
