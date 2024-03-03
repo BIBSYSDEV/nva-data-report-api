@@ -14,7 +14,6 @@ import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
-import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -25,6 +24,7 @@ import nva.commons.core.JacocoGenerated;
 public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
     public static final String ACCEPT = "Accept";
+    public static final String NVI_INSTITUTION_STATUS_SPARQL = "nvi-institution-status";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -46,7 +46,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws UnauthorizedException {
         validateAccessRights(requestInfo);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
-        var result = queryService.getResult(ReportType.NVI_INSTITUTION_STATUS, getFormatter(reportFormat));
+        var result = queryService.getResult(NVI_INSTITUTION_STATUS_SPARQL, getFormatter(reportFormat));
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
     }

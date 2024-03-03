@@ -105,8 +105,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ReportType.class, names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION",
-        "NVI",})
+    @EnumSource(ReportType.class)
     void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
@@ -186,7 +185,6 @@ class FetchDataReportTest extends LocalFusekiTest {
             case IDENTIFIER -> test.getIdentifierResponseData();
             case PUBLICATION -> test.getPublicationResponseData();
             case NVI -> test.getNviResponseData();
-            case NVI_INSTITUTION_STATUS -> test.getNviInstitutionStatusResponseData();
         };
     }
 

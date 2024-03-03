@@ -4,7 +4,6 @@ import commons.db.DatabaseConnection;
 import commons.formatter.ResponseFormatter;
 import java.nio.file.Path;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
-import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -28,19 +27,18 @@ public class QueryService {
         return databaseConnection.getResult(query, formatter);
     }
 
-    public String getResult(ReportType reportType, ResponseFormatter formatter) {
-        var query = getQuery(reportType);
+    public String getResult(String sparqlTemplate, ResponseFormatter formatter) {
+        var query = getQuery(sparqlTemplate);
         return databaseConnection.getResult(query, formatter);
     }
 
-    private static Path constructPath(ReportType reportType) {
-        return Path.of(TEMPLATE_DIRECTORY, reportType.getType() + SPARQL);
+    private static Path constructPath(String sparqlTemplate) {
+        return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
     }
 
-    private Query getQuery(ReportType reportType) {
-        var template = constructPath(reportType);
-        var sparqlTemplate = IoUtils.stringFromResources(template);
-        return QueryFactory.create(sparqlTemplate);
+    private Query getQuery(String sparqlTemplate) {
+        var template = constructPath(sparqlTemplate);
+        return QueryFactory.create(IoUtils.stringFromResources(template));
     }
 
     private Query getQuery(ReportRequest reportRequest) {
@@ -48,7 +46,7 @@ public class QueryService {
     }
 
     private String generateQuery(ReportRequest reportRequest) {
-        var template = constructPath(reportRequest.getReportType());
+        var template = constructPath(reportRequest.getReportType().getType());
         var sparqlTemplate = IoUtils.stringFromResources(template);
         return sparqlTemplate.replace(BEFORE_PLACEHOLDER, reportRequest.getBefore().toString())
                    .replace(AFTER_PLACEHOLDER, reportRequest.getAfter().toString())
