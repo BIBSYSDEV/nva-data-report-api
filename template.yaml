@@ -456,7 +456,9 @@ Resources:
             - Effect: Allow
               Action:
                 - 's3:DeleteObject'
-              Resource: !Ref KeyBatchesBucket
+              Resource:
+                - !Ref KeyBatchesBucket
+                - !Sub '${KeyBatchesBucket.Arn}/*'
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
