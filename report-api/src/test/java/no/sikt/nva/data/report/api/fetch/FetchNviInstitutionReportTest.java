@@ -69,7 +69,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var year = "2023";
         var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(year, "text/plain"),
-                                             SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI, randomUri());
+                                             AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -81,7 +81,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var topLevelCristinOrgId = randomUri();
         var request = generateHandlerRequest(new FetchNviInstitutionReportRequest("2023", "text/plain"),
-                                             SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI, topLevelCristinOrgId);
+                                             AccessRight.MANAGE_NVI, topLevelCristinOrgId);
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
