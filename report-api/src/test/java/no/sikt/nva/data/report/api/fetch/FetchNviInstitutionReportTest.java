@@ -43,6 +43,7 @@ import org.zalando.problem.Status;
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     public static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
+    public static final String SOME_YEAR = "2023";
     private FetchNviInstitutionReport handler;
 
     @BeforeEach
@@ -52,7 +53,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     @Test
     void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
-        var request = new FetchNviInstitutionReportRequest("2023", "text/plain");
+        var request = new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain");
         var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI,
                                                          randomUri());
         var output = new ByteArrayOutputStream();
@@ -67,20 +68,19 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     @Test
     void shouldExtractAndLogPathParameterReportingYear() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var year = "2023";
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(year, "text/plain"),
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain"),
                                              AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
-        assertTrue(logAppender.getMessages().contains("reporting year: " + year));
+        assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
     }
 
     @Test
     void shouldLogRequestingUsersTopLevelOrganization() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var topLevelCristinOrgId = randomUri();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest("2023", "text/plain"),
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain"),
                                              AccessRight.MANAGE_NVI, topLevelCristinOrgId);
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
@@ -142,13 +142,13 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest("2023", "text/plain")),
-                         Arguments.of(new FetchNviInstitutionReportRequest("2023", "text/csv")));
+        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain")),
+                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/csv")));
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportExcelRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest("2023", "application/vnd.ms-excel")),
-                         Arguments.of(new FetchNviInstitutionReportRequest("2023",
+        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, "application/vnd.ms-excel")),
+                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR,
                                                                            "application/vnd"
                                                                            + ".openxmlformats-officedocument"
                                                                            + ".spreadsheetml.sheet")));
