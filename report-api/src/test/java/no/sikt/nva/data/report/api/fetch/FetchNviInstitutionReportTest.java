@@ -28,6 +28,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.logutils.LogUtils;
 import org.apache.jena.riot.Lang;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +51,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     @Test
     void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
-        var request = new FetchNviInstitutionReportRequest("text/plain");
+        var request = new FetchNviInstitutionReportRequest("2023", "text/plain");
         var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI);
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
@@ -59,6 +60,18 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var actualProblem = objectMapper.readValue(response.getBody(), Problem.class);
         var expectedProblem = getExpectedProblem(context.getAwsRequestId());
         assertEquals(expectedProblem, objectMapper.writeValueAsString(actualProblem));
+    }
+
+    @Test
+    void shouldExtractAndLogPathParameterReportingYear() throws IOException {
+        var logAppender = LogUtils.getTestingAppenderForRootLogger();
+        var year = "2023";
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(year, "text/plain"),
+                                             SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI);
+        var output = new ByteArrayOutputStream();
+        var context = new FakeContext();
+        handler.handleRequest(request, output, context);
+        assertTrue(logAppender.getMessages().contains("reporting year: " + year));
     }
 
     @ParameterizedTest
@@ -115,14 +128,16 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest("text/plain")),
-                         Arguments.of(new FetchNviInstitutionReportRequest("text/csv")));
+        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest("2023", "text/plain")),
+                         Arguments.of(new FetchNviInstitutionReportRequest("2023", "text/csv")));
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportExcelRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest("application/vnd.ms-excel")),
-                         Arguments.of(new FetchNviInstitutionReportRequest(
-                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")));
+        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest("2023", "application/vnd.ms-excel")),
+                         Arguments.of(new FetchNviInstitutionReportRequest("2023",
+                                                                           "application/vnd"
+                                                                           + ".openxmlformats-officedocument"
+                                                                           + ".spreadsheetml.sheet")));
     }
 
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportRequest request, AccessRight accessRight)
@@ -130,6 +145,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
                    .withHeaders(request.acceptHeader())
                    .withAccessRights(randomUri(), accessRight)
+                   .withPathParameters(request.pathParameters())
                    .build();
     }
 

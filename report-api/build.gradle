@@ -14,6 +14,7 @@ dependencies {
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.4'
 
     testImplementation libs.jena.fuseki
+    testImplementation libs.bundles.logging
     testImplementation(project(':testing-utils'))
     testImplementation 'com.opencsv:opencsv:5.9'
     testImplementation(libs.nva.testutils) {
