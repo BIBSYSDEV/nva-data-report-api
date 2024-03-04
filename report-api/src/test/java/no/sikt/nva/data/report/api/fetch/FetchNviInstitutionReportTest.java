@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Base64;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
@@ -52,7 +53,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     @Test
     void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
         var request = new FetchNviInstitutionReportRequest("2023", "text/plain");
-        var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI);
+        var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI,
+                                                         randomUri());
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(unAuthorizedRequest, output, context);
@@ -67,11 +69,23 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var year = "2023";
         var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(year, "text/plain"),
-                                             SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI);
+                                             SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
         assertTrue(logAppender.getMessages().contains("reporting year: " + year));
+    }
+
+    @Test
+    void shouldLogRequestingUsersTopLevelOrganization() throws IOException {
+        var logAppender = LogUtils.getTestingAppenderForRootLogger();
+        var topLevelCristinOrgId = randomUri();
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest("2023", "text/plain"),
+                                             SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI, topLevelCristinOrgId);
+        var output = new ByteArrayOutputStream();
+        var context = new FakeContext();
+        handler.handleRequest(request, output, context);
+        assertTrue(logAppender.getMessages().contains("for organization: " + topLevelCristinOrgId));
     }
 
     @ParameterizedTest
@@ -79,7 +93,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnFormattedResult(FetchNviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI);
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
@@ -95,7 +109,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI);
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
@@ -109,7 +123,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI);
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var expected = getExpectedExcel(testData);
@@ -140,12 +154,14 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
                                                                            + ".spreadsheetml.sheet")));
     }
 
-    private static InputStream generateHandlerRequest(FetchNviInstitutionReportRequest request, AccessRight accessRight)
+    private static InputStream generateHandlerRequest(FetchNviInstitutionReportRequest request, AccessRight accessRight,
+                                                      URI topLevelCristinOrgId)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
                    .withHeaders(request.acceptHeader())
                    .withAccessRights(randomUri(), accessRight)
                    .withPathParameters(request.pathParameters())
+                   .withTopLevelCristinOrgId(topLevelCristinOrgId)
                    .build();
     }
 

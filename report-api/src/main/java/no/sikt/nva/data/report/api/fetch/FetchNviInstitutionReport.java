@@ -25,6 +25,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
     public static final String ACCEPT = "Accept";
     public static final String NVI_INSTITUTION_STATUS_SPARQL = "nvi-institution-status";
+    public static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -46,6 +47,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws UnauthorizedException {
         validateAccessRights(requestInfo);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
+        var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
         var result = queryService.getResult(NVI_INSTITUTION_STATUS_SPARQL, getFormatter(reportFormat));
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
