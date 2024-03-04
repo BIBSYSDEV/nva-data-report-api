@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -89,9 +88,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
             .map(this::mapToIndexDocuments)
             .map(this::aggregateNquads)
             .map(nquads -> attempt(() -> compress(nquads)).orElseThrow())
-            .map(this::persistNquads)
-            .filter(Boolean.TRUE::equals)
-            .ifPresent(x -> deleteBatch(batchResponse.getKey().get()));
+            .map(this::persistNquads);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
         return null;
@@ -110,14 +107,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                                             location,
                                             context));
         }
-    }
-
-    private void deleteBatch(String batchKey) {
-        var request = DeleteObjectRequest.builder()
-                          .bucket(KEY_BATCHES_BUCKET)
-                          .key(batchKey)
-                          .build();
-        s3BatchesClient.deleteObject(request);
     }
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,

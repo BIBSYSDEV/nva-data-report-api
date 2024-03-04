@@ -45,7 +45,6 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 class BulkTransformerHandlerTest {
 
@@ -107,7 +106,6 @@ class BulkTransformerHandlerTest {
         assertEquals(0, actual.size());
     }
 
-
     @Test
     void shouldNotEmitNewEventWhenNoMoreBatchesToRetrieve() throws IOException {
         var expectedDocuments = createExpectedDocuments(10);
@@ -125,7 +123,6 @@ class BulkTransformerHandlerTest {
         var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
         assertNull(emittedEvent);
     }
-
 
     @Test
     void shouldEmitNewEventWhenThereAreMoreBatchesToIndex() throws IOException {
@@ -153,22 +150,6 @@ class BulkTransformerHandlerTest {
             assertEquals(batchKey, emittedEvent.getStartMarker());
             assertEquals(DEFAULT_LOCATION, emittedEvent.getLocation());
         }
-    }
-
-    @Test
-    void shouldDeleteConsumedBatches() throws IOException {
-        var expectedDocuments = createExpectedDocuments(1);
-        var batch = expectedDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
-                        .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        var handler = new BulkTransformerHandler(s3ResourcesClient,
-                                                 s3BatchesClient,
-                                                 s3OutputClient,
-                                                 eventBridgeClient);
-        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
-        assertThrows(NoSuchKeyException.class, () -> s3BatchesDriver.getFile(UnixPath.of(batchKey)));
     }
 
     // TODO: Remove test once we have figured out how the GraphName should be provided.
@@ -211,6 +192,10 @@ class BulkTransformerHandlerTest {
         assertTrue(loggerAppender.getMessages().contains("Missing id-node in content"));
     }
 
+    private static EventConsumptionAttributes randomConsumptionAttribute() {
+        return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
+    }
+
     private boolean modelHasData(String contentString) {
         var graph = DatasetGraphFactory.createTxnMem();
         RDFDataMgr.read(graph, IoUtils.stringToStream(contentString), Lang.NQUADS);
@@ -243,10 +228,6 @@ class BulkTransformerHandlerTest {
         return attempt(
             () -> objectMapperWithEmpty.readTree(
                 VALID_PUBLICATION.replace(IDENTIFIER, randomUUID().toString()))).orElseThrow();
-    }
-
-    private static EventConsumptionAttributes randomConsumptionAttribute() {
-        return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
     }
 
     private static class StubEventBridgeClient implements EventBridgeClient {
