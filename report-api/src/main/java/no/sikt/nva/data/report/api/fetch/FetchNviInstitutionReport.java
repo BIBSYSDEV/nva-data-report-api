@@ -9,6 +9,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import commons.db.GraphStoreProtocolConnection;
 import commons.formatter.ResponseFormatter;
+import java.net.URI;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
@@ -20,11 +21,15 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.JacocoGenerated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
-    public static final String ACCEPT = "Accept";
-    public static final String NVI_INSTITUTION_STATUS_SPARQL = "nvi-institution-status";
+    private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
+    private static final String ACCEPT = "Accept";
+    private static final String NVI_INSTITUTION_STATUS_SPARQL = "nvi-institution-status";
+    private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -46,6 +51,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws UnauthorizedException {
         validateAccessRights(requestInfo);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
+        var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
+        var topLevelOrganization = requestInfo.getTopLevelOrgCristinId().map(URI::toString).orElse(
+            "UnknownRequestTopLevelOrganization");
+        logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
+                    topLevelOrganization, reportingYear);
         var result = queryService.getResult(NVI_INSTITUTION_STATUS_SPARQL, getFormatter(reportFormat));
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
