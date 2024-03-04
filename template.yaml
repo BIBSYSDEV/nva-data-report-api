@@ -336,6 +336,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+          COGNITO_HOST: !Ref CognitoAuthorizationUri
       Events:
         ApiEvent:
           Type: Api
