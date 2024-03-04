@@ -5,11 +5,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ReportingPeriodGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.OrganizationGenerator;
 import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.rdf.model.Model;
@@ -23,7 +23,8 @@ public record TestNviCandidate(String identifier,
                                BigDecimal publicationTypeChannelLevelPoints,
                                int creatorShareCount,
                                BigDecimal internationalCollaborationFactor,
-                               String reportedPeriod,
+                               boolean reported,
+                               String reportingPeriod,
                                String globalApprovalStatus) {
 
     private static final String DELIMITER = ",";
@@ -88,7 +89,8 @@ public record TestNviCandidate(String identifier,
                    .withPublicationTypeChannelLevelPoints(publicationTypeChannelLevelPoints.toString())
                    .withCreatorShareCount(String.valueOf(creatorShareCount))
                    .withInternationalCollaborationFactor(internationalCollaborationFactor.toString())
-                   .withReportedPeriod(reportedPeriod)
+                   .withReported(reported)
+                   .withReportingPeriod(new ReportingPeriodGenerator().withYear(reportingPeriod))
                    .withGlobalApprovalStatus(globalApprovalStatus);
     }
 
@@ -108,7 +110,7 @@ public record TestNviCandidate(String identifier,
             .append(calculateAffiliationPoints(affiliation)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus).append(DELIMITER)
-            .append(Objects.nonNull(reportedPeriod) ? reportedPeriod : "").append(DELIMITER)
+            .append(reported ? reportingPeriod : "NotReported").append(DELIMITER)
             .append(totalPoints).append(DELIMITER)
             .append(publicationTypeChannelLevelPoints).append(DELIMITER)
             .append(creatorShareCount).append(DELIMITER)
@@ -159,7 +161,8 @@ public record TestNviCandidate(String identifier,
         private BigDecimal publicationTypeChannelLevelPoints;
         private int creatorShareCount;
         private BigDecimal internationalCollaborationFactor;
-        private String reportedPeriod;
+        private boolean reported;
+        private String reportingPeriod;
         private String globalApprovalStatus;
 
         private Builder() {
@@ -210,8 +213,13 @@ public record TestNviCandidate(String identifier,
             return this;
         }
 
-        public Builder withReportedPeriod(String reportedPeriod) {
-            this.reportedPeriod = reportedPeriod;
+        public Builder withReported(boolean reported) {
+            this.reported = reported;
+            return this;
+        }
+
+        public Builder withReportingPeriod(String reportingPeriod) {
+            this.reportingPeriod = reportingPeriod;
             return this;
         }
 
@@ -223,7 +231,8 @@ public record TestNviCandidate(String identifier,
         public TestNviCandidate build() {
             return new TestNviCandidate(identifier, isApplicable, modifiedDate, publicationDetails, approvals,
                                         totalPoints, publicationTypeChannelLevelPoints, creatorShareCount,
-                                        internationalCollaborationFactor, reportedPeriod, globalApprovalStatus);
+                                        internationalCollaborationFactor, reported, reportingPeriod,
+                                        globalApprovalStatus);
         }
     }
 }

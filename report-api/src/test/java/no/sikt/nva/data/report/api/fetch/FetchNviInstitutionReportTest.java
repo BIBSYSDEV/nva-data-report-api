@@ -171,13 +171,13 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     private String getExpected(FetchNviInstitutionReportRequest request, TestData test) {
         var reportFormat = getReportFormat(request);
-        var data = test.getNviInstitutionStatusResponseData();
+        var data = test.getNviInstitutionStatusResponseData(SOME_YEAR);
         return ReportFormat.CSV.equals(reportFormat)
                    ? data
                    : generateTable(data);
     }
 
     private Excel getExpectedExcel(TestData test) {
-        return generateExcel(test.getNviInstitutionStatusResponseData());
+        return generateExcel(test.getNviInstitutionStatusResponseData(SOME_YEAR));
     }
 }
