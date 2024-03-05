@@ -6,8 +6,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.NviOrganizationGenerator;
+import nva.commons.core.paths.UriWrapper;
 
 public record TestNviOrganization(String id, List<String> partOf) {
+
+    public static final String IDENTIFIER_DELIMITER = ".";
 
     public static Builder builder() {
         return new Builder();
@@ -19,6 +22,33 @@ public record TestNviOrganization(String id, List<String> partOf) {
 
     public String getTopLevelOrganization() {
         return partOf.isEmpty() ? id : partOf.stream().min(Comparator.naturalOrder()).get();
+    }
+
+    public String getOrganizationNumber() {
+        var identifier = getIdentifier();
+        return identifier.substring(0, identifier.indexOf(IDENTIFIER_DELIMITER));
+    }
+
+    public String getSubUnitOneNumber() {
+        var identifier = getIdentifier();
+        var subUnitOne = identifier.substring(identifier.indexOf(IDENTIFIER_DELIMITER) + 1);
+        return subUnitOne.substring(0, identifier.indexOf(IDENTIFIER_DELIMITER) - 1);
+    }
+
+    public String getSubUnitTwoNumber() {
+        var identifier = getIdentifier();
+        var subUnitOne = identifier.substring(identifier.indexOf(IDENTIFIER_DELIMITER) + 1);
+        var subUnitTwo = subUnitOne.substring(subUnitOne.indexOf(IDENTIFIER_DELIMITER) + 1);
+        return subUnitTwo.substring(0, identifier.indexOf(IDENTIFIER_DELIMITER) - 1);
+    }
+
+    public String getSubUnitThreeNumber() {
+        var identifier = getIdentifier();
+        return identifier.substring(identifier.lastIndexOf(IDENTIFIER_DELIMITER) + 1);
+    }
+
+    private String getIdentifier() {
+        return UriWrapper.fromUri(id).getLastPathElement();
     }
 
     public static final class Builder {

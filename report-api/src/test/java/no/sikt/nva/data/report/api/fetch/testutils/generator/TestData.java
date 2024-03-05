@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestChannel;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestContributor;
@@ -45,6 +47,7 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestFun
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestIdentity;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication;
+import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 
@@ -149,9 +152,7 @@ public class TestData {
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NVI_HEADERS) + CRLF.getString();
         nviTestData.sort(this::sortByPublicationUri);
-        nviTestData.forEach(candidate -> candidate.publicationDetails()
-                                             .contributors()
-                                             .sort(this::sortByContributor));
+        sortContributors(nviTestData);
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedNviResponse)
                          .collect(Collectors.joining());
@@ -160,23 +161,12 @@ public class TestData {
 
     public String getNviInstitutionStatusResponseData(String reportingYear, URI institutionId) {
         var headers = String.join(DELIMITER, NVI_INSTITUTION_STATUS_HEADERS) + CRLF.getString();
-        var expectedCandidates = nviTestData.stream()
-                                     .filter(TestNviCandidate::isApplicable)
-                                     .filter(candidate -> isReportedInYear(reportingYear, candidate))
-                                     .filter(candidate -> hasAnyApprovals(institutionId, candidate))
-                                     .sorted(this::sortByPublicationUri)
-                                     .toList();
-        expectedCandidates.forEach(candidate -> candidate.publicationDetails()
-                                                    .contributors()
-                                                    .sort(this::sortByContributor));
+        var expectedCandidates = getExpectedCandidates(reportingYear, institutionId);
+        sortContributors(expectedCandidates);
         var values = expectedCandidates.stream()
                          .map(this::getExpectedNviInstitutionStatusResponse)
                          .collect(Collectors.joining());
         return headers + values;
-    }
-
-    private String getExpectedNviInstitutionStatusResponse(TestNviCandidate candidate) {
-        return null;
     }
 
     private static boolean isReportedInYear(String reportingYear, TestNviCandidate testNviCandidate) {
@@ -233,6 +223,86 @@ public class TestData {
 
     private static TestOrganization generateAffiliation() {
         return new TestOrganization(organizationUri(SOME_SUB_UNIT_IDENTIFIER), "My university");
+    }
+
+    private static boolean hasSamePublicationId(TestNviCandidate candidate, TestPublication publication) {
+        return publication.getPublicationUri().equals(candidate.publicationDetails().id());
+    }
+
+    private void sortContributors(List<TestNviCandidate> expectedCandidates) {
+        expectedCandidates.forEach(candidate -> candidate.publicationDetails()
+                                                    .contributors()
+                                                    .sort(this::sortByContributor));
+    }
+
+    private List<TestNviCandidate> getExpectedCandidates(String reportingYear, URI institutionId) {
+        return nviTestData.stream()
+                   .filter(TestNviCandidate::isApplicable)
+                   .filter(candidate -> isReportedInYear(reportingYear, candidate))
+                   .filter(candidate -> hasAnyApprovals(institutionId, candidate))
+                   .sorted(this::sortByPublicationUri)
+                   .toList();
+    }
+
+    private String getExpectedNviInstitutionStatusResponse(TestNviCandidate expectedCandidate) {
+        var expectedPublication = publicationTestData.stream()
+                                      .filter(publication -> hasSamePublicationId(expectedCandidate, publication))
+                                      .findFirst()
+                                      .orElseThrow();
+        var stringBuilder = new StringBuilder();
+        expectedCandidate.publicationDetails().contributors()
+            .forEach(
+                contributor -> generateExpectedNviInstitutionResponse(stringBuilder, contributor, expectedCandidate,
+                                                                      expectedPublication));
+        return stringBuilder.toString();
+    }
+
+    private void generateExpectedNviInstitutionResponse(StringBuilder stringBuilder, TestNviContributor contributor,
+                                                        TestNviCandidate candidate, TestPublication publication) {
+        contributor.affiliations()
+            .forEach(affiliation -> generateExpectedNviInstitutionResponse(stringBuilder, contributor, affiliation,
+                                                                           candidate, publication));
+    }
+
+    private void generateExpectedNviInstitutionResponse(StringBuilder stringBuilder, TestNviContributor contributor,
+                                                        TestNviOrganization affiliation, TestNviCandidate candidate,
+                                                        TestPublication publication) {
+        var approval = findExpectedApproval(affiliation, candidate);
+        stringBuilder.append(approval.approvalStatus().getValue()).append(DELIMITER)
+            .append(publication.getPublicationCategory()).append(DELIMITER)
+            .append(UriWrapper.fromUri(publication.getChannel().getType()).getLastPathElement()).append(DELIMITER)
+            .append(publication.getChannel().getPrintIssn()).append(DELIMITER)
+            .append(publication.getChannel().getScientificValue()).append(DELIMITER)
+            .append(contributor.id()).append(DELIMITER)
+            .append(affiliation.getOrganizationNumber()).append(DELIMITER)
+            .append(affiliation.getSubUnitOneNumber()).append(DELIMITER)
+            .append(affiliation.getSubUnitTwoNumber()).append(DELIMITER)
+            .append(affiliation.getSubUnitThreeNumber()).append(DELIMITER)
+            .append("FORFATTERE_TOTALT").append(DELIMITER)//TODO: Implement
+            .append("FORFATTERE_INT").append(DELIMITER)//TODO: Implement
+            .append(candidate.totalPoints()).append(DELIMITER) //TODO: Check if correct
+            .append("ETTERNAVN").append(DELIMITER)//TODO: Implement
+            .append("FORNAVN").append(DELIMITER)//TODO: Implement
+            .append(publication.getChannel().getName()).append(DELIMITER)
+            .append("SIDE_FRA").append(DELIMITER)//TODO: Implement
+            .append("SIDE_TIL").append(DELIMITER)//TODO: Implement
+            .append("SIDEANTALL").append(DELIMITER)//TODO: Implement
+            .append(publication.getMainTitle()).append(DELIMITER)
+            .append("SPRAK").append(DELIMITER)//TODO: Implement
+            .append(candidate.reported() ? "Rapportert" : "Ikke rapportert").append(DELIMITER)
+            .append(candidate.publicationTypeChannelLevelPoints()).append(DELIMITER) //TODO: Check if correct
+            .append(candidate.internationalCollaborationFactor()).append(DELIMITER)
+            .append("FORFATTERDEL").append(DELIMITER)//TODO: Implement
+            .append("FORFATTERVEKT").append(CRLF.getString());//TODO: Implement
+    }
+
+    private TestApproval findExpectedApproval(TestNviOrganization affiliation, TestNviCandidate candidate) {
+        return candidate.approvals().stream()
+                   .filter(testApproval -> testApproval.institutionId()
+                                               .toString()
+                                               .equals(affiliation.getTopLevelOrganization()))
+                   .findFirst()
+                   .orElse(null);
     }
 
     private void addPublicationDataToModel(List<TestPublication> testData) {
