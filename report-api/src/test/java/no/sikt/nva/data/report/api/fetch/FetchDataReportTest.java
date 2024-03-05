@@ -8,6 +8,8 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.extractDataLines;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,7 +71,8 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
+                                          CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 
@@ -142,7 +145,8 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
+                                          CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 

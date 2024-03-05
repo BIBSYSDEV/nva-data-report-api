@@ -3,16 +3,12 @@ package no.sikt.nva.data.report.api.fetch.formatter;
 import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.buildString;
 import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.printAsString;
 import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.scanData;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
-import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.CustomMediaType;
 import no.sikt.nva.data.report.api.fetch.formatter.StringUtils.ScanningResult;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import org.apache.commons.csv.CSVFormat;
@@ -29,9 +25,10 @@ public class ResultSorter {
         // NO-OP
     }
 
-    public static String sortResponse(ReportFormat type, String data) throws IOException {
+    public static String sortResponse(ReportFormat type, String data, String sortByHeader1,
+                                      String contributorIdentifier) throws IOException {
         return ReportFormat.CSV.equals(type)
-                   ? sortCsv(data)
+                   ? sortCsv(data, sortByHeader1, contributorIdentifier)
                    : sortTextPlain(data);
     }
 
@@ -42,11 +39,11 @@ public class ResultSorter {
                             scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
     }
 
-    private static String sortCsv(String data) throws IOException {
+    private static String sortCsv(String data, String sortByHeader1, String contributorIdentifier) throws IOException {
         var stringReader = new StringReader(data);
         var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
         var csvParser = format.parse(stringReader);
-        var sortedCsvRecords = sortCsvRecords(csvParser);
+        var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, contributorIdentifier);
         return printAsString(format, csvParser, sortedCsvRecords);
     }
 
@@ -56,11 +53,11 @@ public class ResultSorter {
         return buildString(scanningResult, dataLines);
     }
 
-    private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser) {
+    private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1, String sortByHeader2) {
         var csvRecords = new ArrayList<CSVRecord>();
         csvParser.forEach(csvRecords::add);
-        csvRecords.sort(Comparator.comparing((CSVRecord record) -> record.get(PUBLICATION_ID))
-                            .thenComparing((CSVRecord record) -> record.get(CONTRIBUTOR_IDENTIFIER)));
+        csvRecords.sort(Comparator.comparing((CSVRecord record) -> record.get(sortByHeader1))
+                            .thenComparing((CSVRecord record) -> record.get(sortByHeader2)));
         return csvRecords;
     }
 

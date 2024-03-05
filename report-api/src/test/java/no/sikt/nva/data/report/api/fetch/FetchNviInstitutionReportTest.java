@@ -5,6 +5,8 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_TITLE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -102,7 +104,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(),
+                                          PUBLICATION_TITLE, CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 
