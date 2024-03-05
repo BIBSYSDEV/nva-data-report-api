@@ -4,6 +4,7 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.g
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
@@ -171,13 +172,15 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     private String getExpected(FetchNviInstitutionReportRequest request, TestData test) {
         var reportFormat = getReportFormat(request);
-        var data = test.getNviInstitutionStatusResponseData();
+        var data = test.getNviInstitutionStatusResponseData(SOME_YEAR,
+                                                            URI.create(organizationUri(TestData.SOME_TOP_LEVEL_IDENTIFIER)));
         return ReportFormat.CSV.equals(reportFormat)
                    ? data
                    : generateTable(data);
     }
 
     private Excel getExpectedExcel(TestData test) {
-        return generateExcel(test.getNviInstitutionStatusResponseData());
+        return generateExcel(test.getNviInstitutionStatusResponseData(SOME_YEAR,
+                                                                      URI.create(organizationUri(TestData.SOME_TOP_LEVEL_IDENTIFIER))));
     }
 }

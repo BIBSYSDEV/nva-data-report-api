@@ -1,6 +1,5 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
-import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.addNumberOfDelimiters;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusTestData.NVI_INSTITUTION_STATUS_HEADERS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviTestData.NVI_HEADERS;
@@ -31,6 +30,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationH
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.STATUS;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +92,7 @@ public class TestData {
     public TestData(List<DatePair> dates) {
         this.model = ModelFactory.createDefaultModel();
         this.publicationTestData = generatePublicationData(dates);
-        this.nviTestData = NviTestData.generateNviData(dates);
+        this.nviTestData = NviTestData.generateNviData(dates, publicationTestData);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
@@ -158,11 +158,35 @@ public class TestData {
         return headers + values;
     }
 
-    public String getNviInstitutionStatusResponseData() {
+    public String getNviInstitutionStatusResponseData(String reportingYear, URI institutionId) {
         var headers = String.join(DELIMITER, NVI_INSTITUTION_STATUS_HEADERS) + CRLF.getString();
-        var stringBuilder = new StringBuilder();
-        var values = addNumberOfDelimiters(stringBuilder, NVI_INSTITUTION_STATUS_HEADERS.size() - 1);
+        var expectedCandidates = nviTestData.stream()
+                                     .filter(TestNviCandidate::isApplicable)
+                                     .filter(candidate -> isReportedInYear(reportingYear, candidate))
+                                     .filter(candidate -> hasAnyApprovals(institutionId, candidate))
+                                     .sorted(this::sortByPublicationUri)
+                                     .toList();
+        expectedCandidates.forEach(candidate -> candidate.publicationDetails()
+                                                    .contributors()
+                                                    .sort(this::sortByContributor));
+        var values = expectedCandidates.stream()
+                         .map(this::getExpectedNviInstitutionStatusResponse)
+                         .collect(Collectors.joining());
         return headers + values;
+    }
+
+    private String getExpectedNviInstitutionStatusResponse(TestNviCandidate candidate) {
+        return null;
+    }
+
+    private static boolean isReportedInYear(String reportingYear, TestNviCandidate testNviCandidate) {
+        return testNviCandidate.reportingPeriod().equals(reportingYear);
+    }
+
+    private static boolean hasAnyApprovals(URI institutionId, TestNviCandidate testNviCandidate) {
+        return testNviCandidate.approvals()
+                   .stream()
+                   .anyMatch(approval -> approval.institutionId().equals(institutionId));
     }
 
     private static TestPublication generatePublication(PublicationDate date, Instant modifiedDate) {
