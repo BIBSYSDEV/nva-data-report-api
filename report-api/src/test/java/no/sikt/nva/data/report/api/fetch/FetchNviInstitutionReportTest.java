@@ -5,6 +5,7 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
@@ -94,7 +95,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnFormattedResult(FetchNviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI,
+                                           URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER)));
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
@@ -173,7 +175,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     private String getExpected(FetchNviInstitutionReportRequest request, TestData test) {
         var reportFormat = getReportFormat(request);
         var data = test.getNviInstitutionStatusResponseData(SOME_YEAR,
-                                                            URI.create(organizationUri(TestData.SOME_TOP_LEVEL_IDENTIFIER)));
+                                                            URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER)));
         return ReportFormat.CSV.equals(reportFormat)
                    ? data
                    : generateTable(data);
@@ -181,6 +183,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     private Excel getExpectedExcel(TestData test) {
         return generateExcel(test.getNviInstitutionStatusResponseData(SOME_YEAR,
-                                                                      URI.create(organizationUri(TestData.SOME_TOP_LEVEL_IDENTIFIER))));
+                                                                      URI.create(organizationUri(
+                                                                          SOME_TOP_LEVEL_IDENTIFIER))));
     }
 }
