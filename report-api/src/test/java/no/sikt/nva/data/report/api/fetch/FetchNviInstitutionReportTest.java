@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Base64;
+import java.util.UUID;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
@@ -96,7 +97,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     @MethodSource("fetchNviInstitutionReportRequestProvider")
     void shouldReturnFormattedResult(FetchNviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData);
         var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI,
                                            URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER)));
         var output = new ByteArrayOutputStream();
@@ -114,7 +115,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(FetchNviInstitutionReportRequest request)
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData);
         var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
@@ -128,7 +129,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnDataInExcelSheetWhenContentTypeIsExcel(FetchNviInstitutionReportRequest request)
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData);
         var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
@@ -173,6 +174,16 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     private static ReportFormat getReportFormat(FetchNviInstitutionReportRequest request) {
         return ReportFormat.fromMediaType(request.acceptHeader().get(ACCEPT));
+    }
+
+    private void loadModels(TestData testData) {
+        testData.getModels().stream()
+            .map(this::toTriples)
+            .forEach(triples -> {
+                URI graph = URI.create("https://example.org/graph/" + UUID.randomUUID());
+                graphs.add(graph);
+                databaseConnection.write(graph, triples, Lang.NTRIPLES);
+            });
     }
 
     private String getExpected(FetchNviInstitutionReportRequest request, TestData test) {

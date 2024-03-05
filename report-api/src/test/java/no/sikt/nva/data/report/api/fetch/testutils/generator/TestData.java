@@ -47,7 +47,6 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestIde
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 
 public class TestData {
 
@@ -88,18 +87,18 @@ public class TestData {
                                                                    FUNDING_SOURCE, FUNDING_ID);
     private final List<TestPublication> publicationTestData;
     private final List<TestNviCandidate> nviTestData;
-    private final Model model;
+    private final List<Model> models;
 
     public TestData(List<DatePair> dates) {
-        this.model = ModelFactory.createDefaultModel();
+        this.models = new ArrayList<>();
         this.publicationTestData = generatePublicationData(dates);
         this.nviTestData = NviTestData.generateNviData(dates, publicationTestData);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
 
-    public Model getModel() {
-        return model;
+    public List<Model> getModels() {
+        return models;
     }
 
     public String getAffiliationResponseData() {
@@ -263,13 +262,13 @@ public class TestData {
     private void addPublicationDataToModel(List<TestPublication> testData) {
         testData.stream()
             .map(TestPublication::generateModel)
-            .forEach(model::add);
+            .forEach(models::add);
     }
 
     private void addNviDataToModel(List<TestNviCandidate> testData) {
         testData.stream()
             .map(TestNviCandidate::generateModel)
-            .forEach(model::add);
+            .forEach(models::add);
     }
 
     private List<TestPublication> generatePublicationData(List<DatePair> dates) {

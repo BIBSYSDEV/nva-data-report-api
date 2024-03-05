@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
@@ -26,6 +27,7 @@ public abstract class LocalFusekiTest {
 
     static final String GSP_ENDPOINT = "/gsp";
     static final URI GRAPH = URI.create("https://example.org/graph");
+    static final List<URI> graphs = new ArrayList<>();
     static FusekiServer server;
     static DatabaseConnection databaseConnection;
 
@@ -46,7 +48,7 @@ public abstract class LocalFusekiTest {
     @AfterEach
     void clearDatabase() {
         try {
-            databaseConnection.delete(GRAPH);
+            graphs.forEach(graph -> databaseConnection.delete(graph));
         } catch (Exception e) {
             // Necessary to avoid case where we hve already deleted the graph
             catchExpectedExceptionsExceptHttpException(e);
