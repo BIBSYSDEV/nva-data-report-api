@@ -86,7 +86,7 @@ public final class NviInstitutionStatusTestData {
             .append(UriWrapper.fromUri(publication.getChannel().getType()).getLastPathElement()).append(DELIMITER)
             .append(publication.getChannel().getPrintIssn()).append(DELIMITER)
             .append(publication.getChannel().getScientificValue()).append(DELIMITER)
-            .append(contributor.id()).append(DELIMITER)
+            .append(UriWrapper.fromUri(contributor.id()).getLastPathElement()).append(DELIMITER)
             .append(affiliation.getOrganizationNumber()).append(DELIMITER)
             .append(affiliation.getSubUnitOneNumber()).append(DELIMITER)
             .append(affiliation.getSubUnitTwoNumber()).append(DELIMITER)
