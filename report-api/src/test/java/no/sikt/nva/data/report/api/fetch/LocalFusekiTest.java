@@ -8,11 +8,13 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
 import nva.commons.core.Environment;
+import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
@@ -26,8 +28,8 @@ import org.junit.jupiter.api.BeforeAll;
 public abstract class LocalFusekiTest {
 
     static final String GSP_ENDPOINT = "/gsp";
-    static final URI GRAPH = URI.create("https://example.org/graph");
-    static final List<URI> graphs = new ArrayList<>();
+    static final String GRAPH_BASE_URI = "https://example.org/graph/";
+    static final List<URI> graphsRegisteredForDeletion = new ArrayList<>();
     static FusekiServer server;
     static DatabaseConnection databaseConnection;
 
@@ -48,11 +50,21 @@ public abstract class LocalFusekiTest {
     @AfterEach
     void clearDatabase() {
         try {
-            graphs.forEach(graph -> databaseConnection.delete(graph));
+            graphsRegisteredForDeletion.forEach(graph -> databaseConnection.delete(graph));
         } catch (Exception e) {
             // Necessary to avoid case where we hve already deleted the graph
             catchExpectedExceptionsExceptHttpException(e);
         }
+    }
+
+    void loadModels(List<Model> models) {
+        models.stream()
+            .map(this::toTriples)
+            .forEach(triples -> {
+                var graph = UriWrapper.fromHost(GRAPH_BASE_URI).addChild(UUID.randomUUID().toString()).getUri();
+                graphsRegisteredForDeletion.add(graph);
+                databaseConnection.write(graph, triples, Lang.NTRIPLES);
+            });
     }
 
     String toTriples(Model model) {

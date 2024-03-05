@@ -154,7 +154,7 @@ public final class NviTestData {
 
     private static TestNviContributor generateNviContributor(String organizationIdentifier) {
         return TestNviContributor.builder()
-                   .withId(randomUri().toString())
+                   .withId(randomUri()+"/"+UUID.randomUUID())
                    .withAffiliations(List.of(generateNviAffiliation(organizationIdentifier)))
                    .build();
     }

@@ -20,9 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Base64;
-import java.util.UUID;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
@@ -36,7 +34,6 @@ import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.exceptions.BadRequestException;
-import org.apache.jena.riot.Lang;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,7 +62,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     @ArgumentsSource(ValidRequestSource.class)
     void shouldReturnFormattedResult(FetchDataReportRequest request) throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
-        loadModels(testData);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -83,7 +80,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(FetchDataReportRequest request)
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        loadModels(testData);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -98,7 +95,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldReturnDataInExcelSheetWhenContentTypeIsExcel(FetchDataReportRequest request)
         throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
-        loadModels(testData);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -113,7 +110,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     @EnumSource(ReportType.class)
     void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        loadModels(testData);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var pageSize = 1;
@@ -131,7 +128,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     @Test
     void shouldRetrieveManyHits() throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(20));
-        loadModels(testData);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var request = new FetchDataReportRequest(
@@ -192,16 +189,6 @@ class FetchDataReportTest extends LocalFusekiTest {
             case PUBLICATION -> test.getPublicationResponseData();
             case NVI -> test.getNviResponseData();
         };
-    }
-
-    private void loadModels(TestData testData) {
-        testData.getModels().stream()
-            .map(this::toTriples)
-            .forEach(triples -> {
-                URI graph = URI.create("https://example.org/graph/" + UUID.randomUUID());
-                graphs.add(graph);
-                databaseConnection.write(graph, triples, Lang.NTRIPLES);
-            });
     }
 
     // TODO: Craft queries and data to test every SELECT clause, BEFORE/AFTER/OFFSET/PAGE_SIZE.
