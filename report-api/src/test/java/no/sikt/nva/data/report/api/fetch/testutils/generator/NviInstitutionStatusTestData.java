@@ -22,6 +22,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstituti
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_NAME;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_TYPE;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS;
@@ -38,7 +39,8 @@ import nva.commons.core.paths.UriWrapper;
 
 public final class NviInstitutionStatusTestData {
 
-    public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(INSTITUTION_APPROVAL_STATUS,
+    public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(PUBLICATION_IDENTIFIER,
+                                                                              INSTITUTION_APPROVAL_STATUS,
                                                                               PUBLICATION_INSTANCE,
                                                                               PUBLICATION_CHANNEL_TYPE,
                                                                               ISSN,
@@ -81,7 +83,8 @@ public final class NviInstitutionStatusTestData {
                                                                TestNviCandidate candidate,
                                                                TestPublication publication) {
         var approval = findExpectedApproval(affiliation, candidate);
-        stringBuilder.append(approval.approvalStatus().getValue()).append(DELIMITER)
+        stringBuilder.append(publication.getIdentifier()).append(DELIMITER)
+            .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(publication.getPublicationCategory()).append(DELIMITER)
             .append(UriWrapper.fromUri(publication.getChannel().getType()).getLastPathElement()).append(DELIMITER)
             .append(publication.getChannel().getPrintIssn()).append(DELIMITER)
