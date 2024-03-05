@@ -31,6 +31,10 @@ public class TestPublication {
     public TestPublication() {
     }
 
+    public String getIdentifier() {
+        return identifier;
+    }
+
     public String getMainTitle() {
         return mainTitle;
     }

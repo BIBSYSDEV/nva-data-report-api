@@ -11,6 +11,7 @@ import commons.db.GraphStoreProtocolConnection;
 import commons.formatter.ResponseFormatter;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
@@ -26,9 +27,11 @@ import org.slf4j.LoggerFactory;
 
 public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
+    public static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
+    public static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final String ACCEPT = "Accept";
-    private static final String NVI_INSTITUTION_STATUS_SPARQL = "nvi-institution-status";
+    private static final String NVI_INSTITUTION_SPARQL = "nvi-institution-status";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
     private final QueryService queryService;
 
@@ -54,9 +57,10 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
         var topLevelOrganization = requestInfo.getTopLevelOrgCristinId().map(URI::toString).orElse(
             "UnknownRequestTopLevelOrganization");
-        logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
-                    topLevelOrganization, reportingYear);
-        var result = queryService.getResult(NVI_INSTITUTION_STATUS_SPARQL, getFormatter(reportFormat));
+        logRequest(topLevelOrganization, reportingYear);
+        var replaceReportingYear = Map.of(REPLACE_REPORTING_YEAR, reportingYear,
+                                          REPLACE_TOP_LEVEL_ORG, topLevelOrganization);
+        var result = queryService.getResult(NVI_INSTITUTION_SPARQL, replaceReportingYear, getFormatter(reportFormat));
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
     }
@@ -64,6 +68,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     @Override
     protected Integer getSuccessStatusCode(Void unused, String o) {
         return 200;
+    }
+
+    private static void logRequest(String topLevelOrganization, String reportingYear) {
+        logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
+                    topLevelOrganization, reportingYear);
     }
 
     private static ResponseFormatter getFormatter(ReportFormat reportFormat) {

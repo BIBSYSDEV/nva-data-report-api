@@ -3,6 +3,8 @@ package no.sikt.nva.data.report.api.fetch.service;
 import commons.db.DatabaseConnection;
 import commons.formatter.ResponseFormatter;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Map.Entry;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.Query;
@@ -27,8 +29,9 @@ public class QueryService {
         return databaseConnection.getResult(query, formatter);
     }
 
-    public String getResult(String sparqlTemplate, ResponseFormatter formatter) {
-        var query = getQuery(sparqlTemplate);
+    public String getResult(String sparqlTemplate, Map<String, String> replacementStrings,
+                            ResponseFormatter formatter) {
+        var query = getQuery(sparqlTemplate, replacementStrings);
         return databaseConnection.getResult(query, formatter);
     }
 
@@ -36,9 +39,17 @@ public class QueryService {
         return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
     }
 
-    private Query getQuery(String sparqlTemplate) {
+    private static String replaceStrings(String sparqlString, Map<String, String> replacementStrings) {
+        for (Entry<String, String> entry : replacementStrings.entrySet()) {
+            sparqlString = sparqlString.replace(entry.getKey(), entry.getValue());
+        }
+        return sparqlString;
+    }
+
+    private Query getQuery(String sparqlTemplate, Map<String, String> replacementStrings) {
         var template = constructPath(sparqlTemplate);
-        return QueryFactory.create(IoUtils.stringFromResources(template));
+        var sparqlString = replaceStrings(IoUtils.stringFromResources(template), replacementStrings);
+        return QueryFactory.create(sparqlString);
     }
 
     private Query getQuery(ReportRequest reportRequest) {

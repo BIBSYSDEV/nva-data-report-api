@@ -1,7 +1,10 @@
 PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
 
 SELECT DISTINCT
+  ?VARBEIDLOPENR
   ?STATUS_KONTROLLERT
   ?PUBLIKASJONSFORM
   ?PUBLISERINGSKANALTYPE
@@ -28,5 +31,57 @@ SELECT DISTINCT
   ?FAKTORTALL_SAMARBEID
   ?FORFATTERDEL
   ?FORFATTERVEKT
+  ?reference
   WHERE {
+   GRAPH ?g {
+      ?candidate a :NviCandidate ;
+              :publicationDetails ?publicationUri ;
+              :isApplicable ?isApplicable ;
+              :globalApprovalStatus ?STATUS_KONTROLLERT ;
+              :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+              :publicationTypeChannelLevelPoints ?VEKTINGSTALL ;
+              :reportingPeriod ?reportingPeriod .
+
+      FILTER (?isApplicable = true)
+
+      ?publicationUri a :Publication ;
+              :identifier ?VARBEIDLOPENR ;
+              :entityDescription ?entityDescription .
+
+      ?entityDescription :reference ?reference .
+      ?reference :publicationInstance ?publicationInstance .
+      ?publicationInstance a ?instanceType .
+      BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLIKASJONSFORM)
+
+
+      OPTIONAL {
+        ?candidate :reported ?reported .
+        BIND(IF(?reported = true, "Rapportert", "Ikke rapportert") AS ?RAPPORTERT_STATUS)
+      }
+
+
+      ?reportingPeriod a :ReportingPeriod ;
+                       :year ?reportingYear .
+      FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
+
+      ?publicationUri :contributor ?contributorId .
+      ?contributorId a :NviContributor .
+      BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?PERSONLOPENR)
+
+      ?contributorId :affiliation ?affiliationUri .
+      ?affiliationUri a ?NviOrganization .
+      BIND(STR(?affiliationUri) AS ?INSTITUSJONSNR)
+      BIND(STR(?affiliationUri) AS ?AVDNR)
+      BIND(STR(?affiliationUri) AS ?UNDAVDNR)
+      BIND(STR(?affiliationUri) AS ?GRUPPENR)
+
+      ?candidate :approval ?approval .
+      ?approval a :Approval ;
+        :approvalStatus ?STATUS_KONTROLLERT ;
+        :institutionId ?organizationUri .
+      FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
+      FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+      BIND(STR(?organizationUri) AS ?institutionId)
+    }
   }
+
