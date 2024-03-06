@@ -688,6 +688,19 @@ Resources:
               - 's3:PutObject'
             Resource: '*'
 
+  CognitoVpcEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.cognito-idp'
+      VpcEndpointType: Interface
+      SubnetIds:
+        - !Ref LambdaSubnet1
+        - !Ref LambdaSubnet2
+      SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
+      PrivateDnsEnabled: True
+
   #---- EventBus ----
 
   BatchLoadEventBus:
