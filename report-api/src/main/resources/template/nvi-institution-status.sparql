@@ -31,8 +31,6 @@ SELECT DISTINCT
   ?FAKTORTALL_SAMARBEID
   ?FORFATTERDEL
   ?FORFATTERVEKT
-  ?publicationUri
-  ?status
   WHERE {
    GRAPH ?nvi {
        ?candidate a :NviCandidate ;
@@ -68,6 +66,18 @@ SELECT DISTINCT
          BIND(IF(?reported = true, "Rapportert", "Ikke rapportert") AS ?RAPPORTERT_STATUS)
        }
 
+       #These are todos
+       BIND("FORFATTERE_TOTALT" AS ?FORFATTERE_TOTALT)
+       BIND("FORFATTERE_INT" AS ?FORFATTERE_INT)
+       BIND("ETTERNAVN" AS ?ETTERNAVN)
+       BIND("FORNAVN" AS ?FORNAVN)
+       BIND("SIDE_FRA" AS ?SIDE_FRA)
+       BIND("SIDE_TIL" AS ?SIDE_TIL)
+       BIND("SIDEANTALL" AS ?SIDEANTALL)
+       BIND("SPRAK" AS ?SPRAK)
+       BIND("FORFATTERDEL" AS ?FORFATTERDEL)
+       BIND("FORFATTERVEKT" AS ?FORFATTERVEKT)
+       BIND("FORFATTERVEKT" AS ?VEKTET)
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .
@@ -83,7 +93,7 @@ SELECT DISTINCT
         ?entityDescription :reference ?reference .
         ?reference :publicationContext ?publicationContext .
         ?publicationContext a ?channelTypeId ;
-                            :name ?channelName ;
+                            :name ?PUBLISERINGSKANALNAVN ;
                             :scientificValue ?KVALITETSNIVAKODE .
 
         BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
