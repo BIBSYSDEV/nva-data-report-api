@@ -17,7 +17,6 @@ public class TestPublication {
 
     public static final String DELIMITER = ",";
     public static final String EMPTY_STRING = "";
-
     private PublicationDate date;
     private Instant modifiedDate;
     private String identifier;
@@ -30,6 +29,22 @@ public class TestPublication {
     private String publicationStatus;
 
     public TestPublication() {
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getMainTitle() {
+        return mainTitle;
+    }
+
+    public String getPublicationCategory() {
+        return publicationCategory;
+    }
+
+    public TestChannel getChannel() {
+        return channel;
     }
 
     public TestPublication withModifiedDate(Instant modifiedDate) {
@@ -166,10 +181,6 @@ public class TestPublication {
         return stringBuilder.toString();
     }
 
-    private static String getLocalName(TestContributor contributor) {
-        return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
-    }
-
     public Model generateModel() {
         var publicationDate = new PublicationDateGenerator()
                                   .withYear(date.year())
@@ -197,6 +208,20 @@ public class TestPublication {
         return publicationUri;
     }
 
+    private static String getLocalName(TestContributor contributor) {
+        return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
+    }
+
+    private static String getItemAt(ArrayList<String> affiliations, int offset) {
+        int size = affiliations.size();
+        return (size > offset) ? affiliations.get(size - offset) : EMPTY_STRING;
+    }
+
+    private static Optional<TestOrganization> getPartOf(ArrayList<String> affiliations, TestOrganization partOf) {
+        affiliations.add(partOf.getId());
+        return partOf.getPartOf();
+    }
+
     private University extractStructuredAffiliationList(TestOrganization affiliation) {
         var affiliations = new ArrayList<String>();
         affiliations.add(affiliation.getId());
@@ -209,16 +234,6 @@ public class TestPublication {
         var department = getItemAt(affiliations, 3);
         var group = getItemAt(affiliations, 4);
         return new University(institution, faculty, department, group);
-    }
-
-    private static String getItemAt(ArrayList<String> affiliations, int offset) {
-        int size = affiliations.size();
-        return (size > offset) ? affiliations.get(size - offset) : EMPTY_STRING;
-    }
-
-    private static Optional<TestOrganization> getPartOf(ArrayList<String> affiliations, TestOrganization partOf) {
-        affiliations.add(partOf.getId());
-        return partOf.getPartOf();
     }
 
     private record University(String institution, String faculty, String department, String group) {

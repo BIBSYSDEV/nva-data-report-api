@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
+import static no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportTest.SOME_YEAR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviHeaders.AUTHOR_SHARE_COUNT;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviHeaders.GLOBAL_APPROVAL_STATUS;
@@ -35,6 +36,7 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidat
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication;
 
 public final class NviTestData {
 
@@ -65,27 +67,51 @@ public final class NviTestData {
         return randomBigDecimal.setScale(4, RoundingMode.HALF_UP);
     }
 
-    static List<TestNviCandidate> generateNviData(List<DatePair> dates) {
+    static List<TestNviCandidate> generateNviData(List<DatePair> dates, List<TestPublication> publications) {
         var dataSet = new ArrayList<TestNviCandidate>();
-        for (DatePair date : dates) {
-            var nviCandidate = generateNviCandidate(date.modifiedDate(), date.publicationDate().year());
-            var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate(),
-                                                                              date.publicationDate().year());
-            var reportedCandidate = generateReportedNviCandidate(date.modifiedDate(), date.publicationDate().year());
-            var coPublishedCandidate = generateCoPublishedNviCandidate(date.modifiedDate(),
-                                                                       date.publicationDate().year());
-            dataSet.add(nviCandidate);
-            dataSet.add(nonApplicableNviCandidate);
-            dataSet.add(reportedCandidate);
-            dataSet.add(coPublishedCandidate);
+        addCandidatesForPublications(publications, dates.getFirst().modifiedDate(), dataSet);
+        for (var date : dates) {
+            var modifiedDate = date.modifiedDate();
+            var reportingYear = date.publicationDate().year();
+            addNonApplicableNviCandidate(modifiedDate, reportingYear, dataSet);
+            addReportedCandidate(modifiedDate, reportingYear, dataSet);
+            addCoPublishedCandidate(modifiedDate, reportingYear, dataSet);
         }
         return dataSet;
     }
 
-    private static TestNviCandidate generateNviCandidate(Instant modifiedDate, String reportingYear) {
-        var publicationDetails = generatePublicationDetails();
+    private static void addCoPublishedCandidate(Instant modifiedDate, String reportingYear,
+                                                ArrayList<TestNviCandidate> dataSet) {
+        var coPublishedCandidate = generateCoPublishedNviCandidate(modifiedDate, reportingYear);
+        dataSet.add(coPublishedCandidate);
+    }
+
+    private static void addReportedCandidate(Instant modifiedDate, String reportingYear,
+                                             ArrayList<TestNviCandidate> dataSet) {
+        var reportedCandidate = generateReportedNviCandidate(modifiedDate, reportingYear);
+        dataSet.add(reportedCandidate);
+    }
+
+    private static void addNonApplicableNviCandidate(Instant modifiedDate, String reportingYear,
+                                                     ArrayList<TestNviCandidate> dataSet) {
+        var nonApplicableNviCandidate = generateNonApplicableNviCandidate(modifiedDate, reportingYear);
+        dataSet.add(nonApplicableNviCandidate);
+    }
+
+    private static void addCandidatesForPublications(List<TestPublication> publications, Instant modifiedDate,
+                                                     ArrayList<TestNviCandidate> dataSet) {
+        for (TestPublication publication : publications) {
+            var nviCandidate = generateNviCandidate(modifiedDate,
+                                                    publication.getPublicationUri());
+            dataSet.add(nviCandidate);
+        }
+    }
+
+    private static TestNviCandidate generateNviCandidate(Instant modifiedDate,
+                                                         String publicationId) {
+        var publicationDetails = generatePublicationDetails(publicationId);
         var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, reportingYear).build();
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, SOME_YEAR).build();
     }
 
     private static TestNviCandidate generateReportedNviCandidate(Instant modifiedDate, String reportingYear) {
@@ -109,12 +135,18 @@ public final class NviTestData {
 
     @SuppressWarnings("unchecked")
     private static TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate, String reportingYear) {
-        return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST, reportingYear).build();
+        return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(),
+                                   Collections.EMPTY_LIST,
+                                   reportingYear).build();
     }
 
     private static TestPublicationDetails generatePublicationDetails() {
+        return generatePublicationDetails(randomUri().toString());
+    }
+
+    private static TestPublicationDetails generatePublicationDetails(String publicationId) {
         return TestPublicationDetails.builder()
-                   .withId(randomUri().toString())
+                   .withId(publicationId)
                    .withContributors(new ArrayList<>(List.of(generateNviContributor(SOME_SUB_UNIT_IDENTIFIER),
                                                              generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER))))
                    .build();
@@ -165,7 +197,6 @@ public final class NviTestData {
                    .withPublicationTypeChannelLevelPoints(randomBigDecimal())
                    .withTotalPoints(randomBigDecimal())
                    .withReportingPeriod(reportingPeriod);
-
     }
 
     private static int countCombinationsOfCreatorsAndAffiliations(TestPublicationDetails publicationDetails) {

@@ -4,6 +4,8 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.g
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
@@ -21,6 +23,7 @@ import java.util.Base64;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportRequest;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
@@ -30,7 +33,6 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.logutils.LogUtils;
-import org.apache.jena.riot.Lang;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     public static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     public static final String SOME_YEAR = "2023";
+    public static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
     private FetchNviInstitutionReport handler;
 
     @BeforeEach
@@ -92,14 +95,16 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     @MethodSource("fetchNviInstitutionReportRequestProvider")
     void shouldReturnFormattedResult(FetchNviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        loadModels(testData.getModels());
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, HARDCODED_INSTITUTION_ID);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(),
+                                          NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER,
+                                          NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 
@@ -108,8 +113,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(FetchNviInstitutionReportRequest request)
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        loadModels(testData.getModels());
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, HARDCODED_INSTITUTION_ID);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
@@ -122,8 +127,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnDataInExcelSheetWhenContentTypeIsExcel(FetchNviInstitutionReportRequest request)
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        loadModels(testData.getModels());
+        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, HARDCODED_INSTITUTION_ID);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var expected = getExpectedExcel(testData);
@@ -171,13 +176,16 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     private String getExpected(FetchNviInstitutionReportRequest request, TestData test) {
         var reportFormat = getReportFormat(request);
-        var data = test.getNviInstitutionStatusResponseData();
+        var data = test.getNviInstitutionStatusResponseData(SOME_YEAR,
+                                                            URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER)));
         return ReportFormat.CSV.equals(reportFormat)
                    ? data
                    : generateTable(data);
     }
 
     private Excel getExpectedExcel(TestData test) {
-        return generateExcel(test.getNviInstitutionStatusResponseData());
+        return generateExcel(test.getNviInstitutionStatusResponseData(SOME_YEAR,
+                                                                      URI.create(organizationUri(
+                                                                          SOME_TOP_LEVEL_IDENTIFIER))));
     }
 }

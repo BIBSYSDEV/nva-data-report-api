@@ -8,6 +8,8 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.extractDataLines;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +34,6 @@ import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.exceptions.BadRequestException;
-import org.apache.jena.riot.Lang;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     @ArgumentsSource(ValidRequestSource.class)
     void shouldReturnFormattedResult(FetchDataReportRequest request) throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -69,7 +70,8 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
+                                          CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 
@@ -78,7 +80,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(FetchDataReportRequest request)
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -93,7 +95,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldReturnDataInExcelSheetWhenContentTypeIsExcel(FetchDataReportRequest request)
         throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
@@ -108,7 +110,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     @EnumSource(ReportType.class)
     void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var pageSize = 1;
@@ -126,7 +128,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     @Test
     void shouldRetrieveManyHits() throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(20));
-        databaseConnection.write(GRAPH, toTriples(testData.getModel()), Lang.NTRIPLES);
+        loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var request = new FetchDataReportRequest(
@@ -142,7 +144,8 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody());
+        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
+                                          CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 

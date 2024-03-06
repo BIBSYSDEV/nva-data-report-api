@@ -3,16 +3,13 @@ package no.sikt.nva.data.report.api.fetch.formatter;
 import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.buildString;
 import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.printAsString;
 import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.scanData;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
-import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.CustomMediaType;
 import no.sikt.nva.data.report.api.fetch.formatter.StringUtils.ScanningResult;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import org.apache.commons.csv.CSVFormat;
@@ -21,6 +18,7 @@ import org.apache.commons.csv.CSVRecord;
 
 public class ResultSorter {
 
+    public static final String TARGET = "\"";
     private static final int RESULT_HEADER_LAST_INDEX = 1;
     private static final int RESULT_ENDING_FORMATTED_LINE = 1;
     private static final String COLUMN_SPLIT_REGEX = "\\|";
@@ -29,10 +27,14 @@ public class ResultSorter {
         // NO-OP
     }
 
-    public static String sortResponse(ReportFormat type, String data) throws IOException {
+    public static String sortResponse(ReportFormat type, String data, String sortByHeader1, String sortByHeader2)
+        throws IOException {
+        var headers = getHeaders(data);
+        var primaryIndex = headers.indexOf(sortByHeader1);
+        var secondaryIndex = headers.indexOf(sortByHeader2);
         return ReportFormat.CSV.equals(type)
-                   ? sortCsv(data)
-                   : sortTextPlain(data);
+                   ? sortCsv(data, sortByHeader1, sortByHeader2)
+                   : sortTextPlain(data, primaryIndex, secondaryIndex);
     }
 
     public static List<String> extractDataLines(String data) {
@@ -42,37 +44,45 @@ public class ResultSorter {
                             scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
     }
 
-    private static String sortCsv(String data) throws IOException {
-        var stringReader = new StringReader(data);
-        var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
-        var csvParser = format.parse(stringReader);
-        var sortedCsvRecords = sortCsvRecords(csvParser);
-        return printAsString(format, csvParser, sortedCsvRecords);
-    }
-
-    private static String sortTextPlain(String data) {
-        var scanningResult = scanData(data);
-        var dataLines = sortDataLines(scanningResult);
-        return buildString(scanningResult, dataLines);
-    }
-
-    private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser) {
-        var csvRecords = new ArrayList<CSVRecord>();
-        csvParser.forEach(csvRecords::add);
-        csvRecords.sort(Comparator.comparing((CSVRecord record) -> record.get(PUBLICATION_ID))
-                            .thenComparing((CSVRecord record) -> record.get(CONTRIBUTOR_IDENTIFIER)));
-        return csvRecords;
-    }
-
-    private static List<String> sortDataLines(ScanningResult scanningResult) {
+    public static List<String> sortDataLines(ScanningResult scanningResult, int primaryIndex, int secondaryIndex) {
         var dataLines = scanningResult.lines().subList(0, scanningResult.lines().size() - 1);
         dataLines.sort(Comparator.comparing((String line) -> {
             var columns = line.split(COLUMN_SPLIT_REGEX);
-            return columns.length > 1 ? columns[1].trim() : EMPTY_STRING;
+            return columns.length > primaryIndex ? columns[primaryIndex].trim() : EMPTY_STRING;
         }).thenComparing(line -> {
             var columns = line.split(COLUMN_SPLIT_REGEX);
-            return columns.length > 2 ? columns[2].trim() : EMPTY_STRING;
+            return columns.length > secondaryIndex ? columns[secondaryIndex].trim() : EMPTY_STRING;
         }));
         return dataLines;
+    }
+
+    private static List<String> getHeaders(String data) {
+        return Arrays.stream(data.split(System.lineSeparator())[1].split(COLUMN_SPLIT_REGEX))
+                   .map(String::strip)
+                   .map(string -> string.replace(TARGET, EMPTY_STRING))
+                   .toList();
+    }
+
+    private static String sortCsv(String data, String sortByHeader1, String sortByHeader2) throws IOException {
+        var stringReader = new StringReader(data);
+        var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
+        var csvParser = format.parse(stringReader);
+        var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, sortByHeader2);
+        return printAsString(format, csvParser, sortedCsvRecords);
+    }
+
+    private static String sortTextPlain(String data, int primaryIndex, int secondaryIndex) {
+        var scanningResult = scanData(data);
+        var dataLines = sortDataLines(scanningResult, primaryIndex, secondaryIndex);
+        return buildString(scanningResult, dataLines);
+    }
+
+    private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1,
+                                                       String sortByHeader2) {
+        var csvRecords = new ArrayList<CSVRecord>();
+        csvParser.forEach(csvRecords::add);
+        csvRecords.sort(Comparator.comparing((CSVRecord record) -> record.get(sortByHeader1))
+                            .thenComparing((CSVRecord record) -> record.get(sortByHeader2)));
+        return csvRecords;
     }
 }

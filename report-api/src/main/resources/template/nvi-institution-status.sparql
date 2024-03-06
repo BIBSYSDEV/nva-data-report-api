@@ -1,7 +1,10 @@
 PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
 
 SELECT DISTINCT
+  ?VARBEIDLOPENR
   ?STATUS_KONTROLLERT
   ?PUBLIKASJONSFORM
   ?PUBLISERINGSKANALTYPE
@@ -29,4 +32,84 @@ SELECT DISTINCT
   ?FORFATTERDEL
   ?FORFATTERVEKT
   WHERE {
-  }
+   GRAPH ?nvi {
+       ?candidate a :NviCandidate ;
+               :publicationDetails ?publicationUri ;
+               :isApplicable ?isApplicable ;
+               :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+               :publicationTypeChannelLevelPoints ?VEKTINGSTALL .
+
+       BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
+
+       FILTER (?isApplicable = true)
+       ?publicationUri :contributor ?contributorId .
+             ?contributorId a :NviContributor .
+       BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?PERSONLOPENR)
+
+       ?contributorId :affiliation ?affiliationUri .
+             ?affiliationUri a ?NviOrganization .
+
+       ?candidate :approval ?approval .
+             ?approval a :Approval ;
+               :approvalStatus ?STATUS_KONTROLLERT ;
+               :institutionId ?organizationUri .
+
+       FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+       FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
+       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?identifier)
+       BIND(STRAFTER(str(?identifier), ".") AS ?temp1)
+       BIND(STRAFTER(str(?temp1), ".") AS ?temp2)
+       BIND(STRAFTER(str(?temp2), ".") AS ?GRUPPENR)
+       BIND(STRBEFORE(str(?identifier), ".") AS ?INSTITUSJONSNR)
+       BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
+       BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
+
+       OPTIONAL {
+         ?candidate :reported ?reported .
+         BIND(IF(?reported = true, "Rapportert", "Ikke rapportert") AS ?RAPPORTERT_STATUS)
+       }
+
+       #These are todos
+       BIND("FORFATTERE_TOTALT" AS ?FORFATTERE_TOTALT)
+       BIND("FORFATTERE_INT" AS ?FORFATTERE_INT)
+       BIND("ETTERNAVN" AS ?ETTERNAVN)
+       BIND("FORNAVN" AS ?FORNAVN)
+       BIND("SIDE_FRA" AS ?SIDE_FRA)
+       BIND("SIDE_TIL" AS ?SIDE_TIL)
+       BIND("SIDEANTALL" AS ?SIDEANTALL)
+       BIND("SPRAK" AS ?SPRAK)
+       BIND("FORFATTERDEL" AS ?FORFATTERDEL)
+       BIND("FORFATTERVEKT" AS ?FORFATTERVEKT)
+       BIND("FORFATTERVEKT" AS ?VEKTET)
+
+       ?reportingPeriod a :ReportingPeriod ;
+                        :year ?reportingYear .
+        FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
+     }
+     GRAPH ?nva {
+        ?publicationUri a :Publication ;
+             :identifier ?publicationIdentifier ;
+             :entityDescription ?entityDescription .
+
+
+        ?entityDescription :mainTitle ?VA_TITTEL .
+        ?entityDescription :reference ?reference .
+        ?reference :publicationContext ?publicationContext .
+        ?publicationContext a ?channelTypeId ;
+                            :name ?PUBLISERINGSKANALNAVN ;
+                            :scientificValue ?KVALITETSNIVAKODE .
+
+        BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
+        BIND(STR(?channelTypeId) AS ?channelType)
+        BIND(REPLACE(STR(?channelType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLISERINGSKANALTYPE)
+        ?reference :publicationInstance ?instance .
+        ?instance a ?instanceType .
+        BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLIKASJONSFORM)
+
+        OPTIONAL {
+            ?publicationContext :printIssn ?ISSN
+        }
+     }
+    } LIMIT 10000 #TODO: Handle cases where the limit is reached
+
+

@@ -1,8 +1,8 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
-import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.addNumberOfDelimiters;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusTestData.NVI_INSTITUTION_STATUS_HEADERS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviTestData.NVI_HEADERS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.AFFILIATION_NAME;
@@ -31,6 +31,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationH
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.STATUS;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,6 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestIde
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 
 public class TestData {
 
@@ -87,18 +87,18 @@ public class TestData {
                                                                    FUNDING_SOURCE, FUNDING_ID);
     private final List<TestPublication> publicationTestData;
     private final List<TestNviCandidate> nviTestData;
-    private final Model model;
+    private final List<Model> models;
 
     public TestData(List<DatePair> dates) {
-        this.model = ModelFactory.createDefaultModel();
+        this.models = new ArrayList<>();
         this.publicationTestData = generatePublicationData(dates);
-        this.nviTestData = NviTestData.generateNviData(dates);
+        this.nviTestData = NviTestData.generateNviData(dates, publicationTestData);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
 
-    public Model getModel() {
-        return model;
+    public List<Model> getModels() {
+        return models;
     }
 
     public String getAffiliationResponseData() {
@@ -149,20 +149,31 @@ public class TestData {
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NVI_HEADERS) + CRLF.getString();
         nviTestData.sort(this::sortByPublicationUri);
-        nviTestData.forEach(candidate -> candidate.publicationDetails()
-                                             .contributors()
-                                             .sort(this::sortByContributor));
+        sortContributors(nviTestData);
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedNviResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }
 
-    public String getNviInstitutionStatusResponseData() {
+    public String getNviInstitutionStatusResponseData(String reportingYear, URI institutionId) {
         var headers = String.join(DELIMITER, NVI_INSTITUTION_STATUS_HEADERS) + CRLF.getString();
-        var stringBuilder = new StringBuilder();
-        var values = addNumberOfDelimiters(stringBuilder, NVI_INSTITUTION_STATUS_HEADERS.size() - 1);
+        var expectedCandidates = getExpectedCandidates(reportingYear, institutionId);
+        sortContributors(expectedCandidates);
+        var values = expectedCandidates.stream()
+                         .map(this::getExpectedNviInstitutionStatusResponse)
+                         .collect(Collectors.joining());
         return headers + values;
+    }
+
+    private static boolean isReportedInYear(String reportingYear, TestNviCandidate testNviCandidate) {
+        return testNviCandidate.reportingPeriod().equals(reportingYear);
+    }
+
+    private static boolean hasAnyApprovals(URI institutionId, TestNviCandidate testNviCandidate) {
+        return testNviCandidate.approvals()
+                   .stream()
+                   .anyMatch(approval -> approval.institutionId().equals(institutionId));
     }
 
     private static TestPublication generatePublication(PublicationDate date, Instant modifiedDate) {
@@ -211,16 +222,53 @@ public class TestData {
         return new TestOrganization(organizationUri(SOME_SUB_UNIT_IDENTIFIER), "My university");
     }
 
+    private static boolean hasSamePublicationId(TestNviCandidate candidate, TestPublication publication) {
+        return publication.getPublicationUri().equals(candidate.publicationDetails().id());
+    }
+
+    private void sortContributors(List<TestNviCandidate> expectedCandidates) {
+        expectedCandidates.forEach(candidate -> candidate.publicationDetails()
+                                                    .contributors()
+                                                    .sort(this::sortByContributor));
+    }
+
+    private List<TestNviCandidate> getExpectedCandidates(String reportingYear, URI institutionId) {
+        return nviTestData.stream()
+                   .filter(TestNviCandidate::isApplicable)
+                   .filter(candidate -> isReportedInYear(reportingYear, candidate))
+                   .filter(candidate -> hasAnyApprovals(institutionId, candidate))
+                   .sorted(this::sortByPublicationUri)
+                   .toList();
+    }
+
+    private String getExpectedNviInstitutionStatusResponse(TestNviCandidate expectedCandidate) {
+        var expectedPublication = getPublication(expectedCandidate);
+
+        return expectedCandidate.publicationDetails()
+                   .contributors()
+                   .stream()
+                   .map(contributor -> generateExpectedNviInstitutionResponse(contributor, expectedCandidate,
+                                                                              expectedPublication))
+                   .collect(Collectors.joining());
+    }
+
+    private TestPublication getPublication(TestNviCandidate expectedCandidate) {
+        return publicationTestData.stream()
+                   .filter(publication -> hasSamePublicationId(expectedCandidate, publication))
+                   .findFirst()
+                   .orElseThrow();
+    }
+
     private void addPublicationDataToModel(List<TestPublication> testData) {
         testData.stream()
             .map(TestPublication::generateModel)
-            .forEach(model::add);
+            .forEach(models::add);
     }
 
     private void addNviDataToModel(List<TestNviCandidate> testData) {
         testData.stream()
             .map(TestNviCandidate::generateModel)
-            .forEach(model::add);
+            .forEach(models::add);
     }
 
     private List<TestPublication> generatePublicationData(List<DatePair> dates) {
