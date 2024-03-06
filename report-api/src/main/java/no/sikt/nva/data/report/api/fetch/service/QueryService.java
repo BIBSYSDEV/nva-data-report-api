@@ -40,10 +40,11 @@ public class QueryService {
     }
 
     private static String replaceStrings(String sparqlString, Map<String, String> replacementStrings) {
+        var resultString = sparqlString;
         for (Entry<String, String> entry : replacementStrings.entrySet()) {
-            sparqlString = sparqlString.replace(entry.getKey(), entry.getValue());
+            resultString = resultString.replace(entry.getKey(), entry.getValue());
         }
-        return sparqlString;
+        return resultString;
     }
 
     private Query getQuery(String sparqlTemplate, Map<String, String> replacementStrings) {
