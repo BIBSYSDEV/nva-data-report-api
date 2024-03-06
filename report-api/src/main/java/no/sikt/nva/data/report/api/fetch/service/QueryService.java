@@ -4,7 +4,6 @@ import commons.db.DatabaseConnection;
 import commons.formatter.ResponseFormatter;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Map.Entry;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.Query;
@@ -41,7 +40,7 @@ public class QueryService {
 
     private static String replaceStrings(String sparqlString, Map<String, String> replacementStrings) {
         var resultString = sparqlString;
-        for (Entry<String, String> entry : replacementStrings.entrySet()) {
+        for (var entry : replacementStrings.entrySet()) {
             resultString = resultString.replace(entry.getKey(), entry.getValue());
         }
         return resultString;
