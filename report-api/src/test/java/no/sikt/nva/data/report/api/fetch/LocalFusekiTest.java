@@ -29,7 +29,7 @@ public abstract class LocalFusekiTest {
 
     static final String GSP_ENDPOINT = "/gsp";
     static final String GRAPH_BASE_URI = "https://example.org/graph/";
-    static final List<URI> graphsRegisteredForDeletion = new ArrayList<>();
+    static List<URI> graphsRegisteredForDeletion = new ArrayList<>();
     static FusekiServer server;
     static DatabaseConnection databaseConnection;
 
@@ -51,6 +51,7 @@ public abstract class LocalFusekiTest {
     void clearDatabase() {
         try {
             graphsRegisteredForDeletion.forEach(graph -> databaseConnection.delete(graph));
+            graphsRegisteredForDeletion = new ArrayList<>();
         } catch (Exception e) {
             // Necessary to avoid case where we hve already deleted the graph
             catchExpectedExceptionsExceptHttpException(e);

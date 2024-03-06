@@ -31,57 +31,75 @@ SELECT DISTINCT
   ?FAKTORTALL_SAMARBEID
   ?FORFATTERDEL
   ?FORFATTERVEKT
-  ?reference
+  ?publicationUri
+  ?status
   WHERE {
    GRAPH ?g {
-      ?candidate a :NviCandidate ;
-              :publicationDetails ?publicationUri ;
-              :isApplicable ?isApplicable ;
-              :globalApprovalStatus ?STATUS_KONTROLLERT ;
-              :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
-              :publicationTypeChannelLevelPoints ?VEKTINGSTALL ;
-              :reportingPeriod ?reportingPeriod .
+   {
+       ?candidate a :NviCandidate ;
+               :publicationDetails ?publicationUri ;
+               :isApplicable ?isApplicable ;
+               :globalApprovalStatus ?STATUS_KONTROLLERT ;
+               :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+               :publicationTypeChannelLevelPoints ?VEKTINGSTALL .
 
-      FILTER (?isApplicable = true)
+       BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
 
-      ?publicationUri a :Publication ;
-              :identifier ?VARBEIDLOPENR ;
-              :entityDescription ?entityDescription .
+       FILTER (?isApplicable = true)
+       ?publicationUri :contributor ?contributorId .
+             ?contributorId a :NviContributor .
+       BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?PERSONLOPENR)
 
-      ?entityDescription :reference ?reference .
-      ?reference :publicationInstance ?publicationInstance .
-      ?publicationInstance a ?instanceType .
-      BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLIKASJONSFORM)
+       ?contributorId :affiliation ?affiliationUri .
+             ?affiliationUri a ?NviOrganization .
+
+       ?candidate :approval ?approval .
+             ?approval a :Approval ;
+               :approvalStatus ?status ;
+               :institutionId ?organizationUri .
+
+       FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+       FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
+       BIND(REPLACE(STR(?organizationUri), "^.*/([^/]*)$", "$1") AS ?INSTITUSJONSNR)
+       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?AVDNR)
+       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?UNDAVDNR)
+       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?GRUPPENR)
+
+       OPTIONAL {
+         ?candidate :reported ?reported .
+         BIND(IF(?reported = true, "Rapportert", "Ikke rapportert") AS ?RAPPORTERT_STATUS)
+       }
 
 
-      OPTIONAL {
-        ?candidate :reported ?reported .
-        BIND(IF(?reported = true, "Rapportert", "Ikke rapportert") AS ?RAPPORTERT_STATUS)
-      }
+       ?reportingPeriod a :ReportingPeriod ;
+                        :year ?reportingYear .
+        FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
+     }
+     UNION
+     {
+        ?publicationUri a :Publication ;
+             :identifier ?publicationIdentifier ;
+             :entityDescription ?entityDescription .
 
 
-      ?reportingPeriod a :ReportingPeriod ;
-                       :year ?reportingYear .
-      FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
+        ?entityDescription :mainTitle ?VA_TITTEL .
+        ?entityDescription :reference ?reference .
+        ?reference :publicationContext ?publicationContext .
+        ?publicationContext a ?channelTypeId ;
+                            :name ?channelName ;
+                            :scientificValue ?KVALITETSNIVAKODE .
 
-      ?publicationUri :contributor ?contributorId .
-      ?contributorId a :NviContributor .
-      BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?PERSONLOPENR)
+        BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
+        BIND(STR(?channelTypeId) AS ?channelType)
+        BIND(REPLACE(STR(?channelType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLISERINGSKANALTYPE)
+        ?reference :publicationInstance ?instance .
+        ?instance a ?instanceType .
+        BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLIKASJONSFORM)
 
-      ?contributorId :affiliation ?affiliationUri .
-      ?affiliationUri a ?NviOrganization .
-      BIND(STR(?affiliationUri) AS ?INSTITUSJONSNR)
-      BIND(STR(?affiliationUri) AS ?AVDNR)
-      BIND(STR(?affiliationUri) AS ?UNDAVDNR)
-      BIND(STR(?affiliationUri) AS ?GRUPPENR)
-
-      ?candidate :approval ?approval .
-      ?approval a :Approval ;
-        :approvalStatus ?STATUS_KONTROLLERT ;
-        :institutionId ?organizationUri .
-      FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
-      FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
-      BIND(STR(?organizationUri) AS ?institutionId)
+        OPTIONAL {
+            ?publicationContext :printIssn ?ISSN
+        }
+     }
     }
   }
 

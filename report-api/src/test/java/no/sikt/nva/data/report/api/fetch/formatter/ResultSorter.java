@@ -25,10 +25,10 @@ public class ResultSorter {
         // NO-OP
     }
 
-    public static String sortResponse(ReportFormat type, String data, String sortByHeader1,
-                                      String contributorIdentifier) throws IOException {
+    public static String sortResponse(ReportFormat type, String data, String sortByHeader1, String sortByHeader2)
+        throws IOException {
         return ReportFormat.CSV.equals(type)
-                   ? sortCsv(data, sortByHeader1, contributorIdentifier)
+                   ? sortCsv(data, sortByHeader1, sortByHeader2)
                    : sortTextPlain(data);
     }
 
@@ -39,11 +39,11 @@ public class ResultSorter {
                             scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
     }
 
-    private static String sortCsv(String data, String sortByHeader1, String contributorIdentifier) throws IOException {
+    private static String sortCsv(String data, String sortByHeader1, String sortByHeader2) throws IOException {
         var stringReader = new StringReader(data);
         var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
         var csvParser = format.parse(stringReader);
-        var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, contributorIdentifier);
+        var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, sortByHeader2);
         return printAsString(format, csvParser, sortedCsvRecords);
     }
 
@@ -53,7 +53,8 @@ public class ResultSorter {
         return buildString(scanningResult, dataLines);
     }
 
-    private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1, String sortByHeader2) {
+    private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1,
+                                                       String sortByHeader2) {
         var csvRecords = new ArrayList<CSVRecord>();
         csvParser.forEach(csvRecords::add);
         csvRecords.sort(Comparator.comparing((CSVRecord record) -> record.get(sortByHeader1))
