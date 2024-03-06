@@ -56,10 +56,13 @@ SELECT DISTINCT
 
        FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
        FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
-       BIND(REPLACE(STR(?organizationUri), "^.*/([^/]*)$", "$1") AS ?INSTITUSJONSNR)
-       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?AVDNR)
-       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?UNDAVDNR)
-       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?GRUPPENR)
+       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?identifier)
+       BIND(STRAFTER(str(?identifier), ".") AS ?temp1)
+       BIND(STRAFTER(str(?temp1), ".") AS ?temp2)
+       BIND(STRAFTER(str(?temp2), ".") AS ?GRUPPENR)
+       BIND(STRBEFORE(str(?identifier), ".") AS ?INSTITUSJONSNR)
+       BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
+       BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
 
        OPTIONAL {
          ?candidate :reported ?reported .
