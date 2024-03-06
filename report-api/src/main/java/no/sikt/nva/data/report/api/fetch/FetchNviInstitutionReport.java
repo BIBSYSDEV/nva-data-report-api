@@ -53,14 +53,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     @Override
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws UnauthorizedException {
         validateAccessRights(requestInfo);
-        var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
-        var topLevelOrganization = requestInfo.getTopLevelOrgCristinId().map(URI::toString).orElse(
-            "UnknownRequestTopLevelOrganization");
+        var topLevelOrganization = extractTopLevelOrganization(requestInfo);
         logRequest(topLevelOrganization, reportingYear);
-        var replaceReportingYear = Map.of(REPLACE_REPORTING_YEAR, reportingYear,
-                                          REPLACE_TOP_LEVEL_ORG, topLevelOrganization);
-        var result = queryService.getResult(NVI_INSTITUTION_SPARQL, replaceReportingYear, getFormatter(reportFormat));
+        var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
+        var result = getResult(reportingYear, topLevelOrganization, reportFormat);
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
     }
@@ -68,6 +65,12 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     @Override
     protected Integer getSuccessStatusCode(Void unused, String o) {
         return 200;
+    }
+
+    private static String extractTopLevelOrganization(RequestInfo requestInfo) {
+        return requestInfo.getTopLevelOrgCristinId()
+                   .map(URI::toString)
+                   .orElse("UnknownRequestTopLevelOrganization");
     }
 
     private static void logRequest(String topLevelOrganization, String reportingYear) {
@@ -81,6 +84,12 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
             case EXCEL -> new ExcelFormatter();
             case TEXT -> new PlainTextFormatter();
         };
+    }
+
+    private String getResult(String reportingYear, String topLevelOrganization, ReportFormat reportFormat) {
+        var replacementStrings = Map.of(REPLACE_REPORTING_YEAR, reportingYear,
+                                        REPLACE_TOP_LEVEL_ORG, topLevelOrganization);
+        return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings, getFormatter(reportFormat));
     }
 
     private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
