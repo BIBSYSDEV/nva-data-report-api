@@ -1,6 +1,5 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 
-import static java.util.Objects.nonNull;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.ONTOLOGY_BASE_URI;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
@@ -26,7 +25,8 @@ public class CandidateGenerator extends TripleBasedBuilder {
     private static final Property CREATOR_SHARE_COUNT = new PropertyImpl(ONTOLOGY_BASE_URI + "creatorShareCount");
     private static final Property INTERNATIONAL_COLLABORATION_FACTOR = new PropertyImpl(
         ONTOLOGY_BASE_URI + "internationalCollaborationFactor");
-    private static final Property REPORTED_PERIOD = new PropertyImpl(ONTOLOGY_BASE_URI + "reportedPeriod");
+    private static final Property REPORTED = new PropertyImpl(ONTOLOGY_BASE_URI + "reported");
+    private static final Property REPORTING_PERIOD = new PropertyImpl(ONTOLOGY_BASE_URI + "reportingPeriod");
     private static final Property GLOBAL_APPROVAL_STATUS = new PropertyImpl(ONTOLOGY_BASE_URI + "globalApprovalStatus");
     private final Model model;
     private final Resource subject;
@@ -48,6 +48,12 @@ public class CandidateGenerator extends TripleBasedBuilder {
     public CandidateGenerator withApproval(ApprovalGenerator approval) {
         model.add(subject, APPROVAL, approval.getSubject());
         model.add(approval.build());
+        return this;
+    }
+
+    public CandidateGenerator withReportingPeriod(ReportingPeriodGenerator reportingPeriod) {
+        model.add(subject, REPORTING_PERIOD, reportingPeriod.getSubject());
+        model.add(reportingPeriod.build());
         return this;
     }
 
@@ -78,10 +84,8 @@ public class CandidateGenerator extends TripleBasedBuilder {
         return this;
     }
 
-    public CandidateGenerator withReportedPeriod(String reportedPeriod) {
-        if (nonNull(reportedPeriod)) {
-            model.add(subject, REPORTED_PERIOD, model.createTypedLiteral(reportedPeriod));
-        }
+    public CandidateGenerator withReported(boolean reported) {
+        model.add(subject, REPORTED, model.createTypedLiteral(reported));
         return this;
     }
 

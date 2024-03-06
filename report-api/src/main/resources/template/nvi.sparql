@@ -30,7 +30,11 @@ WHERE {
         :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
 
       OPTIONAL {
-        ?candidate :reportedPeriod ?reportedPeriod .
+        ?candidate :reported ?reported ;
+                   :reportingPeriod ?reportingPeriod .
+        ?reportingPeriod a :ReportingPeriod ;
+                         :year ?reportedYear .
+        BIND(IF(?reported = true, ?reportedYear, "NotReported") AS ?reportedPeriod)
       }
 
       BIND(STR(?publicationUri) AS ?publicationId)

@@ -68,10 +68,12 @@ public final class NviTestData {
     static List<TestNviCandidate> generateNviData(List<DatePair> dates) {
         var dataSet = new ArrayList<TestNviCandidate>();
         for (DatePair date : dates) {
-            var nviCandidate = generateNviCandidate(date.modifiedDate());
-            var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate());
-            var reportedCandidate = generateReportedNviCandidate(date.modifiedDate());
-            var coPublishedCandidate = generateCoPublishedNviCandidate(date.modifiedDate());
+            var nviCandidate = generateNviCandidate(date.modifiedDate(), date.publicationDate().year());
+            var nonApplicableNviCandidate = generateNonApplicableNviCandidate(date.modifiedDate(),
+                                                                              date.publicationDate().year());
+            var reportedCandidate = generateReportedNviCandidate(date.modifiedDate(), date.publicationDate().year());
+            var coPublishedCandidate = generateCoPublishedNviCandidate(date.modifiedDate(),
+                                                                       date.publicationDate().year());
             dataSet.add(nviCandidate);
             dataSet.add(nonApplicableNviCandidate);
             dataSet.add(reportedCandidate);
@@ -80,21 +82,21 @@ public final class NviTestData {
         return dataSet;
     }
 
-    private static TestNviCandidate generateNviCandidate(Instant modifiedDate) {
+    private static TestNviCandidate generateNviCandidate(Instant modifiedDate, String reportingYear) {
         var publicationDetails = generatePublicationDetails();
         var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals).build();
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, reportingYear).build();
     }
 
-    private static TestNviCandidate generateReportedNviCandidate(Instant modifiedDate) {
+    private static TestNviCandidate generateReportedNviCandidate(Instant modifiedDate, String reportingYear) {
         var publicationDetails = generatePublicationDetails();
         var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals)
-                   .withReportedPeriod("2021")
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, reportingYear)
+                   .withReported(true)
                    .build();
     }
 
-    private static TestNviCandidate generateCoPublishedNviCandidate(Instant modifiedDate) {
+    private static TestNviCandidate generateCoPublishedNviCandidate(Instant modifiedDate, String reportingYear) {
         var publicationDetails = TestPublicationDetails.builder()
                                      .withId(randomUri().toString())
                                      .withContributors(
@@ -102,12 +104,12 @@ public final class NviTestData {
                                                                  generateNviContributor("90.0.0.0"))))
                                      .build();
         var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals).build();
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, reportingYear).build();
     }
 
     @SuppressWarnings("unchecked")
-    private static TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate) {
-        return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST).build();
+    private static TestNviCandidate generateNonApplicableNviCandidate(Instant modifiedDate, String reportingYear) {
+        return getCandidateBuilder(false, modifiedDate, generatePublicationDetails(), Collections.EMPTY_LIST, reportingYear).build();
     }
 
     private static TestPublicationDetails generatePublicationDetails() {
@@ -150,7 +152,7 @@ public final class NviTestData {
 
     private static Builder getCandidateBuilder(boolean isApplicable, Instant modifiedDate,
                                                TestPublicationDetails publicationDetails,
-                                               List<TestApproval> approvals) {
+                                               List<TestApproval> approvals, String reportingPeriod) {
         return TestNviCandidate.builder()
                    .withIsApplicable(isApplicable)
                    .withIdentifier(UUID.randomUUID().toString())
@@ -161,7 +163,9 @@ public final class NviTestData {
                    .withInternationalCollaborationFactor(BigDecimal.ONE)
                    .withGlobalApprovalStatus(ApprovalStatus.PENDING.getValue())
                    .withPublicationTypeChannelLevelPoints(randomBigDecimal())
-                   .withTotalPoints(randomBigDecimal());
+                   .withTotalPoints(randomBigDecimal())
+                   .withReportingPeriod(reportingPeriod);
+
     }
 
     private static int countCombinationsOfCreatorsAndAffiliations(TestPublicationDetails publicationDetails) {
