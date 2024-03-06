@@ -39,7 +39,6 @@ SELECT DISTINCT
        ?candidate a :NviCandidate ;
                :publicationDetails ?publicationUri ;
                :isApplicable ?isApplicable ;
-               :globalApprovalStatus ?STATUS_KONTROLLERT ;
                :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
                :publicationTypeChannelLevelPoints ?VEKTINGSTALL .
 
@@ -55,7 +54,7 @@ SELECT DISTINCT
 
        ?candidate :approval ?approval .
              ?approval a :Approval ;
-               :approvalStatus ?status ;
+               :approvalStatus ?STATUS_KONTROLLERT ;
                :institutionId ?organizationUri .
 
        FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
