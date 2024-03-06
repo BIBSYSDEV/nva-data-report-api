@@ -34,8 +34,7 @@ SELECT DISTINCT
   ?publicationUri
   ?status
   WHERE {
-   GRAPH ?g {
-   {
+   GRAPH ?nvi {
        ?candidate a :NviCandidate ;
                :publicationDetails ?publicationUri ;
                :isApplicable ?isApplicable ;
@@ -74,8 +73,7 @@ SELECT DISTINCT
                         :year ?reportingYear .
         FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
      }
-     UNION
-     {
+     GRAPH ?nva {
         ?publicationUri a :Publication ;
              :identifier ?publicationIdentifier ;
              :entityDescription ?entityDescription .
@@ -100,5 +98,5 @@ SELECT DISTINCT
         }
      }
     }
-  }
+
 
