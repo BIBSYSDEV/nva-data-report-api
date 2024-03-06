@@ -110,6 +110,6 @@ SELECT DISTINCT
             ?publicationContext :printIssn ?ISSN
         }
      }
-    }
+    } LIMIT 10000 #TODO: Handle cases where the limit is reached
 
 
