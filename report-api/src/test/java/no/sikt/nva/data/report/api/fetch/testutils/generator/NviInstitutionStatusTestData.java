@@ -97,7 +97,7 @@ public final class NviInstitutionStatusTestData {
             .append(affiliation.getSubUnitThreeNumber()).append(DELIMITER)
             .append(AUTHOR_COUNT).append(DELIMITER)//TODO: Implement
             .append(AUTHOR_INT).append(DELIMITER)//TODO: Implement
-            .append(candidate.totalPoints()).append(DELIMITER) //TODO: Check if correct
+            .append(POINTS_FOR_AFFILIATION).append(DELIMITER) //TODO: Implement
             .append(LAST_NAME).append(DELIMITER)//TODO: Implement
             .append(FIRST_NAME).append(DELIMITER)//TODO: Implement
             .append(publication.getChannel().getName()).append(DELIMITER)
