@@ -4,10 +4,14 @@ import java.nio.file.Path;
 import java.util.Map;
 import nva.commons.core.ioutils.IoUtils;
 
-public class SparqlQueryGenerator {
+public final class SparqlQueryGenerator {
 
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
+
+    private SparqlQueryGenerator() {
+        //NO-OP
+    }
 
     public static String getSparqlQuery(String sparqlTemplate, Map<String, String> replacementStrings) {
         var template = constructPath(sparqlTemplate);

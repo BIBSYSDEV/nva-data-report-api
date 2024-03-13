@@ -17,6 +17,7 @@ import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
 import no.sikt.nva.data.report.api.fetch.service.DatabaseQueryService;
+import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.service.SparqlQueryGenerator;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -29,7 +30,7 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
     public static final String AFTER_PLACEHOLDER = "__AFTER__";
     public static final String OFFSET_PLACEHOLDER = "__OFFSET__";
     public static final String PAGE_SIZE_PLACEHOLDER = "__PAGE_SIZE__";
-    private final DatabaseQueryService queryService;
+    private final QueryService queryService;
 
     @JacocoGenerated
     public FetchDataReport() {

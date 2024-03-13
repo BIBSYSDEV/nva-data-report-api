@@ -17,6 +17,7 @@ import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.DatabaseQueryService;
+import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.service.SparqlQueryGenerator;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -34,7 +35,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     private static final String ACCEPT = "Accept";
     private static final String NVI_INSTITUTION_SPARQL = "nvi-institution-status";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
-    private final DatabaseQueryService queryService;
+    private final QueryService queryService;
 
     @JacocoGenerated
     public FetchNviInstitutionReport() {
