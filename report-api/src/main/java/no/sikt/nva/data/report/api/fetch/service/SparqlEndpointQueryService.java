@@ -2,7 +2,6 @@ package no.sikt.nva.data.report.api.fetch.service;
 
 import commons.formatter.ResponseFormatter;
 import java.net.http.HttpClient;
-import java.util.Map;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.auth.CognitoCredentials;
 import nva.commons.core.JacocoGenerated;
@@ -21,8 +20,7 @@ public class SparqlEndpointQueryService implements QueryService {
     }
 
     @Override
-    public String getResult(String sparqlTemplate, Map<String, String> replacementStrings,
-                            ResponseFormatter formatter) {
+    public String getResult(String sparqlQuery, ResponseFormatter formatter) {
         var authorizedBackendClient = AuthorizedBackendClient.prepareWithCognitoCredentials(httpClient,
                                                                                             cognitoCredentials);
         return null;

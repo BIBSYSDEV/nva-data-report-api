@@ -10,12 +10,14 @@ import com.google.common.net.MediaType;
 import commons.db.GraphStoreProtocolConnection;
 import commons.formatter.ResponseFormatter;
 import java.util.List;
+import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
 import no.sikt.nva.data.report.api.fetch.service.DatabaseQueryService;
+import no.sikt.nva.data.report.api.fetch.service.SparqlQueryGenerator;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -23,6 +25,10 @@ import nva.commons.core.JacocoGenerated;
 
 public class FetchDataReport extends ApiGatewayHandler<Void, String> {
 
+    public static final String BEFORE_PLACEHOLDER = "__BEFORE__";
+    public static final String AFTER_PLACEHOLDER = "__AFTER__";
+    public static final String OFFSET_PLACEHOLDER = "__OFFSET__";
+    public static final String PAGE_SIZE_PLACEHOLDER = "__PAGE_SIZE__";
     private final DatabaseQueryService queryService;
 
     @JacocoGenerated
@@ -43,7 +49,9 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
     protected String processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         var reportRequest = ReportRequest.fromRequestInfo(requestInfo);
         var reportFormat = reportRequest.getReportFormat();
-        var result = queryService.getResult(reportRequest, getFormatter(reportFormat));
+        var sparqlQuery = SparqlQueryGenerator.getSparqlQuery(reportRequest.getReportType().getType(),
+                                                              generateReplacementStrings(reportRequest));
+        var result = queryService.getResult(sparqlQuery, getFormatter(reportFormat));
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
     }
@@ -51,6 +59,15 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
     @Override
     protected Integer getSuccessStatusCode(Void input, String output) {
         return 200;
+    }
+
+    private static Map<String, String> generateReplacementStrings(ReportRequest reportRequest) {
+        return Map.of(
+            BEFORE_PLACEHOLDER, reportRequest.getBefore().toString(),
+            AFTER_PLACEHOLDER, reportRequest.getAfter().toString(),
+            OFFSET_PLACEHOLDER, String.valueOf(reportRequest.getOffset()),
+            PAGE_SIZE_PLACEHOLDER, String.valueOf(reportRequest.getPageSize())
+        );
     }
 
     private static ResponseFormatter getFormatter(ReportFormat reportFormat) {
