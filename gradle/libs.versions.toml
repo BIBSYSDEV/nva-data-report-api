@@ -28,6 +28,7 @@ nva-commons-core = { group = 'com.github.bibsysdev', name = 'core', version.ref 
 nva-commons-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nva' }
 nva-eventhandlers = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nva' }
 nva-identifiers = { group = 'com.github.bibsysdev', name = 'identifiers', version.ref = 'nva' }
+nva-commons-auth = { group = 'com.github.bibsysdev', name = 'auth', version.ref = 'nva' }
 
 jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
 jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }

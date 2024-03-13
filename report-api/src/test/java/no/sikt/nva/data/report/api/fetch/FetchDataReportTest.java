@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.util.Base64;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
-import no.sikt.nva.data.report.api.fetch.service.QueryService;
+import no.sikt.nva.data.report.api.fetch.service.DatabaseQueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
 import no.sikt.nva.data.report.api.fetch.testutils.ValidExcelRequestSource;
 import no.sikt.nva.data.report.api.fetch.testutils.ValidRequestSource;
@@ -51,7 +51,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     @ArgumentsSource(BadRequestProvider.class)
     void shouldThrowBadRequest(FetchDataReportRequest report)
         throws IOException {
-        var service = new QueryService(databaseConnection);
+        var service = new DatabaseQueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var output = executeRequest(handler, generateHandlerRequest(report));
         var response = fromOutputStream(output, String.class);
@@ -63,7 +63,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldReturnFormattedResult(FetchDataReportRequest request) throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
         loadModels(testData.getModels());
-        var service = new QueryService(databaseConnection);
+        var service = new DatabaseQueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
         var output = executeRequest(handler, input);
@@ -81,7 +81,7 @@ class FetchDataReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         loadModels(testData.getModels());
-        var service = new QueryService(databaseConnection);
+        var service = new DatabaseQueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
         var output = executeRequest(handler, input);
@@ -96,7 +96,7 @@ class FetchDataReportTest extends LocalFusekiTest {
         throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
         loadModels(testData.getModels());
-        var service = new QueryService(databaseConnection);
+        var service = new DatabaseQueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var input = generateHandlerRequest(request);
         var output = executeRequest(handler, input);
@@ -111,7 +111,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         loadModels(testData.getModels());
-        var service = new QueryService(databaseConnection);
+        var service = new DatabaseQueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var pageSize = 1;
         var firstRequest = generateHandlerRequest(buildRequest(OFFSET_ZERO, valueOf(pageSize), reportType.getType()));
@@ -129,7 +129,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldRetrieveManyHits() throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(20));
         loadModels(testData.getModels());
-        var service = new QueryService(databaseConnection);
+        var service = new DatabaseQueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var request = new FetchDataReportRequest(
             TEXT_CSV.toString(),

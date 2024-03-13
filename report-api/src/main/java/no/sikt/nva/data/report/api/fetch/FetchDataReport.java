@@ -15,7 +15,7 @@ import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
-import no.sikt.nva.data.report.api.fetch.service.QueryService;
+import no.sikt.nva.data.report.api.fetch.service.DatabaseQueryService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -23,14 +23,14 @@ import nva.commons.core.JacocoGenerated;
 
 public class FetchDataReport extends ApiGatewayHandler<Void, String> {
 
-    private final QueryService queryService;
+    private final DatabaseQueryService queryService;
 
     @JacocoGenerated
     public FetchDataReport() {
-        this(new QueryService(new GraphStoreProtocolConnection()));
+        this(new DatabaseQueryService(new GraphStoreProtocolConnection()));
     }
 
-    public FetchDataReport(QueryService queryService) {
+    public FetchDataReport(DatabaseQueryService queryService) {
         super(Void.class);
         this.queryService = queryService;
     }
