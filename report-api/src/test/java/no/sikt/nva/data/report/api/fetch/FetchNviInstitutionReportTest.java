@@ -30,7 +30,6 @@ import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.logutils.LogUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -44,9 +43,9 @@ import org.zalando.problem.Status;
 
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
-    public static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     public static final String SOME_YEAR = "2023";
-    public static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
+    public static final String HARDCODED_INSTITUTION_ID = organizationUri(SOME_TOP_LEVEL_IDENTIFIER);
+    public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     private FetchNviInstitutionReport handler;
 
     @BeforeEach
@@ -55,13 +54,11 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     @Test
-    void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
-        var request = new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain");
-        var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI,
-                                                         randomUri());
+    void shouldReturnBadRequestIfQueryParameterInstitutionIdIsMissing() throws IOException {
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, null, "text/plain"));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
-        handler.handleRequest(unAuthorizedRequest, output, context);
+        handler.handleRequest(request, output, context);
         var response = fromOutputStream(output, GatewayResponse.class);
         var actualProblem = objectMapper.readValue(response.getBody(), Problem.class);
         var expectedProblem = getExpectedProblem(context.getAwsRequestId());
@@ -71,8 +68,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     @Test
     void shouldExtractAndLogPathParameterReportingYear() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain"),
-                                             AccessRight.MANAGE_NVI, randomUri());
+        var request = generateHandlerRequest(
+            new FetchNviInstitutionReportRequest(SOME_YEAR, randomUri().toString(), "text/plain"));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -80,11 +77,13 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     @Test
-    void shouldLogRequestingUsersTopLevelOrganization() throws IOException {
+    void shouldLogQueryParamInstitutionId() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var topLevelCristinOrgId = randomUri();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain"),
-                                             AccessRight.MANAGE_NVI, topLevelCristinOrgId);
+        var request = generateHandlerRequest(
+            new FetchNviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId.toString(),
+                                                 "text/plain")
+        );
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -96,9 +95,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldReturnFormattedResult(FetchNviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(2));
         loadModels(testData.getModels());
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, HARDCODED_INSTITUTION_ID);
         var output = new ByteArrayOutputStream();
-        handler.handleRequest(input, output, new FakeContext());
+        handler.handleRequest(generateHandlerRequest(request), output, new FakeContext());
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
@@ -114,7 +112,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         loadModels(testData.getModels());
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, HARDCODED_INSTITUTION_ID);
+        var input = generateHandlerRequest(request);
         var output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, new FakeContext());
         var response = fromOutputStream(output, String.class);
@@ -128,9 +126,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws IOException {
         var testData = new TestData(generateDatePairs(2));
         loadModels(testData.getModels());
-        var input = generateHandlerRequest(request, AccessRight.MANAGE_NVI, HARDCODED_INSTITUTION_ID);
         var output = new ByteArrayOutputStream();
-        handler.handleRequest(input, output, new FakeContext());
+        handler.handleRequest(generateHandlerRequest(request), output, new FakeContext());
         var expected = getExpectedExcel(testData);
         var decodedResponse = Base64.getDecoder().decode(fromOutputStream(output, String.class).getBody());
         var actual = new Excel(new XSSFWorkbook(new ByteArrayInputStream(decodedResponse)));
@@ -139,34 +136,40 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     private static String getExpectedProblem(String requestId) {
         return attempt(() -> objectMapper.writeValueAsString(Problem.builder()
-                                                                 .withStatus(Status.UNAUTHORIZED)
-                                                                 .withTitle("Unauthorized")
-                                                                 .withDetail("Unauthorized")
+                                                                 .withStatus(Status.BAD_REQUEST)
+                                                                 .withTitle("Bad Request")
+                                                                 .withDetail(
+                                                                     "Missing from query parameters: "
+                                                                     + QUERY_PARAM_INSTITUTION_ID)
                                                                  .with("requestId", requestId)
                                                                  .build())).orElseThrow();
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/plain")),
-                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, "text/csv")));
+        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text"
+                                                                                                                +
+                                                                                                                "/plain")),
+                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text"
+                                                                                                                +
+                                                                                                                "/csv"
+                         )));
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportExcelRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, "application/vnd.ms-excel")),
-                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR,
+        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID,
+                                                                           "application/vnd.ms-excel")),
+                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID,
                                                                            "application/vnd"
                                                                            + ".openxmlformats-officedocument"
                                                                            + ".spreadsheetml.sheet")));
     }
 
-    private static InputStream generateHandlerRequest(FetchNviInstitutionReportRequest request, AccessRight accessRight,
-                                                      URI topLevelCristinOrgId)
+    private static InputStream generateHandlerRequest(FetchNviInstitutionReportRequest request)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
                    .withHeaders(request.acceptHeader())
-                   .withAccessRights(randomUri(), accessRight)
                    .withPathParameters(request.pathParameters())
-                   .withTopLevelCristinOrgId(topLevelCristinOrgId)
+                   .withQueryParameters(request.queryParameters())
                    .build();
     }
 
