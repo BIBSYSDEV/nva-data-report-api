@@ -22,13 +22,13 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
 
+    public FetchNviInstitutionReportProxy() {
+        super(Void.class);
+    }
+
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL, OOXML_SHEET);
-    }
-
-    public FetchNviInstitutionReportProxy() {
-        super(Void.class);
     }
 
     @Override
@@ -38,6 +38,11 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var topLevelOrganization = extractTopLevelOrganization(requestInfo);
         logRequest(topLevelOrganization, reportingYear);
         return null;
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(Void unused, String o) {
+        return HttpStatus.SC_OK;
     }
 
     private static String extractTopLevelOrganization(RequestInfo requestInfo) {
@@ -55,10 +60,5 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         if (!requestInfo.userIsAuthorized(AccessRight.MANAGE_NVI)) {
             throw new UnauthorizedException();
         }
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(Void unused, String o) {
-        return HttpStatus.SC_OK;
     }
 }
