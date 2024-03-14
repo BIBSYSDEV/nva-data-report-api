@@ -9,12 +9,13 @@ public record FetchNviInstitutionReportRequest(String reportingYear,
                                                String institutionId,
                                                String accept) {
 
-    public Map<String, String> pathParameters() {
-        return Map.of("reportingYear", reportingYear);
+    public Map<String, String> queryParameters() {
+        return Map.of("institutionId", URLEncoder.encode(getInstitutionId(), UTF_8),
+                      "reportingYear", getReportingYear());
     }
 
-    public Map<String, String> queryParameters() {
-        return Map.of("institutionId", URLEncoder.encode(getInstitutionId(), UTF_8));
+    private String getReportingYear() {
+        return isNull(reportingYear) ? "" : reportingYear;
     }
 
     public Map<String, String> acceptHeader() {
