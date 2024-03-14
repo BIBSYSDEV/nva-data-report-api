@@ -34,6 +34,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -133,14 +134,14 @@ class SingleObjectDataLoaderTest {
         var uri = URI.create("https://example.org/"
                              + objectKey.toString().replace(".gz", ""));
         var json = String.format("""
-            { "body": {
-                "@context": "%s",
-                "id": "%s",
-                "type": "ExampleData",
-                "labels": { "en": "Example data" }
-              }
-            }
-            """,  contextUri, uri);
+                                     { "body": {
+                                         "@context": "%s",
+                                         "id": "%s",
+                                         "type": "ExampleData",
+                                         "labels": { "en": "Example data" }
+                                       }
+                                     }
+                                     """, contextUri, uri);
 
         var graphUri = registerGraphForPostTestDeletion(uri);
         s3Driver.insertFile(objectKey, json);
@@ -164,6 +165,7 @@ class SingleObjectDataLoaderTest {
     void shouldLogStuff() {
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         new SingleObjectDataLoader(new GraphService(dbConnection), storageReader);
+        logAppender.stop();
         assertTrue(logAppender.getMessages().contains("Initializing SingleObjectDataLoader"));
     }
 
@@ -177,6 +179,7 @@ class SingleObjectDataLoaderTest {
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), UPSERT_EVENT);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
+        logAppender.stop();
         assertTrue(logAppender.getMessages().contains("object key: " + objectKey));
     }
 
@@ -196,6 +199,7 @@ class SingleObjectDataLoaderTest {
         var event = new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), eventType);
         final var logAppender = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(event, context);
+        logAppender.stop();
         assertTrue(logAppender.getMessages().contains("eventType: " + eventType));
     }
 
