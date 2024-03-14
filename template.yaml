@@ -341,7 +341,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /nvi/institution
+            Path: /institution/nvi-approval
             Method: get
             RestApiId: !Ref DataReportApi
 
