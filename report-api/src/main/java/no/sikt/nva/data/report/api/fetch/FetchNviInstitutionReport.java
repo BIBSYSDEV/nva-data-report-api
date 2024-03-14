@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static com.google.common.net.MediaType.OOXML_SHEET;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.model.ReportFormat.EXCEL;
@@ -9,7 +10,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import commons.db.GraphStoreProtocolConnection;
 import commons.formatter.ResponseFormatter;
-import java.net.URI;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
@@ -28,11 +29,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
     public static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
     public static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
+    public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final String ACCEPT = "Accept";
     private static final String NVI_INSTITUTION_SPARQL = "nvi-institution-status";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
-    public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -53,7 +54,8 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     @Override
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws BadRequestException {
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
-        var topLevelOrganization = requestInfo.getQueryParameter(QUERY_PARAM_INSTITUTION_ID);
+        var topLevelOrganization =
+            URLDecoder.decode(requestInfo.getQueryParameter(QUERY_PARAM_INSTITUTION_ID), UTF_8);
         logRequest(topLevelOrganization, reportingYear);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var result = getResult(reportingYear, topLevelOrganization, reportFormat);

@@ -1,6 +1,8 @@
 package no.sikt.nva.data.report.api.fetch.testutils.requests;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
+import java.net.URLEncoder;
 import java.util.Map;
 
 public record FetchNviInstitutionReportRequest(String reportingYear,
@@ -12,7 +14,7 @@ public record FetchNviInstitutionReportRequest(String reportingYear,
     }
 
     public Map<String, String> queryParameters() {
-        return Map.of("institutionId", getInstitutionId());
+        return Map.of("institutionId", URLEncoder.encode(getInstitutionId(), UTF_8));
     }
 
     public Map<String, String> acceptHeader() {
