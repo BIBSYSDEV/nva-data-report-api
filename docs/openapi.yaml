@@ -220,7 +220,9 @@ paths:
       description: Get institution report for nvi for given reporting year. Supporting text/csv download according to <https://www.rfc-editor.org/rfc/rfc4180>, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and application/ld+json.
       security:
         - CognitoUserPool: [
-          'https://api.nva.unit.no/scopes/backend'
+          'https://api.nva.unit.no/scopes/backend',
+          'https://api.nva.unit.no/scopes/frontend',
+          'aws.cognito.signin.user.admin'
         ]
       x-amazon-apigateway-integration:
         uri:
