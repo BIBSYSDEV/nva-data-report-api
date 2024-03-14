@@ -16,9 +16,7 @@ import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
-import no.sikt.nva.data.report.api.fetch.service.DatabaseQueryService;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
-import no.sikt.nva.data.report.api.fetch.service.SparqlQueryGenerator;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -39,10 +37,10 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
     @JacocoGenerated
     public FetchNviInstitutionReport() {
-        this(new DatabaseQueryService(new GraphStoreProtocolConnection()));
+        this(new QueryService(new GraphStoreProtocolConnection()));
     }
 
-    public FetchNviInstitutionReport(DatabaseQueryService queryService) {
+    public FetchNviInstitutionReport(QueryService queryService) {
         super(Void.class);
         this.queryService = queryService;
     }
@@ -91,8 +89,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     private String getResult(String reportingYear, String topLevelOrganization, ReportFormat reportFormat) {
         var replacementStrings = Map.of(REPLACE_REPORTING_YEAR, reportingYear,
                                         REPLACE_TOP_LEVEL_ORG, topLevelOrganization);
-        var sparqlQuery = SparqlQueryGenerator.getSparqlQuery(NVI_INSTITUTION_SPARQL, replacementStrings);
-        return queryService.getResult(sparqlQuery, getFormatter(reportFormat));
+        return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings, getFormatter(reportFormat));
     }
 
     private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {

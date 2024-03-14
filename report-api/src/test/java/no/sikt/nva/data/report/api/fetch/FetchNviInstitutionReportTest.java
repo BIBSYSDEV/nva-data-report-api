@@ -22,7 +22,7 @@ import java.net.URI;
 import java.util.Base64;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
-import no.sikt.nva.data.report.api.fetch.service.DatabaseQueryService;
+import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportRequest;
@@ -51,7 +51,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     @BeforeEach
     void setUp() {
-        handler = new FetchNviInstitutionReport(new DatabaseQueryService(databaseConnection));
+        handler = new FetchNviInstitutionReport(new QueryService(databaseConnection));
     }
 
     @Test

@@ -6,7 +6,6 @@ dependencies {
     implementation(project(':data-report-commons'))
     implementation libs.nva.commons.core
     implementation libs.nva.commons.apigateway
-    implementation libs.nva.commons.auth
     implementation libs.nva.json
     implementation libs.bundles.jena
     implementation libs.jackson.databind
