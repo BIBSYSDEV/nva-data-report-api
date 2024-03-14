@@ -42,6 +42,15 @@ import org.zalando.problem.Status;
 
 public class FetchNviInstitutionReportHandlerProxyTest {
 
+    private static final String TEXT_PLAIN = "text/plain";
+    private static final String QUERY_PARAM_REPORTING_YEAR = "reportingYear";
+    private static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
+    private static final String CUSTOM_DOMAIN_PATH = "report";
+    private static final String INSTITUTION_PATH = "institution";
+    private static final String NVI_APPROVAL_REPORT_PATH = "nvi-approval";
+    private static final String TEXT_CSV = "text/csv";
+    private static final String OPEN_XML = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    private static final String EXCEL = "vnd.ms-excel";
     private static final String API_HOST = new Environment().readEnv("API_HOST");
     private static final String SOME_YEAR = "2023";
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
@@ -56,7 +65,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
 
     @Test
     void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
-        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, "text/plain");
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
         var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI,
                                                          randomUri());
         var output = new ByteArrayOutputStream();
@@ -71,19 +80,19 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     @Test
     void shouldLogRequestingUsersTopLevelOrganization() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var topLevelCristinOrgId = randomUri();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, "text/plain"),
-                                             AccessRight.MANAGE_NVI, topLevelCristinOrgId);
+        var institutionId = randomUri();
+        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN),
+                                             AccessRight.MANAGE_NVI, institutionId);
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
-        assertTrue(logAppender.getMessages().contains("for organization: " + topLevelCristinOrgId));
+        assertTrue(logAppender.getMessages().contains("for organization: " + institutionId));
     }
 
     @Test
     void shouldExtractAndLogPathParameterReportingYear() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, "text/plain"),
+        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN),
                                              AccessRight.MANAGE_NVI, randomUri());
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
@@ -92,15 +101,14 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"text/csv", "text/plain",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "vnd.ms-excel"})
+    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
     void shouldReturnExpectedContentType(String contentType) throws IOException, InterruptedException {
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
         var institutionId = randomUri();
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, institutionId);
-        var output = new ByteArrayOutputStream();
         var expectedResponseBody = randomString();
         mockResponse(institutionId, expectedResponseBody, contentType);
+        var output = new ByteArrayOutputStream();
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, institutionId);
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var response = fromOutputStream(output, GatewayResponse.class);
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
@@ -146,11 +154,11 @@ public class FetchNviInstitutionReportHandlerProxyTest {
 
     private URI constructInstitutionReportEndpoint(String institutionId) {
         return UriWrapper.fromHost(API_HOST)
-                   .addChild("report")
-                   .addChild("institution")
-                   .addChild("nvi-approval")
-                   .addQueryParameter("reportingYear", SOME_YEAR)
-                   .addQueryParameter("institutionId", URLEncoder.encode(institutionId, UTF_8))
+                   .addChild(CUSTOM_DOMAIN_PATH)
+                   .addChild(INSTITUTION_PATH)
+                   .addChild(NVI_APPROVAL_REPORT_PATH)
+                   .addQueryParameter(QUERY_PARAM_REPORTING_YEAR, SOME_YEAR)
+                   .addQueryParameter(QUERY_PARAM_INSTITUTION_ID, URLEncoder.encode(institutionId, UTF_8))
                    .getUri();
     }
 
