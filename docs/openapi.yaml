@@ -148,8 +148,6 @@ paths:
           required: true
           schema:
             type: string
-            format: date
-          example: 2020-01-01
       responses:
         '200':
           description: "OK"
