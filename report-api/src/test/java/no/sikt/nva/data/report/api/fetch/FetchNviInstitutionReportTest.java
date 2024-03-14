@@ -46,6 +46,8 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     public static final String SOME_YEAR = "2023";
     public static final String HARDCODED_INSTITUTION_ID = organizationUri(SOME_TOP_LEVEL_IDENTIFIER);
     public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
+    public static final String QUERY_PARAM_REPORTING_YEAR = "reportingYear";
+    public static final String TEXT_PLAIN = "text/plain";
     private FetchNviInstitutionReport handler;
 
     @BeforeEach
@@ -55,39 +57,39 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     @Test
     void shouldReturnBadRequestIfQueryParameterInstitutionIdIsMissing() throws IOException {
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, null, "text/plain"));
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, null, TEXT_PLAIN));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
         var response = fromOutputStream(output, GatewayResponse.class);
         var actualProblem = objectMapper.readValue(response.getBody(), Problem.class);
-        var expectedProblem = getExpectedProblem(context.getAwsRequestId());
+        var expectedProblem = getExpectedProblem(context.getAwsRequestId(), QUERY_PARAM_INSTITUTION_ID);
         assertEquals(expectedProblem, objectMapper.writeValueAsString(actualProblem));
     }
 
     @Test
-    void shouldExtractAndLogPathParameterReportingYear() throws IOException {
-        var logAppender = LogUtils.getTestingAppenderForRootLogger();
+    void shouldReturnBadRequestIfQueryParameterReportingYearIsMissing() throws IOException {
         var request = generateHandlerRequest(
-            new FetchNviInstitutionReportRequest(SOME_YEAR, randomUri().toString(), "text/plain"));
+            new FetchNviInstitutionReportRequest(null, randomUri().toString(), TEXT_PLAIN));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
-        assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
+        var response = fromOutputStream(output, GatewayResponse.class);
+        var actualProblem = objectMapper.readValue(response.getBody(), Problem.class);
+        var expectedProblem = getExpectedProblem(context.getAwsRequestId(), QUERY_PARAM_REPORTING_YEAR);
+        assertEquals(expectedProblem, objectMapper.writeValueAsString(actualProblem));
     }
 
     @Test
-    void shouldLogQueryParamInstitutionId() throws IOException {
+    void shouldExtractAndLogQueryParameters() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var topLevelCristinOrgId = randomUri();
         var request = generateHandlerRequest(
-            new FetchNviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId.toString(),
-                                                 "text/plain")
-        );
+            new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, TEXT_PLAIN));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
-        assertTrue(logAppender.getMessages().contains("for organization: " + topLevelCristinOrgId));
+        assertTrue(logAppender.getMessages().contains("for organization: " + HARDCODED_INSTITUTION_ID));
+        assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
     }
 
     @ParameterizedTest
@@ -134,25 +136,20 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         assertEqualsInAnyOrder(expected, actual);
     }
 
-    private static String getExpectedProblem(String requestId) {
+    private static String getExpectedProblem(String requestId, String queryParam) {
         return attempt(() -> objectMapper.writeValueAsString(Problem.builder()
                                                                  .withStatus(Status.BAD_REQUEST)
                                                                  .withTitle("Bad Request")
                                                                  .withDetail(
-                                                                     "Missing from query parameters: "
-                                                                     + QUERY_PARAM_INSTITUTION_ID)
+                                                                     "Missing from query parameters: " + queryParam)
                                                                  .with("requestId", requestId)
                                                                  .build())).orElseThrow();
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text"
-                                                                                                                +
-                                                                                                                "/plain")),
-                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text"
-                                                                                                                +
-                                                                                                                "/csv"
-                         )));
+        return Stream.of(
+            Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, TEXT_PLAIN)),
+            Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text/csv")));
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportExcelRequestProvider() {
@@ -168,7 +165,6 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         throws JsonProcessingException {
         return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
                    .withHeaders(request.acceptHeader())
-                   .withPathParameters(request.pathParameters())
                    .withQueryParameters(request.queryParameters())
                    .build();
     }
