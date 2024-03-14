@@ -27,13 +27,13 @@ import org.slf4j.LoggerFactory;
 
 public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
-    public static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
-    public static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
-    public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final String ACCEPT = "Accept";
+    private static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
+    private static final String QUERY_PARAM_REPORTING_YEAR = "reportingYear";
     private static final String NVI_INSTITUTION_SPARQL = "nvi-institution-status";
-    private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
+    private static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
+    private static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -53,7 +53,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
     @Override
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws BadRequestException {
-        var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
+        var reportingYear = requestInfo.getQueryParameter(QUERY_PARAM_REPORTING_YEAR);
         var topLevelOrganization =
             URLDecoder.decode(requestInfo.getQueryParameter(QUERY_PARAM_INSTITUTION_ID), UTF_8);
         logRequest(topLevelOrganization, reportingYear);
