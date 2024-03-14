@@ -7,6 +7,9 @@ dependencies {
     implementation libs.nva.commons.core
     implementation libs.nva.commons.apigateway
     implementation libs.nva.json
+    implementation libs.nva.commons.auth
+    implementation libs.nva.commons.secrets
+    implementation libs.aws.sdk2.secrets
     implementation libs.bundles.jena
     implementation libs.jackson.databind
     implementation libs.guava
@@ -32,4 +35,5 @@ test {
     environment("NEPTUNE_ENDPOINT", "localhost")
     environment("NEPTUNE_PORT", "8182")
     environment("QUERY_PATH", "gsp/sparql")
+    environment("API_HOST", "example.org")
 }
