@@ -96,16 +96,16 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "vnd.ms-excel"})
     void shouldReturnExpectedContentType(String contentType) throws IOException, InterruptedException {
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
-        var topLevelCristinOrgId = randomUri();
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, topLevelCristinOrgId);
+        var institutionId = randomUri();
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, institutionId);
         var output = new ByteArrayOutputStream();
-        var expectedResponse = createExpectedResponse(randomString());
-        mockResponse(contentType, topLevelCristinOrgId, expectedResponse);
+        var expectedResponseBody = randomString();
+        mockResponse(institutionId, expectedResponseBody, contentType);
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var response = fromOutputStream(output, GatewayResponse.class);
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
         assertEquals(HTTP_OK, response.getStatusCode());
-        assertEquals(expectedResponse.body(), response.getBody());
+        assertEquals(expectedResponseBody, response.getBody());
     }
 
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,
@@ -129,30 +129,32 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                                  .build())).orElseThrow();
     }
 
-    private void mockResponse(String contentType, URI topLevelCristinOrgId, HttpResponse<String> expectedResponse)
+    private void mockResponse(URI institutionId, String responseBody, String contentType)
         throws IOException, InterruptedException {
-        var uri = constructInstitutionReportEndpoint(topLevelCristinOrgId.toString());
-        mockResponse(uri, expectedResponse, contentType);
+        var uri = constructInstitutionReportEndpoint(institutionId.toString());
+        var response = mockHttpResponse(responseBody);
+        mockResponse(uri, response, contentType);
     }
 
-    private void mockResponse(URI uri, HttpResponse<String> expectedResponse, String contentType)
+    private void mockResponse(URI uri, HttpResponse<String> response, String contentType)
         throws IOException, InterruptedException {
+        var request = createExpectedRequest(uri, contentType);
         when(
-            authorizedBackendClient.send(eq(createExpectedRequest(uri, contentType)), eq(BodyHandlers.ofString(UTF_8))))
-            .thenReturn(expectedResponse);
+            authorizedBackendClient.send(eq(request), eq(BodyHandlers.ofString(UTF_8))))
+            .thenReturn(response);
     }
 
     private URI constructInstitutionReportEndpoint(String institutionId) {
         return UriWrapper.fromHost(API_HOST)
                    .addChild("report")
                    .addChild("institution")
-                   .addChild("approval-status")
+                   .addChild("nvi-approval")
                    .addQueryParameter("reportingYear", SOME_YEAR)
                    .addQueryParameter("institutionId", URLEncoder.encode(institutionId, UTF_8))
                    .getUri();
     }
 
-    private HttpResponse<String> createExpectedResponse(String expectedResponse) {
+    private HttpResponse<String> mockHttpResponse(String expectedResponse) {
         var response = mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(HTTP_OK);
         when(response.body()).thenReturn(expectedResponse);
