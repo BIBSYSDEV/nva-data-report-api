@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, String> {
 
+    public static final String API_HOST = "API_HOST";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final String BACKEND_CLIENT_SECRET_NAME = "BACKEND_CLIENT_SECRET_NAME";
     private static final String BACKEND_CLIENT_AUTH_URL = "BACKEND_CLIENT_AUTH_URL";
@@ -100,7 +102,8 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     private String fetchReport(String reportingYear, String topLevelOrganization, String acceptHeader)
         throws IOException, InterruptedException {
         var request = generateRequest(reportingYear, topLevelOrganization, acceptHeader);
-        return authorizedBackendClient.send(request, BodyHandlers.ofString(UTF_8)).body();
+        var response = authorizedBackendClient.send(request, BodyHandlers.ofString(UTF_8));
+        return response.body();
     }
 
     private Builder generateRequest(String reportingYear, String topLevelOrganization, String acceptHeader) {
@@ -110,12 +113,13 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
                    .GET();
     }
 
-    private URI generateUri(String reportingYear, String topLevelOrganization) {
-        return UriWrapper.fromHost(new Environment().readEnv("API_HOST"))
+    private URI generateUri(String reportingYear, String institutionId) {
+        return UriWrapper.fromHost(new Environment().readEnv(API_HOST))
                    .addChild("report")
+                   .addChild("institution")
                    .addChild("nvi-approval")
                    .addQueryParameter("reportingYear", reportingYear)
-                   .addQueryParameter("institutionId", topLevelOrganization)
+                   .addQueryParameter("institutionId", URLEncoder.encode(institutionId, UTF_8))
                    .getUri();
     }
 
