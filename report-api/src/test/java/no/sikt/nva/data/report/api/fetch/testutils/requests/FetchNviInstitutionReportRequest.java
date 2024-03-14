@@ -1,10 +1,10 @@
 package no.sikt.nva.data.report.api.fetch.testutils.requests;
 
-import java.net.URI;
+import static java.util.Objects.isNull;
 import java.util.Map;
 
 public record FetchNviInstitutionReportRequest(String reportingYear,
-                                               URI institutionId,
+                                               String institutionId,
                                                String accept) {
 
     public Map<String, String> pathParameters() {
@@ -12,10 +12,14 @@ public record FetchNviInstitutionReportRequest(String reportingYear,
     }
 
     public Map<String, String> queryParameters() {
-        return Map.of("institutionId", institutionId.toString());
+        return Map.of("institutionId", getInstitutionId());
     }
 
     public Map<String, String> acceptHeader() {
         return Map.of("Accept", accept);
+    }
+
+    private String getInstitutionId() {
+        return isNull(institutionId) ? "" : institutionId;
     }
 }

@@ -6,8 +6,10 @@ import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortRespo
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
+import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,7 +30,7 @@ import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.GatewayResponse;
 import nva.commons.logutils.LogUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,10 +38,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
 
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
+
     public static final String SOME_YEAR = "2023";
-    public static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
+    public static final String HARDCODED_INSTITUTION_ID = organizationUri(SOME_TOP_LEVEL_IDENTIFIER);
+    public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     private FetchNviInstitutionReport handler;
 
     @BeforeEach
@@ -48,10 +54,22 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     @Test
+    void shouldReturnBadRequestIfQueryParameterInstitutionIdIsMissing() throws IOException {
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, null, "text/plain"));
+        var output = new ByteArrayOutputStream();
+        var context = new FakeContext();
+        handler.handleRequest(request, output, context);
+        var response = fromOutputStream(output, GatewayResponse.class);
+        var actualProblem = objectMapper.readValue(response.getBody(), Problem.class);
+        var expectedProblem = getExpectedProblem(context.getAwsRequestId());
+        assertEquals(expectedProblem, objectMapper.writeValueAsString(actualProblem));
+    }
+
+    @Test
     void shouldExtractAndLogPathParameterReportingYear() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, randomUri()
-            , "text/plain"));
+        var request = generateHandlerRequest(
+            new FetchNviInstitutionReportRequest(SOME_YEAR, randomUri().toString(), "text/plain"));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -62,8 +80,9 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     void shouldLogQueryParamInstitutionId() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var topLevelCristinOrgId = randomUri();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId,
-                                                                                  "text/plain")
+        var request = generateHandlerRequest(
+            new FetchNviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId.toString(),
+                                                 "text/plain")
         );
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
@@ -113,6 +132,17 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
         var decodedResponse = Base64.getDecoder().decode(fromOutputStream(output, String.class).getBody());
         var actual = new Excel(new XSSFWorkbook(new ByteArrayInputStream(decodedResponse)));
         assertEqualsInAnyOrder(expected, actual);
+    }
+
+    private static String getExpectedProblem(String requestId) {
+        return attempt(() -> objectMapper.writeValueAsString(Problem.builder()
+                                                                 .withStatus(Status.BAD_REQUEST)
+                                                                 .withTitle("Bad Request")
+                                                                 .withDetail(
+                                                                     "Missing from query parameters: "
+                                                                     + QUERY_PARAM_INSTITUTION_ID)
+                                                                 .with("requestId", requestId)
+                                                                 .build())).orElseThrow();
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportRequestProvider() {
