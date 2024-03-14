@@ -61,6 +61,17 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertTrue(logAppender.getMessages().contains("for organization: " + topLevelCristinOrgId));
     }
 
+    @Test
+    void shouldExtractAndLogPathParameterReportingYear() throws IOException {
+        var logAppender = LogUtils.getTestingAppenderForRootLogger();
+        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, "text/plain"),
+                                             AccessRight.MANAGE_NVI, randomUri());
+        var output = new ByteArrayOutputStream();
+        var context = new FakeContext();
+        handler.handleRequest(request, output, context);
+        assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
+    }
+
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,
                                                       AccessRight accessRight,
                                                       URI topLevelCristinOrgId)
