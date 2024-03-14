@@ -5,17 +5,20 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportProxyRequest;
+import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportRequest;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -44,6 +47,18 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         var actualProblem = objectMapper.readValue(response.getBody(), Problem.class);
         var expectedProblem = getExpectedProblem(context.getAwsRequestId());
         assertEquals(expectedProblem, objectMapper.writeValueAsString(actualProblem));
+    }
+
+    @Test
+    void shouldLogRequestingUsersTopLevelOrganization() throws IOException {
+        var logAppender = LogUtils.getTestingAppenderForRootLogger();
+        var topLevelCristinOrgId = randomUri();
+        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, "text/plain"),
+                                             AccessRight.MANAGE_NVI, topLevelCristinOrgId);
+        var output = new ByteArrayOutputStream();
+        var context = new FakeContext();
+        handler.handleRequest(request, output, context);
+        assertTrue(logAppender.getMessages().contains("for organization: " + topLevelCristinOrgId));
     }
 
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,
