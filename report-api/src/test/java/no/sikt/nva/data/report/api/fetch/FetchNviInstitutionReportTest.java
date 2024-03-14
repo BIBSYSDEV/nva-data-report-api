@@ -47,6 +47,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     public static final String HARDCODED_INSTITUTION_ID = organizationUri(SOME_TOP_LEVEL_IDENTIFIER);
     public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     public static final String QUERY_PARAM_REPORTING_YEAR = "reportingYear";
+    public static final String TEXT_PLAIN = "text/plain";
     private FetchNviInstitutionReport handler;
 
     @BeforeEach
@@ -56,7 +57,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     @Test
     void shouldReturnBadRequestIfQueryParameterInstitutionIdIsMissing() throws IOException {
-        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, null, "text/plain"));
+        var request = generateHandlerRequest(new FetchNviInstitutionReportRequest(SOME_YEAR, null, TEXT_PLAIN));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -69,7 +70,7 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     @Test
     void shouldReturnBadRequestIfQueryParameterReportingYearIsMissing() throws IOException {
         var request = generateHandlerRequest(
-            new FetchNviInstitutionReportRequest(null, randomUri().toString(), "text/plain"));
+            new FetchNviInstitutionReportRequest(null, randomUri().toString(), TEXT_PLAIN));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -80,26 +81,15 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     @Test
-    void shouldExtractAndLogPathParameterReportingYear() throws IOException {
+    void shouldExtractAndLogQueryParameters() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var request = generateHandlerRequest(
-            new FetchNviInstitutionReportRequest(SOME_YEAR, randomUri().toString(), "text/plain"));
+            new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, TEXT_PLAIN));
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
+        assertTrue(logAppender.getMessages().contains("for organization: " + HARDCODED_INSTITUTION_ID));
         assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
-    }
-
-    @Test
-    void shouldLogQueryParamInstitutionId() throws IOException {
-        var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var topLevelCristinOrgId = randomUri();
-        var request = generateHandlerRequest(
-            new FetchNviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId.toString(), "text/plain"));
-        var output = new ByteArrayOutputStream();
-        var context = new FakeContext();
-        handler.handleRequest(request, output, context);
-        assertTrue(logAppender.getMessages().contains("for organization: " + topLevelCristinOrgId));
     }
 
     @ParameterizedTest
@@ -157,13 +147,9 @@ public class FetchNviInstitutionReportTest extends LocalFusekiTest {
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportRequestProvider() {
-        return Stream.of(Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text"
-                                                                                                                +
-                                                                                                                "/plain")),
-                         Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text"
-                                                                                                                +
-                                                                                                                "/csv"
-                         )));
+        return Stream.of(
+            Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, TEXT_PLAIN)),
+            Arguments.of(new FetchNviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text/csv")));
     }
 
     private static Stream<Arguments> fetchNviInstitutionReportExcelRequestProvider() {
