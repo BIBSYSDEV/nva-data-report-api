@@ -315,7 +315,6 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
-  # ---- Handler ----
   FetchNviInstitutionReportHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -342,6 +341,27 @@ Resources:
           Type: Api
           Properties:
             Path: /institution/nvi-approval
+            Method: get
+            RestApiId: !Ref DataReportApi
+
+  FetchNviInstitutionReportProxyHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: report-api
+      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportProxy::handleRequest
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          COGNITO_HOST: !Ref CognitoAuthorizationUri
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /institution/nvi-approval/{reportingYear}
             Method: get
             RestApiId: !Ref DataReportApi
 
