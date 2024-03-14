@@ -268,30 +268,6 @@ paths:
                 "row1 value1","row1 value2","row1 value3"
                 "row2 value1","row2 value2","row2 value3"
                 "row... value1","row... value2""row... value3"
-            application/ld+json:
-              schema:
-                type: object
-              example: |
-                {
-                  "@context": "https://nva.sikt.no/report/type/context",
-                  "results": [
-                    {
-                      "columnName1": "Row 1 Value 1",
-                      "columnName2": "Row 1 Value 2",
-                      "columnName...": "Row 1 Value..."
-                    },
-                    {
-                      "columnName1": "Row 2 Value 1",
-                      "columnName2": "Row 2 Value 2",
-                      "columnName...": "Row 2 Value..."
-                    },
-                    {
-                      "columnName1": "Row... Value 1",
-                      "columnName2": "Row... Value 2",
-                      "columnName...": "Row... Value..."
-                    }
-                  ]
-                }
             application/vnd.ms-excel:
               schema:
                 format: binary
