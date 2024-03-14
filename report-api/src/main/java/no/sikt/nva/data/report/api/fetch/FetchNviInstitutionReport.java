@@ -17,10 +17,9 @@ import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.UnauthorizedException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +32,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     private static final String ACCEPT = "Accept";
     private static final String NVI_INSTITUTION_SPARQL = "nvi-institution-status";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
+    public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -51,10 +51,9 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     }
 
     @Override
-    protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws UnauthorizedException {
-        validateAccessRights(requestInfo);
+    protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws BadRequestException {
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
-        var topLevelOrganization = extractTopLevelOrganization(requestInfo);
+        var topLevelOrganization = requestInfo.getQueryParameter(QUERY_PARAM_INSTITUTION_ID);
         logRequest(topLevelOrganization, reportingYear);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var result = getResult(reportingYear, topLevelOrganization, reportFormat);
@@ -65,12 +64,6 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     @Override
     protected Integer getSuccessStatusCode(Void unused, String o) {
         return 200;
-    }
-
-    private static String extractTopLevelOrganization(RequestInfo requestInfo) {
-        return requestInfo.getTopLevelOrgCristinId()
-                   .map(URI::toString)
-                   .orElse("UnknownRequestTopLevelOrganization");
     }
 
     private static void logRequest(String topLevelOrganization, String reportingYear) {
@@ -90,12 +83,6 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
         var replacementStrings = Map.of(REPLACE_REPORTING_YEAR, reportingYear,
                                         REPLACE_TOP_LEVEL_ORG, topLevelOrganization);
         return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings, getFormatter(reportFormat));
-    }
-
-    private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
-        if (!requestInfo.userIsAuthorized(AccessRight.MANAGE_NVI)) {
-            throw new UnauthorizedException();
-        }
     }
 
     private void setIsBase64EncodedIfReportFormatExcel(ReportFormat reportFormat) {
