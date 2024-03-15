@@ -1,5 +1,7 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -94,7 +96,17 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
     }
 
-    //TODO: Add BadGatewayException test
+    @Test
+    void shouldReturnBadGatewayWhenReportEndpointReturnsUnexpectedResponse()
+        throws IOException, InterruptedException {
+        mockInternalServerError();
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(HTTP_BAD_GATEWAY, responseFromOutput.getStatusCode());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
@@ -158,6 +170,12 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                                  .withDetail("Unauthorized")
                                                                  .with("requestId", requestId)
                                                                  .build())).orElseThrow();
+    }
+
+    private void mockInternalServerError() throws IOException, InterruptedException {
+        var response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(HTTP_INTERNAL_ERROR);
+        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
     }
 
     private void mockResponse(String responseBody, String contentType)
