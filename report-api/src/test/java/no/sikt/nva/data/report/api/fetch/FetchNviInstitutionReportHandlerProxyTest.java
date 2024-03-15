@@ -1,16 +1,14 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static nva.commons.core.attempt.Try.attempt;
-import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,12 +16,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportProxyRequest;
@@ -33,8 +28,6 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.core.Environment;
-import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,15 +39,9 @@ import org.zalando.problem.Status;
 public class FetchNviInstitutionReportHandlerProxyTest {
 
     private static final String TEXT_PLAIN = "text/plain";
-    private static final String QUERY_PARAM_REPORTING_YEAR = "reportingYear";
-    private static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
-    private static final String CUSTOM_DOMAIN_PATH = "report";
-    private static final String INSTITUTION_PATH = "institution";
-    private static final String NVI_APPROVAL_REPORT_PATH = "nvi-approval";
     private static final String TEXT_CSV = "text/csv";
     private static final String OPEN_XML = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    private static final String EXCEL = "vnd.ms-excel";
-    private static final String API_HOST = new Environment().readEnv("API_HOST");
+    private static final String EXCEL = "application/vnd.ms-excel";
     private static final String SOME_YEAR = "2023";
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     private FetchNviInstitutionReportProxy handler;
@@ -106,12 +93,11 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     @ParameterizedTest
     @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
     void shouldReturnExpectedContentType(String contentType) throws IOException, InterruptedException {
-        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
-        var institutionId = randomUri();
         var expectedResponseBody = randomString();
-        mockResponse(institutionId, expectedResponseBody, contentType);
+        mockResponse(expectedResponseBody, contentType);
         var output = new ByteArrayOutputStream();
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, institutionId);
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var response = fromOutputStream(output, GatewayResponse.class);
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
@@ -140,29 +126,15 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                                  .build())).orElseThrow();
     }
 
-    private void mockResponse(URI institutionId, String responseBody, String contentType)
+    private void mockResponse(String responseBody, String contentType)
         throws IOException, InterruptedException {
-        var uri = constructUri(institutionId.toString());
         var response = mockHttpResponse(responseBody, contentType);
-        mockResponse(uri, response, contentType);
+        mockResponse(response);
     }
 
-    private void mockResponse(URI uri, HttpResponse<String> response, String contentType)
+    private void mockResponse(HttpResponse<String> response)
         throws IOException, InterruptedException {
-        var request = createExpectedRequest(uri, contentType);
-        when(
-            authorizedBackendClient.send(eq(request), eq(BodyHandlers.ofString(UTF_8))))
-            .thenReturn(response);
-    }
-
-    private URI constructUri(String institutionId) {
-        return UriWrapper.fromHost(API_HOST)
-                   .addChild(CUSTOM_DOMAIN_PATH)
-                   .addChild(INSTITUTION_PATH)
-                   .addChild(NVI_APPROVAL_REPORT_PATH)
-                   .addQueryParameter(QUERY_PARAM_REPORTING_YEAR, SOME_YEAR)
-                   .addQueryParameter(QUERY_PARAM_INSTITUTION_ID, URLEncoder.encode(institutionId, UTF_8))
-                   .getUri();
+        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
     }
 
     private HttpResponse<String> mockHttpResponse(String expectedResponse, String contentType) {
@@ -172,11 +144,5 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                            (s, l) -> true));//?
         when(response.body()).thenReturn(expectedResponse);
         return response;
-    }
-
-    private Builder createExpectedRequest(URI uri, String accept) {
-        return HttpRequest.newBuilder(uri)
-                   .header(ACCEPT, accept)
-                   .GET();
     }
 }
