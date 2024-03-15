@@ -38,7 +38,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     @JacocoGenerated
     public FetchNviInstitutionReportProxy() {
         this(new NviInstitutionReportClient(
-            AuthorizedBackendClient.prepareWithCognitoCredentials(readCognitoCredentials()),
+            AuthorizedBackendClient.prepareWithCognitoCredentials(readCognitoCredentials(new Environment())),
             new Environment().readEnv(API_HOST)));
     }
 
@@ -69,9 +69,10 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     }
 
     @JacocoGenerated
-    private static CognitoCredentials readCognitoCredentials() {
+    private static CognitoCredentials readCognitoCredentials(Environment environment) {
         return Optional.of(
-                new SecretsReader().fetchClassSecret(BACKEND_CLIENT_SECRET_NAME, BackendClientCredentials.class))
+                new SecretsReader().fetchClassSecret(environment.readEnv(BACKEND_CLIENT_SECRET_NAME),
+                                                     BackendClientCredentials.class))
                    .map(FetchNviInstitutionReportProxy::mapToCognitoCredentials)
                    .orElseThrow();
     }
