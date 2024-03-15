@@ -19,10 +19,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.List;
+import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportProxyRequest;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.commons.json.JsonUtils;
@@ -139,8 +142,8 @@ public class FetchNviInstitutionReportHandlerProxyTest {
 
     private void mockResponse(URI institutionId, String responseBody, String contentType)
         throws IOException, InterruptedException {
-        var uri = constructInstitutionReportEndpoint(institutionId.toString());
-        var response = mockHttpResponse(responseBody);
+        var uri = constructUri(institutionId.toString());
+        var response = mockHttpResponse(responseBody, contentType);
         mockResponse(uri, response, contentType);
     }
 
@@ -152,7 +155,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
             .thenReturn(response);
     }
 
-    private URI constructInstitutionReportEndpoint(String institutionId) {
+    private URI constructUri(String institutionId) {
         return UriWrapper.fromHost(API_HOST)
                    .addChild(CUSTOM_DOMAIN_PATH)
                    .addChild(INSTITUTION_PATH)
@@ -162,9 +165,11 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                    .getUri();
     }
 
-    private HttpResponse<String> mockHttpResponse(String expectedResponse) {
+    private HttpResponse<String> mockHttpResponse(String expectedResponse, String contentType) {
         var response = mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(HTTP_OK);
+        when(response.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of(contentType)),
+                                                           (s, l) -> true));//?
         when(response.body()).thenReturn(expectedResponse);
         return response;
     }
