@@ -59,6 +59,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
         var topLevelOrganization = extractTopLevelOrganization(requestInfo);
         var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
+        setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
         logRequest(topLevelOrganization, reportingYear);
         return attempt(() -> reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader)).orElseThrow();
     }
@@ -94,6 +95,16 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     private static void logRequest(String topLevelOrganization, String reportingYear) {
         logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
                     topLevelOrganization, reportingYear);
+    }
+
+    private static boolean isExcelOrOpenXml(String acceptHeader) {
+        return MICROSOFT_EXCEL.toString().equals(acceptHeader) || OOXML_SHEET.toString().equals(acceptHeader);
+    }
+
+    private void setIsBase64EncodedIfContentTypeIsExcel(String acceptHeader) {
+        if (isExcelOrOpenXml(acceptHeader)) {
+            setIsBase64Encoded(true);
+        }
     }
 
     private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
