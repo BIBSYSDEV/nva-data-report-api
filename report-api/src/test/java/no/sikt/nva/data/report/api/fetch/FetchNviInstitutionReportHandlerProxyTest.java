@@ -21,6 +21,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 import java.util.Map;
+import no.sikt.nva.data.report.api.fetch.client.NviInstitutionReportClient;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportProxyRequest;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.commons.json.JsonUtils;
@@ -28,6 +29,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +52,8 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     @BeforeEach
     public void setup() {
         authorizedBackendClient = mock(AuthorizedBackendClient.class);
-        handler = new FetchNviInstitutionReportProxy(authorizedBackendClient);
+        handler = new FetchNviInstitutionReportProxy(
+            new NviInstitutionReportClient(authorizedBackendClient, new Environment().readEnv("API_HOST")));
     }
 
     @Test

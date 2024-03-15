@@ -2,20 +2,15 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static com.google.common.net.MediaType.OOXML_SHEET;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.Builder;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Optional;
+import no.sikt.nva.data.report.api.fetch.client.NviInstitutionReportClient;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.auth.CognitoCredentials;
 import no.unit.nva.auth.uriretriever.BackendClientCredentials;
@@ -26,7 +21,6 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -36,19 +30,22 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
 
     public static final String API_HOST = "API_HOST";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
+    private static final String ACCEPT_HEADER = "Accept";
     private static final String BACKEND_CLIENT_SECRET_NAME = "BACKEND_CLIENT_SECRET_NAME";
     private static final String BACKEND_CLIENT_AUTH_URL = "BACKEND_CLIENT_AUTH_URL";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
-    private final AuthorizedBackendClient authorizedBackendClient;
+    private final NviInstitutionReportClient reportClient;
 
     @JacocoGenerated
     public FetchNviInstitutionReportProxy() {
-        this(AuthorizedBackendClient.prepareWithCognitoCredentials(readCognitoCredentials()));
+        this(new NviInstitutionReportClient(
+            AuthorizedBackendClient.prepareWithCognitoCredentials(readCognitoCredentials()),
+            new Environment().readEnv(API_HOST)));
     }
 
-    public FetchNviInstitutionReportProxy(AuthorizedBackendClient authorizedBackendClient) {
+    public FetchNviInstitutionReportProxy(NviInstitutionReportClient reportClient) {
         super(Void.class);
-        this.authorizedBackendClient = authorizedBackendClient;
+        this.reportClient = reportClient;
     }
 
     @Override
@@ -61,9 +58,9 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         validateAccessRights(requestInfo);
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
         var topLevelOrganization = extractTopLevelOrganization(requestInfo);
-        var acceptHeader = requestInfo.getHeader("Accept");
+        var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
         logRequest(topLevelOrganization, reportingYear);
-        return attempt(() -> fetchReport(reportingYear, topLevelOrganization, acceptHeader)).orElseThrow();
+        return attempt(() -> reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader)).orElseThrow();
     }
 
     @Override
@@ -97,30 +94,6 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     private static void logRequest(String topLevelOrganization, String reportingYear) {
         logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
                     topLevelOrganization, reportingYear);
-    }
-
-    private String fetchReport(String reportingYear, String topLevelOrganization, String acceptHeader)
-        throws IOException, InterruptedException {
-        var request = generateRequest(reportingYear, topLevelOrganization, acceptHeader);
-        var response = authorizedBackendClient.send(request, BodyHandlers.ofString(UTF_8));
-        return response.body();
-    }
-
-    private Builder generateRequest(String reportingYear, String topLevelOrganization, String acceptHeader) {
-        return HttpRequest.newBuilder()
-                   .uri(generateUri(reportingYear, topLevelOrganization))
-                   .header("Accept", acceptHeader)
-                   .GET();
-    }
-
-    private URI generateUri(String reportingYear, String institutionId) {
-        return UriWrapper.fromHost(new Environment().readEnv(API_HOST))
-                   .addChild("report")
-                   .addChild("institution")
-                   .addChild("nvi-approval")
-                   .addQueryParameter("reportingYear", reportingYear)
-                   .addQueryParameter("institutionId", URLEncoder.encode(institutionId, UTF_8))
-                   .getUri();
     }
 
     private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
