@@ -28,11 +28,11 @@ import org.slf4j.LoggerFactory;
 
 public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, String> {
 
-    public static final String API_HOST = "API_HOST";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
-    private static final String ACCEPT_HEADER = "Accept";
+    private static final String API_HOST = "API_HOST";
     private static final String BACKEND_CLIENT_SECRET_NAME = "BACKEND_CLIENT_SECRET_NAME";
-    private static final String BACKEND_CLIENT_AUTH_URL = "BACKEND_CLIENT_AUTH_URL";
+    private static final String BACKEND_CLIENT_AUTH_URL = "COGNITO_HOST";
+    private static final String ACCEPT_HEADER = "Accept";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
     private final NviInstitutionReportClient reportClient;
 
