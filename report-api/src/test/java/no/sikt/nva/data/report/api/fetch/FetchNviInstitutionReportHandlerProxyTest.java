@@ -7,6 +7,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -108,6 +109,34 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
         assertEquals(HTTP_OK, response.getStatusCode());
         assertEquals(expectedResponseBody, response.getBody());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {OPEN_XML, EXCEL})
+    void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(String contentType)
+        throws IOException, InterruptedException {
+        mockResponse(randomString(), contentType);
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var response = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(200, response.getStatusCode());
+        assertTrue(response.getIsBase64Encoded());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN})
+    void shouldNotReturnBase64EncodedOutputStreamWhenContentTypeIsNotExcel(String contentType)
+        throws IOException, InterruptedException {
+        mockResponse(randomString(), contentType);
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var response = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(200, response.getStatusCode());
+        assertFalse(response.getIsBase64Encoded());
     }
 
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,
