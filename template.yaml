@@ -112,98 +112,62 @@ Resources:
     Properties:
       LogGroupName: !Sub '/aws/lambda/${DataLoadingHandler}'
       RetentionInDays: 5
-  # ---- Lambda ----
 
-  LambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: [ lambda.amazonaws.com ]
-            Action: [ 'sts:AssumeRole' ]
-      Policies:
-        - PolicyName: readFromS3
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:Get*
-                  - s3:List*
-                  - s3:PutObject
-                  - events:*
-                Resource: '*'
-        - PolicyName: neptuneAccessPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - neptune-db:*
-                Resource:
-                  - !Sub 'arn:aws:neptune-db:${AWS::Region}:${AWS::AccountId}:cluster:${ProjectName}/*'
-        - PolicyName: queuePolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - sqs:ReceiveMessage
-                  - sqs:DeleteMessage
-                  - sqs:SendMessage
-                  - sqs:GetQueueAttributes
-                Resource:
-                  - !GetAtt DataLoadingDLQ.Arn
-        - PolicyName: writeLog
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - PolicyName: invokeFunction
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - lambda:InvokeFunction
-                Resource: '*'
-        - PolicyName: deployToVpnPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ec2:DescribeNetworkInterfaces
-                  - ec2:CreateNetworkInterface
-                  - ec2:DeleteNetworkInterface
-                  - ec2:DescribeInstances
-                  - ec2:AttachNetworkInterface
-                Resource: '*'
+  # ---- Policies ----
 
-  DefaultLambdaPermissions:
-    Type: AWS::IAM::Policy
+  S3ManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub DefaultLambdaPermissions-${AWS::StackName}
-      Roles:
-        - !Ref LambdaRole
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - lambda:InvokeFunction
-            Resource: "*"
+              - s3:Get*
+              - s3:List*
+              - s3:PutObject
+              - events:*
+            Resource: '*'
+
+  NeptuneManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - neptune-db:*
+            Resource:
+              - !Sub 'arn:aws:neptune-db:${AWS::Region}:${AWS::AccountId}:cluster:${ProjectName}/*'
+  SqsManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+            Resource:
+              - !GetAtt DataLoadingDLQ.Arn
+  DeployToVpnPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:DescribeNetworkInterfaces
+              - ec2:CreateNetworkInterface
+              - ec2:DeleteNetworkInterface
+              - ec2:DescribeInstances
+              - ec2:AttachNetworkInterface
+            Resource: '*'
 
   InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -299,8 +263,9 @@ Resources:
           - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
+        - !GetAtt NeptuneManagedPolicy.PolicyArn
+        - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
-      Role: !GetAtt LambdaRole.Arn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -327,6 +292,8 @@ Resources:
           - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
+        - !GetAtt NeptuneManagedPolicy.PolicyArn
+        - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
       Role: !GetAtt LambdaRole.Arn
       Timeout: 600
@@ -335,7 +302,6 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          COGNITO_HOST: !Ref CognitoAuthorizationUri
       Events:
         ApiEvent:
           Type: Api
@@ -349,7 +315,15 @@ Resources:
     Properties:
       CodeUri: report-api
       Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportProxy::handleRequest
-      Role: !GetAtt LambdaRole.Arn
+      Policies:
+        - Version: '2012-10-17'
+          PolicyName: 'SecretsManagerPolicy'
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials-*"
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -378,6 +352,10 @@ Resources:
           - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
+        - !GetAtt S3ManagedPolicy.PolicyArn
+        - !GetAtt NeptuneManagedPolicy.PolicyArn
+        - !GetAtt SqsManagedPolicy.PolicyArn
+        - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
       Role: !GetAtt LambdaRole.Arn
       Timeout: 600
@@ -394,7 +372,6 @@ Resources:
             Type: SQS
             Destination: !GetAtt DataLoadingDLQ.Arn
 
-
   BulkDataLoader:
     Type: AWS::Serverless::Function
     Properties:
@@ -407,6 +384,9 @@ Resources:
           - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
+        - !GetAtt S3ManagedPolicy.PolicyArn
+        - !GetAtt NeptuneManagedPolicy.PolicyArn
+        - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
       Timeout: 600
       MemorySize: 1536
@@ -431,6 +411,8 @@ Resources:
           - !Ref LambdaSubnet2
       Policies:
         - VPCAccessPolicy: { }
+        - !GetAtt NeptuneManagedPolicy.PolicyArn
+        - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
       Role: !GetAtt LambdaRole.Arn
       Timeout: 600
@@ -444,7 +426,8 @@ Resources:
     Properties:
       CodeUri: bulk-load
       Handler: no.sikt.nva.data.report.api.etl.transformer.GenerateKeyBatchesHandler::handleRequest
-      Role: !GetAtt LambdaRole.Arn
+      Policies:
+        - !GetAtt S3ManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -468,12 +451,13 @@ Resources:
     Properties:
       CodeUri: bulk-load
       Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
-      Role: !GetAtt LambdaRole.Arn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
       Policies:
+        - !GetAtt S3ManagedPolicy.PolicyArn
         - Version: '2012-10-17'
+          PolicyName: 'DeleteS3Object'
           Statement:
             - Effect: Allow
               Action:
