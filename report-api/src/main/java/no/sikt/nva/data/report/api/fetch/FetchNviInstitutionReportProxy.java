@@ -69,6 +69,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         return HttpStatus.SC_OK;
     }
 
+    @JacocoGenerated
     private static CognitoCredentials readCognitoCredentials() {
         return Optional.of(
                 new SecretsReader().fetchClassSecret(BACKEND_CLIENT_SECRET_NAME, BackendClientCredentials.class))
@@ -76,12 +77,14 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
                    .orElseThrow();
     }
 
+    @JacocoGenerated
     private static CognitoCredentials mapToCognitoCredentials(BackendClientCredentials secret) {
         return new CognitoCredentials(secret::getId,
                                       secret::getSecret,
                                       readCognitoOAuthServerUri());
     }
 
+    @JacocoGenerated
     private static URI readCognitoOAuthServerUri() {
         return URI.create(new Environment().readEnv(BACKEND_CLIENT_AUTH_URL));
     }
