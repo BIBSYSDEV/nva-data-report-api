@@ -90,6 +90,8 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
     }
 
+    //TODO: Add BadGatewayException test
+
     @ParameterizedTest
     @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
     void shouldReturnExpectedContentType(String contentType) throws IOException, InterruptedException {
