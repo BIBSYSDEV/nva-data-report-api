@@ -58,6 +58,8 @@ public class NviInstitutionReportClient {
     private String executeRequest(Builder request)
         throws IOException, InterruptedException, ApiGatewayException {
         var response = authorizedBackendClient.send(request, BodyHandlers.ofString(UTF_8));
+        LOGGER.info("Response: {}", response);
+        LOGGER.info("Response body: {}", response.body());
         if (HTTP_OK != response.statusCode()) {
             handleError(response);
         }
