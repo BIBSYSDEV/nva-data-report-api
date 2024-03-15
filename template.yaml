@@ -295,7 +295,6 @@ Resources:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
-      Role: !GetAtt LambdaRole.Arn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -357,7 +356,6 @@ Resources:
         - !GetAtt SqsManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
-      Role: !GetAtt LambdaRole.Arn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -414,7 +412,6 @@ Resources:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
-      Role: !GetAtt LambdaRole.Arn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
