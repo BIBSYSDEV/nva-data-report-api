@@ -49,8 +49,8 @@ public class NviInstitutionReportClient {
         LOGGER.error("Unable to reach upstream: {}", uri, e);
         if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();
-        } else if (e instanceof ApiGatewayException) {
-            return (ApiGatewayException) e;
+        } else if (e instanceof ApiGatewayException gatewayException) {
+            return gatewayException;
         }
         return new BadGatewayException("Unable to reach upstream!");
     }
