@@ -317,13 +317,13 @@ Resources:
       Policies:
         - PolicyName: 'SecretsManagerPolicy'
           PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
-              Resource:
-                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials-*"
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials-*"
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -456,14 +456,14 @@ Resources:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - PolicyName: 'DeleteS3Object'
           PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - 's3:DeleteObject'
-              Resource:
-                - !Ref KeyBatchesBucket
-                - !Sub '${KeyBatchesBucket.Arn}/*'
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:DeleteObject'
+                Resource:
+                  - !Ref KeyBatchesBucket
+                  - !Sub '${KeyBatchesBucket.Arn}/*'
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
