@@ -3,6 +3,7 @@ package no.sikt.nva.data.report.api.fetch;
 import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -121,6 +122,18 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertEquals(HTTP_BAD_REQUEST, responseFromOutput.getStatusCode());
     }
 
+    @Test
+    void shouldReturnNotFoundWhenReportEndpointReturnsUnexpectedResponse()
+        throws IOException, InterruptedException {
+        mockNotFound();
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(HTTP_NOT_FOUND, responseFromOutput.getStatusCode());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
     void shouldReturnExpectedContentType(String contentType) throws IOException, InterruptedException {
@@ -183,6 +196,12 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                                  .withDetail("Unauthorized")
                                                                  .with("requestId", requestId)
                                                                  .build())).orElseThrow();
+    }
+
+    private void mockNotFound() throws IOException, InterruptedException {
+        var response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(HTTP_NOT_FOUND);
+        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
     }
 
     private void mockBadRequest() throws IOException, InterruptedException {
