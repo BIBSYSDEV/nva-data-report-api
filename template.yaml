@@ -115,6 +115,31 @@ Resources:
 
   # ---- Policies ----
 
+  SecretsManagerPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials-*"
+
+  DeleteS3ObjectPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:DeleteObject'
+            Resource:
+              - !Ref KeyBatchesBucket
+              - !Sub '${KeyBatchesBucket.Arn}/*'
+
   S3ManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -255,6 +280,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: report-api
+      Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
       VpcConfig:
         SecurityGroupIds:
           - !Ref LambdaSecurityGroup
@@ -264,7 +290,6 @@ Resources:
       Policies:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
-      Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -282,6 +307,7 @@ Resources:
   FetchNviInstitutionReportHandler:
     Type: AWS::Serverless::Function
     Properties:
+      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
       CodeUri: report-api
       VpcConfig:
         SecurityGroupIds:
@@ -292,7 +318,6 @@ Resources:
       Policies:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
-      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -313,15 +338,7 @@ Resources:
       CodeUri: report-api
       Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportProxy::handleRequest
       Policies:
-        - PolicyName: secretsManagerPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource:
-                  - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials-*"
+        - !GetAtt SecretsManagerPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -341,6 +358,7 @@ Resources:
   DataLoadingHandler:
     Type: AWS::Serverless::Function
     Properties:
+      Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
       CodeUri: data-loading
       VpcConfig:
         SecurityGroupIds:
@@ -353,7 +371,6 @@ Resources:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
-      Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -372,6 +389,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: bulk-load
+      Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
       VpcConfig:
         SecurityGroupIds:
           - !Ref LambdaSecurityGroup
@@ -382,7 +400,6 @@ Resources:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
-      Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -398,6 +415,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: database-tools
+      Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
       VpcConfig:
         SecurityGroupIds:
           - !Ref LambdaSecurityGroup
@@ -407,7 +425,6 @@ Resources:
       Policies:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
-      Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -449,16 +466,7 @@ Resources:
       AutoPublishAlias: live
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
-        - PolicyName: deleteS3Object
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 's3:DeleteObject'
-                Resource:
-                  - !Ref KeyBatchesBucket
-                  - !Sub '${KeyBatchesBucket.Arn}/*'
+        - !GetAtt DeleteS3ObjectPolicy.PolicyArn
       Environment:
         Variables:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
