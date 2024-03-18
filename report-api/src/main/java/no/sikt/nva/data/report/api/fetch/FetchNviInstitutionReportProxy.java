@@ -60,7 +60,9 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
         setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
         logRequest(topLevelOrganization, reportingYear);
-        return reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
+        var result = reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
+        logger.info("NVI institution status report fetched successfully");
+        return result;
     }
 
     @Override
