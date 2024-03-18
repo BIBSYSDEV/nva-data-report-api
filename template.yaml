@@ -315,7 +315,7 @@ Resources:
       CodeUri: report-api
       Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportProxy::handleRequest
       Policies:
-        - PolicyName: 'SecretsManagerPolicy'
+        - PolicyName: secretsManagerPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -454,7 +454,7 @@ Resources:
       AutoPublishAlias: live
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
-        - PolicyName: 'DeleteS3Object'
+        - PolicyName: deleteS3Object
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
