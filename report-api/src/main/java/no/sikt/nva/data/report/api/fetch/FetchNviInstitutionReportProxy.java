@@ -7,7 +7,6 @@ import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.URI;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import no.sikt.nva.data.report.api.fetch.client.NviInstitutionReportClient;
@@ -61,9 +60,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
         setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
         logRequest(topLevelOrganization, reportingYear);
-        var result = reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
-        logger.info("NVI institution status report fetched successfully");
-        return isExcelOrOpenXml(acceptHeader) ? Base64.getEncoder().encodeToString(result.getBytes()) : result;
+        return reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
     }
 
     @Override

@@ -36,6 +36,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
+import nva.commons.core.ioutils.IoUtils;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,6 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     private static final String OPEN_XML = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     private static final String EXCEL = "application/vnd.ms-excel";
     private static final String SOME_YEAR = "2023";
-    private static final Base64.Encoder ENCODER = Base64.getEncoder();
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     private FetchNviInstitutionReportProxy handler;
     private AuthorizedBackendClient authorizedBackendClient;
@@ -164,7 +164,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
         assertEquals(HTTP_OK, response.getStatusCode());
         assertTrue(response.getIsBase64Encoded());
-        assertEquals(ENCODER.encodeToString(expectedResponseBody.getBytes()), response.getBody());
+        assertEquals(convertInputStreamToBase64(expectedResponseBody.getBytes()), response.getBody());
     }
 
     @ParameterizedTest
@@ -202,6 +202,10 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                                  .build())).orElseThrow();
     }
 
+    private String convertInputStreamToBase64(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
     private void mockNotFound() throws IOException, InterruptedException {
         var response = mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(HTTP_NOT_FOUND);
@@ -236,7 +240,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         when(response.statusCode()).thenReturn(HTTP_OK);
         when(response.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of(contentType)),
                                                            (s, l) -> true));//?
-        when(response.body()).thenReturn(expectedResponse);
+        when(response.body()).thenReturn(IoUtils.stringToStream(expectedResponse));
         return response;
     }
 }
