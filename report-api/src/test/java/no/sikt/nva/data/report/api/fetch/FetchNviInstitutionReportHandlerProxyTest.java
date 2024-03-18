@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.client.NviInstitutionReportClient;
@@ -50,6 +51,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     private static final String OPEN_XML = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     private static final String EXCEL = "application/vnd.ms-excel";
     private static final String SOME_YEAR = "2023";
+    private static final Base64.Encoder ENCODER = Base64.getEncoder();
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     private FetchNviInstitutionReportProxy handler;
     private AuthorizedBackendClient authorizedBackendClient;
@@ -135,7 +137,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
+    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN})
     void shouldReturnExpectedContentType(String contentType) throws IOException, InterruptedException {
         var expectedResponseBody = randomString();
         mockResponse(expectedResponseBody, contentType);
@@ -147,6 +149,22 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
         assertEquals(HTTP_OK, response.getStatusCode());
         assertEquals(expectedResponseBody, response.getBody());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {OPEN_XML, EXCEL})
+    void shouldReturnExpectedContentTypeBase64Encoded(String contentType) throws IOException, InterruptedException {
+        var expectedResponseBody = randomString();
+        mockResponse(expectedResponseBody, contentType);
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var response = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(contentType, response.getHeaders().get("Content-Type"));
+        assertEquals(HTTP_OK, response.getStatusCode());
+        assertTrue(response.getIsBase64Encoded());
+        assertEquals(ENCODER.encodeToString(expectedResponseBody.getBytes()), response.getBody());
     }
 
     @ParameterizedTest

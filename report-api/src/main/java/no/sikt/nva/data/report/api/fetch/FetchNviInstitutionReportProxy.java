@@ -7,6 +7,7 @@ import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.URI;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import no.sikt.nva.data.report.api.fetch.client.NviInstitutionReportClient;
@@ -58,10 +59,11 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
         var topLevelOrganization = extractTopLevelOrganization(requestInfo);
         var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
+        setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
         logRequest(topLevelOrganization, reportingYear);
         var result = reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
         logger.info("NVI institution status report fetched successfully");
-        return result;
+        return isExcelOrOpenXml(acceptHeader) ? Base64.getEncoder().encodeToString(result.getBytes()) : result;
     }
 
     @Override
@@ -99,6 +101,16 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     private static void logRequest(String topLevelOrganization, String reportingYear) {
         logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
                     topLevelOrganization, reportingYear);
+    }
+
+    private static boolean isExcelOrOpenXml(String acceptHeader) {
+        return MICROSOFT_EXCEL.toString().equals(acceptHeader) || OOXML_SHEET.toString().equals(acceptHeader);
+    }
+
+    private void setIsBase64EncodedIfContentTypeIsExcel(String acceptHeader) {
+        if (isExcelOrOpenXml(acceptHeader)) {
+            setIsBase64Encoded(true);
+        }
     }
 
     private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
