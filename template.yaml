@@ -262,7 +262,6 @@ Resources:
           - !Ref LambdaSubnet1
           - !Ref LambdaSubnet2
       Policies:
-        - VPCAccessPolicy: { }
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
@@ -291,7 +290,6 @@ Resources:
           - !Ref LambdaSubnet1
           - !Ref LambdaSubnet2
       Policies:
-        - VPCAccessPolicy: { }
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
@@ -351,7 +349,6 @@ Resources:
           - !Ref LambdaSubnet1
           - !Ref LambdaSubnet2
       Policies:
-        - VPCAccessPolicy: { }
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
@@ -382,7 +379,6 @@ Resources:
           - !Ref LambdaSubnet1
           - !Ref LambdaSubnet2
       Policies:
-        - VPCAccessPolicy: { }
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
@@ -409,7 +405,6 @@ Resources:
           - !Ref LambdaSubnet1
           - !Ref LambdaSubnet2
       Policies:
-        - VPCAccessPolicy: { }
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
       Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
