@@ -1,13 +1,10 @@
 package no.sikt.nva.data.report.api.fetch.client;
 
-import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
-import static com.google.common.net.MediaType.OOXML_SHEET;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static nva.commons.core.attempt.Try.attempt;
-import static nva.commons.core.ioutils.IoUtils.streamToString;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -16,7 +13,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.Base64;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadGatewayException;
@@ -43,24 +39,11 @@ public class NviInstitutionReportClient {
         this.apiHost = apiHost;
     }
 
-    public String fetchReport(String reportingYear, String topLevelOrganization, String acceptHeader)
+    public InputStream fetchReport(String reportingYear, String topLevelOrganization, String acceptHeader)
         throws ApiGatewayException {
         var request = generateRequest(reportingYear, topLevelOrganization, acceptHeader);
-        var result = attempt(() -> executeRequest(request)).orElseThrow(
+        return attempt(() -> executeRequest(request)).orElseThrow(
             failure -> logAndCreateBadGatewayException(request.build().uri(), failure.getException()));
-        return isExcelOrOpenXml(acceptHeader) ? convertInputStreamToBase64(result) : streamToString(result);
-    }
-
-    private static boolean isExcelOrOpenXml(String acceptHeader) {
-        return MICROSOFT_EXCEL.toString().equals(acceptHeader) || OOXML_SHEET.toString().equals(acceptHeader);
-    }
-
-    private String convertInputStreamToBase64(InputStream is) {
-        try {
-            return Base64.getEncoder().encodeToString(is.readAllBytes());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private ApiGatewayException logAndCreateBadGatewayException(URI uri, Exception e) {

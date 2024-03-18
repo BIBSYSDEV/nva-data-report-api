@@ -4,9 +4,12 @@ import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static com.google.common.net.MediaType.OOXML_SHEET;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
+import java.io.InputStream;
 import java.net.URI;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import no.sikt.nva.data.report.api.fetch.client.NviInstitutionReportClient;
@@ -20,6 +23,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.ioutils.IoUtils;
 import nva.commons.secrets.SecretsReader;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -60,12 +64,17 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
         setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
         logRequest(topLevelOrganization, reportingYear);
-        return reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
+        var result = reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
+        return isExcelOrOpenXml(acceptHeader) ? encodeToString(result) : IoUtils.streamToString(result);
     }
 
     @Override
     protected Integer getSuccessStatusCode(Void unused, String o) {
         return HttpStatus.SC_OK;
+    }
+
+    private static String encodeToString(InputStream inputStream) {
+        return attempt(() -> Base64.getEncoder().encodeToString(inputStream.readAllBytes())).orElseThrow();
     }
 
     @JacocoGenerated
