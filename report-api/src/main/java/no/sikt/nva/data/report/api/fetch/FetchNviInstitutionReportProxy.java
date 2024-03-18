@@ -4,7 +4,6 @@ import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static com.google.common.net.MediaType.OOXML_SHEET;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.URI;
@@ -39,7 +38,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     @JacocoGenerated
     public FetchNviInstitutionReportProxy() {
         this(new NviInstitutionReportClient(
-            AuthorizedBackendClient.prepareWithCognitoCredentials(readCognitoCredentials()),
+            AuthorizedBackendClient.prepareWithCognitoCredentials(readCognitoCredentials(new Environment())),
             new Environment().readEnv(API_HOST)));
     }
 
@@ -61,7 +60,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
         setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
         logRequest(topLevelOrganization, reportingYear);
-        return attempt(() -> reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader)).orElseThrow();
+        return reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
     }
 
     @Override
@@ -70,9 +69,10 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     }
 
     @JacocoGenerated
-    private static CognitoCredentials readCognitoCredentials() {
+    private static CognitoCredentials readCognitoCredentials(Environment environment) {
         return Optional.of(
-                new SecretsReader().fetchClassSecret(BACKEND_CLIENT_SECRET_NAME, BackendClientCredentials.class))
+                new SecretsReader().fetchClassSecret(environment.readEnv(BACKEND_CLIENT_SECRET_NAME),
+                                                     BackendClientCredentials.class))
                    .map(FetchNviInstitutionReportProxy::mapToCognitoCredentials)
                    .orElseThrow();
     }

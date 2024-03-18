@@ -1,5 +1,9 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -20,6 +24,7 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.client.NviInstitutionReportClient;
@@ -31,6 +36,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
+import nva.commons.core.ioutils.IoUtils;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,10 +100,44 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertTrue(logAppender.getMessages().contains("reporting year: " + SOME_YEAR));
     }
 
-    //TODO: Add BadGatewayException test
+    @Test
+    void shouldReturnBadGatewayWhenReportEndpointReturnsUnexpectedResponse()
+        throws IOException, InterruptedException {
+        mockInternalServerError();
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(HTTP_BAD_GATEWAY, responseFromOutput.getStatusCode());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenReportEndpointReturnsUnexpectedResponse()
+        throws IOException, InterruptedException {
+        mockBadRequest();
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(HTTP_BAD_REQUEST, responseFromOutput.getStatusCode());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenReportEndpointReturnsUnexpectedResponse()
+        throws IOException, InterruptedException {
+        mockNotFound();
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
+        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        handler.handleRequest(handlerRequest, output, new FakeContext());
+        var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
+        assertEquals(HTTP_NOT_FOUND, responseFromOutput.getStatusCode());
+    }
 
     @ParameterizedTest
-    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
+    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN})
     void shouldReturnExpectedContentType(String contentType) throws IOException, InterruptedException {
         var expectedResponseBody = randomString();
         mockResponse(expectedResponseBody, contentType);
@@ -113,16 +153,18 @@ public class FetchNviInstitutionReportHandlerProxyTest {
 
     @ParameterizedTest
     @ValueSource(strings = {OPEN_XML, EXCEL})
-    void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(String contentType)
-        throws IOException, InterruptedException {
-        mockResponse(randomString(), contentType);
+    void shouldReturnExpectedContentTypeBase64Encoded(String contentType) throws IOException, InterruptedException {
+        var expectedResponseBody = randomString();
+        mockResponse(expectedResponseBody, contentType);
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
         var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var response = fromOutputStream(output, GatewayResponse.class);
-        assertEquals(200, response.getStatusCode());
+        assertEquals(contentType, response.getHeaders().get("Content-Type"));
+        assertEquals(HTTP_OK, response.getStatusCode());
         assertTrue(response.getIsBase64Encoded());
+        assertEquals(convertInputStreamToBase64(expectedResponseBody.getBytes()), response.getBody());
     }
 
     @ParameterizedTest
@@ -160,6 +202,28 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                                  .build())).orElseThrow();
     }
 
+    private String convertInputStreamToBase64(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    private void mockNotFound() throws IOException, InterruptedException {
+        var response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(HTTP_NOT_FOUND);
+        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
+    }
+
+    private void mockBadRequest() throws IOException, InterruptedException {
+        var response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(HTTP_BAD_REQUEST);
+        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
+    }
+
+    private void mockInternalServerError() throws IOException, InterruptedException {
+        var response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(HTTP_INTERNAL_ERROR);
+        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
+    }
+
     private void mockResponse(String responseBody, String contentType)
         throws IOException, InterruptedException {
         var response = mockHttpResponse(responseBody, contentType);
@@ -176,7 +240,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         when(response.statusCode()).thenReturn(HTTP_OK);
         when(response.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of(contentType)),
                                                            (s, l) -> true));//?
-        when(response.body()).thenReturn(expectedResponse);
+        when(response.body()).thenReturn(IoUtils.stringToStream(expectedResponse));
         return response;
     }
 }
