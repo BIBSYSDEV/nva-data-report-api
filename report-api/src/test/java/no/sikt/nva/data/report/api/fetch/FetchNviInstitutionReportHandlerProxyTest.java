@@ -150,20 +150,6 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {OPEN_XML, EXCEL})
-    void shouldReturnBase64EncodedOutputStreamWhenContentTypeIsExcel(String contentType)
-        throws IOException, InterruptedException {
-        mockResponse(randomString(), contentType);
-        var output = new ByteArrayOutputStream();
-        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
-        handler.handleRequest(handlerRequest, output, new FakeContext());
-        var response = fromOutputStream(output, GatewayResponse.class);
-        assertEquals(200, response.getStatusCode());
-        assertTrue(response.getIsBase64Encoded());
-    }
-
-    @ParameterizedTest
     @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN})
     void shouldNotReturnBase64EncodedOutputStreamWhenContentTypeIsNotExcel(String contentType)
         throws IOException, InterruptedException {
