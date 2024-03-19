@@ -97,7 +97,12 @@ SELECT DISTINCT
         ?reference :publicationContext ?publicationContext .
         ?publicationContext a ?channelTypeId ;
                             :name ?PUBLISERINGSKANALNAVN ;
-                            :scientificValue ?KVALITETSNIVAKODE .
+                            :scientificValue ?scientificValue .
+
+        BIND(
+          IF(?scientificValue = "LevelOne", "1",
+          IF(?scientificValue = "LevelTwo", "2", xsd:string(?scientificValue))) AS ?KVALITETSNIVAKODE
+        )
 
         BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
         BIND(STR(?channelTypeId) AS ?channelType)
