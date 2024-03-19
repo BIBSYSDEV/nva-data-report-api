@@ -86,9 +86,9 @@ public record TestNviCandidate(String identifier,
                    .withIsApplicable(isApplicable)
                    .withPublicationDetails(publicationDetails)
                    .withPoints(totalPoints.toString())
-                   .withPublicationTypeChannelLevelPoints(publicationTypeChannelLevelPoints.toString())
+                   .withPublicationTypeChannelLevelPoints(publicationTypeChannelLevelPoints)
                    .withCreatorShareCount(String.valueOf(creatorShareCount))
-                   .withInternationalCollaborationFactor(internationalCollaborationFactor.toString())
+                   .withInternationalCollaborationFactor(internationalCollaborationFactor)
                    .withReported(reported)
                    .withReportingPeriod(new ReportingPeriodGenerator().withYear(reportingPeriod))
                    .withGlobalApprovalStatus(globalApprovalStatus.getValue());
@@ -112,9 +112,9 @@ public record TestNviCandidate(String identifier,
             .append(globalApprovalStatus.getValue()).append(DELIMITER)
             .append(reported ? reportingPeriod : "NotReported").append(DELIMITER)
             .append(totalPoints).append(DELIMITER)
-            .append(publicationTypeChannelLevelPoints).append(DELIMITER)
+            .append(publicationTypeChannelLevelPoints.stripTrailingZeros()).append(DELIMITER)
             .append(creatorShareCount).append(DELIMITER)
-            .append(internationalCollaborationFactor).append(DELIMITER)
+            .append(internationalCollaborationFactor.stripTrailingZeros()).append(DELIMITER)
             .append(isApplicable())
             .append(CRLF.getString());
     }

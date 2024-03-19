@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.ONTOLOGY_BASE_URI;
+import java.math.BigDecimal;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
 import org.apache.jena.datatypes.xsd.impl.XSDDateTimeType;
@@ -67,7 +68,7 @@ public class CandidateGenerator extends TripleBasedBuilder {
         return this;
     }
 
-    public CandidateGenerator withPublicationTypeChannelLevelPoints(String publicationTypeChannelLevelPoints) {
+    public CandidateGenerator withPublicationTypeChannelLevelPoints(BigDecimal publicationTypeChannelLevelPoints) {
         model.add(subject, PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
                   model.createTypedLiteral(publicationTypeChannelLevelPoints));
         return this;
@@ -78,7 +79,7 @@ public class CandidateGenerator extends TripleBasedBuilder {
         return this;
     }
 
-    public CandidateGenerator withInternationalCollaborationFactor(String internationalCollaborationFactor) {
+    public CandidateGenerator withInternationalCollaborationFactor(BigDecimal internationalCollaborationFactor) {
         model.add(subject, INTERNATIONAL_COLLABORATION_FACTOR,
                   model.createTypedLiteral(internationalCollaborationFactor));
         return this;

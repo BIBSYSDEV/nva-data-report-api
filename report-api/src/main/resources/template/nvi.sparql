@@ -25,9 +25,12 @@ WHERE {
         :isApplicable ?isApplicableBoolean ;
         :points ?totalPoints ;
         :globalApprovalStatus ?globalApprovalStatus ;
-        :internationalCollaborationFactor ?internationalCollaborationFactor ;
+        :internationalCollaborationFactor ?internationalCollaborationFactorDecimal ;
         :creatorShareCount ?authorShareCount ;
-        :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+        :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPointsDecimal .
+
+      BIND(STR(?internationalCollaborationFactorDecimal) AS ?internationalCollaborationFactor) .
+      BIND(STR(?publicationTypeChannelLevelPointsDecimal) AS ?publicationTypeChannelLevelPoints) .
 
       OPTIONAL {
         ?candidate :reported ?reported ;
