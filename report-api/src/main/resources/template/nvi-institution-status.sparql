@@ -72,8 +72,6 @@ SELECT DISTINCT
        #These are todos
        BIND("FORFATTERE_TOTALT" AS ?FORFATTERE_TOTALT)
        BIND("FORFATTERE_INT" AS ?FORFATTERE_INT)
-       BIND("ETTERNAVN" AS ?ETTERNAVN)
-       BIND("FORNAVN" AS ?FORNAVN)
        BIND("SIDE_FRA" AS ?SIDE_FRA)
        BIND("SIDE_TIL" AS ?SIDE_TIL)
        BIND("SIDEANTALL" AS ?SIDEANTALL)
@@ -89,8 +87,8 @@ SELECT DISTINCT
      GRAPH ?nva {
         ?publicationUri a :Publication ;
              :identifier ?publicationIdentifier ;
-             :entityDescription ?entityDescription .
-
+             :entityDescription ?entityDescription ;
+             :entityDescription/:contributor ?contributor .
 
         ?entityDescription :mainTitle ?VA_TITTEL .
         ?entityDescription :reference ?reference .
@@ -109,6 +107,11 @@ SELECT DISTINCT
         OPTIONAL {
             ?publicationContext :printIssn ?ISSN
         }
+
+        ?contributor :identity ?contributorId .
+        ?contributorId :name ?contributorName .
+        BIND(?contributorName AS ?ETTERNAVN)
+        BIND(?contributorName AS ?FORNAVN)
      }
     } LIMIT 10000 #TODO: Handle cases where the limit is reached
 
