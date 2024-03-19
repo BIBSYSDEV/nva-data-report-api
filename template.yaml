@@ -137,7 +137,7 @@ Resources:
             Action:
               - 's3:DeleteObject'
             Resource:
-              - !Ref KeyBatchesBucket.Arn
+              - !GetAtt KeyBatchesBucket.Arn
 
   S3ManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
