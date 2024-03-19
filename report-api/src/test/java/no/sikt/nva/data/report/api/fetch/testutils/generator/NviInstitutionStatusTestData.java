@@ -7,12 +7,12 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstituti
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.DEPARTMENT_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.FACULTY_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.FIRST_NAME;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.GLOBAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.GROUP_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.INSTITUTION_APPROVAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.INSTITUTION_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.ISSN;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.GLOBAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.LANGUAGE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.LAST_NAME;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PAGE_COUNT;
@@ -95,7 +95,7 @@ public final class NviInstitutionStatusTestData {
         var approval = getExpectedApproval(affiliation, candidate);
         var identity = getExpectedContributorIdentity(contributor, publication);
         stringBuilder.append(publication.getIdentifier()).append(DELIMITER)
-            .append(approval.approvalStatus().getValue()).append(DELIMITER)
+            .append(getExpectedApprovalStatusValue(approval.approvalStatus())).append(DELIMITER)
             .append(publication.getPublicationCategory()).append(DELIMITER)
             .append(publication.getChannel().getType()
                         .substring(publication.getChannel().getType().indexOf("#") + 1)).append(DELIMITER)
@@ -117,7 +117,7 @@ public final class NviInstitutionStatusTestData {
             .append(PAGE_COUNT).append(DELIMITER)//TODO: Implement
             .append(publication.getMainTitle()).append(DELIMITER)
             .append(LANGUAGE).append(DELIMITER)//TODO: Implement
-            .append(getExpectedGlobalStatus(candidate.globalApprovalStatus())).append(DELIMITER)
+            .append(getExpectedApprovalStatusValue(candidate.globalApprovalStatus())).append(DELIMITER)
             .append(candidate.publicationTypeChannelLevelPoints()).append(DELIMITER) //TODO: Check if correct
             .append(candidate.internationalCollaborationFactor()).append(DELIMITER)
             .append(AUTHOR_SHARE_COUNT).append(DELIMITER)//TODO: Implement
@@ -133,8 +133,8 @@ public final class NviInstitutionStatusTestData {
                    .orElse(null);
     }
 
-    private static String getExpectedGlobalStatus(TestApprovalStatus globalApprovalStatus) {
-        return switch (globalApprovalStatus) {
+    private static String getExpectedApprovalStatusValue(TestApprovalStatus approvalStatus) {
+        return switch (approvalStatus) {
             case APPROVED -> "J";
             case REJECTED -> "N";
             case PENDING -> "?";
