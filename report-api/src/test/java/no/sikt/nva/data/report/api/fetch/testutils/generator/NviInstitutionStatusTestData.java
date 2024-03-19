@@ -133,8 +133,8 @@ public final class NviInstitutionStatusTestData {
                    .orElse(null);
     }
 
-    private static String getExpectedApprovalStatusValue(TestApprovalStatus globalApprovalStatus) {
-        return switch (globalApprovalStatus) {
+    private static String getExpectedApprovalStatusValue(TestApprovalStatus approvalStatus) {
+        return switch (approvalStatus) {
             case APPROVED -> "J";
             case REJECTED -> "N";
             case PENDING -> "?";
