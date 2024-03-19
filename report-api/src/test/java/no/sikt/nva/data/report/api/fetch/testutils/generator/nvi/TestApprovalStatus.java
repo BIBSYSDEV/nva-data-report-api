@@ -14,14 +14,6 @@ public enum TestApprovalStatus {
         this.value = value;
     }
 
-    @JsonCreator
-    public static TestApprovalStatus parse(String value) {
-        return Arrays.stream(TestApprovalStatus.values())
-                   .filter(status -> status.getValue().equalsIgnoreCase(value))
-                   .findFirst()
-                   .orElseThrow();
-    }
-
     public String getValue() {
         return value;
     }
