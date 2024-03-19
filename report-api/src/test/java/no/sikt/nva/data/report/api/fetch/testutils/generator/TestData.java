@@ -92,7 +92,7 @@ public class TestData {
     public TestData(List<DatePair> dates) {
         this.models = new ArrayList<>();
         this.publicationTestData = generatePublicationData(dates);
-        this.nviTestData = NviTestData.generateNviData(dates, publicationTestData);
+        this.nviTestData = NviTestData.generateNviData(publicationTestData);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
@@ -242,13 +242,11 @@ public class TestData {
     }
 
     private String getExpectedNviInstitutionStatusResponse(TestNviCandidate expectedCandidate) {
-        var expectedPublication = getPublication(expectedCandidate);
-
         return expectedCandidate.publicationDetails()
                    .contributors()
                    .stream()
                    .map(contributor -> generateExpectedNviInstitutionResponse(contributor, expectedCandidate,
-                                                                              expectedPublication))
+                                                                              getPublication(expectedCandidate)))
                    .collect(Collectors.joining());
     }
 
