@@ -36,9 +36,12 @@ SELECT DISTINCT
        ?candidate a :NviCandidate ;
                :publicationDetails ?publicationUri ;
                :isApplicable ?isApplicable ;
-               :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+               :internationalCollaborationFactor ?internationalCollaborationFactor ;
                :globalApprovalStatus ?globalApprovalStatus ;
-               :publicationTypeChannelLevelPoints ?VEKTINGSTALL .
+               :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+
+       BIND(STR(?internationalCollaborationFactor) AS ?FAKTORTALL_SAMARBEID) .
+       BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
 
        BIND(
          IF(?globalApprovalStatus = "Pending", "?",
