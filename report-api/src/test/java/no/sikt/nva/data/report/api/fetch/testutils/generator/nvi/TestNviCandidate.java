@@ -109,7 +109,7 @@ public record TestNviCandidate(String identifier,
             .append(approval.points()).append(DELIMITER)
             .append(calculateAffiliationPoints(affiliation)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
-            .append(globalApprovalStatus).append(DELIMITER)
+            .append(globalApprovalStatus.getValue()).append(DELIMITER)
             .append(reported ? reportingPeriod : "NotReported").append(DELIMITER)
             .append(totalPoints).append(DELIMITER)
             .append(publicationTypeChannelLevelPoints).append(DELIMITER)
