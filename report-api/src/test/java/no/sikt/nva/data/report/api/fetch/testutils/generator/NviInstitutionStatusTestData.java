@@ -12,7 +12,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstituti
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.INSTITUTION_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.ISSN;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.IS_REPORTED;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.GLOBAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.LANGUAGE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.LAST_NAME;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PAGE_COUNT;
@@ -31,6 +31,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.publication.
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
@@ -61,7 +62,7 @@ public final class NviInstitutionStatusTestData {
                                                                               PAGE_COUNT,
                                                                               PUBLICATION_TITLE,
                                                                               LANGUAGE,
-                                                                              IS_REPORTED,
+                                                                              GLOBAL_STATUS,
                                                                               TOTAL_POINTS,
                                                                               INTERNATIONAL_COLLABORATION_FACTOR,
                                                                               AUTHOR_SHARE_COUNT,
@@ -106,11 +107,19 @@ public final class NviInstitutionStatusTestData {
             .append(PAGE_COUNT).append(DELIMITER)//TODO: Implement
             .append(publication.getMainTitle()).append(DELIMITER)
             .append(LANGUAGE).append(DELIMITER)//TODO: Implement
-            .append(candidate.reported() ? "Rapportert" : "Ikke rapportert").append(DELIMITER)
+            .append(getExpectedGlobalStatus(candidate.globalApprovalStatus())).append(DELIMITER)
             .append(candidate.publicationTypeChannelLevelPoints()).append(DELIMITER) //TODO: Check if correct
             .append(candidate.internationalCollaborationFactor()).append(DELIMITER)
             .append(AUTHOR_SHARE_COUNT).append(DELIMITER)//TODO: Implement
             .append(POINTS_FOR_AFFILIATION).append(CRLF.getString());//TODO: Implement
+    }
+
+    private static String getExpectedGlobalStatus(TestApprovalStatus globalApprovalStatus) {
+        return switch (globalApprovalStatus) {
+            case APPROVED -> "J";
+            case REJECTED -> "N";
+            case PENDING -> "?";
+        };
     }
 
     private static TestApproval findExpectedApproval(TestNviOrganization affiliation, TestNviCandidate candidate) {

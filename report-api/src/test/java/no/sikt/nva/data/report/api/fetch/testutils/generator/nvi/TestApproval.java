@@ -5,7 +5,7 @@ import java.net.URI;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 
 public record TestApproval(URI institutionId,
-                           ApprovalStatus approvalStatus,
+                           TestApprovalStatus approvalStatus,
                            BigDecimal points) {
 
     public static Builder builder() {
@@ -16,27 +16,10 @@ public record TestApproval(URI institutionId,
         return new ApprovalGenerator();
     }
 
-    public enum ApprovalStatus {
-
-        PENDING("Pending"),
-        APPROVED("Approved"),
-        REJECTED("Rejected");
-
-        private final String value;
-
-        ApprovalStatus(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
-
     public static final class Builder {
 
         private URI institutionId;
-        private ApprovalStatus approvalStatus;
+        private TestApprovalStatus approvalStatus;
         private BigDecimal points;
 
         private Builder() {
@@ -47,7 +30,7 @@ public record TestApproval(URI institutionId,
             return this;
         }
 
-        public Builder withApprovalStatus(ApprovalStatus approvalStatus) {
+        public Builder withApprovalStatus(TestApprovalStatus approvalStatus) {
             this.approvalStatus = approvalStatus;
             return this;
         }

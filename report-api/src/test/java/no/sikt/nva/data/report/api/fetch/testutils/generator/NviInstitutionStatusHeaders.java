@@ -24,7 +24,7 @@ public final class NviInstitutionStatusHeaders {
     public static final String PAGE_COUNT = "SIDEANTALL";
     public static final String PUBLICATION_TITLE = "VA_TITTEL";
     public static final String LANGUAGE = "SPRAK";
-    public static final String IS_REPORTED = "RAPPORTERT_STATUS"; //TODO: Check if this is correct
+    public static final String GLOBAL_STATUS = "RAPPORTSTATUS";
     public static final String TOTAL_POINTS = "VEKTINGSTALL"; //TODO: Check if this is correct
     public static final String INTERNATIONAL_COLLABORATION_FACTOR = "FAKTORTALL_SAMARBEID";
     public static final String AUTHOR_SHARE_COUNT = "FORFATTERDEL";
