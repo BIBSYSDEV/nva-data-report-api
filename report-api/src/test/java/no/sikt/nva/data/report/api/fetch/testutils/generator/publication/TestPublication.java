@@ -31,6 +31,18 @@ public class TestPublication {
     public TestPublication() {
     }
 
+    public PublicationDate getDate() {
+        return date;
+    }
+
+    public Instant getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public List<TestContributor> getContributors() {
+        return contributors;
+    }
+
     public String getIdentifier() {
         return identifier;
     }

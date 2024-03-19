@@ -28,9 +28,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval.ApprovalStatus;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate.Builder;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
@@ -67,17 +66,23 @@ public final class NviTestData {
         return randomBigDecimal.setScale(4, RoundingMode.HALF_UP);
     }
 
-    static List<TestNviCandidate> generateNviData(List<DatePair> dates, List<TestPublication> publications) {
+    static List<TestNviCandidate> generateNviData(List<TestPublication> publications) {
         var dataSet = new ArrayList<TestNviCandidate>();
-        addCandidatesForPublications(publications, dates.getFirst().modifiedDate(), dataSet);
-        for (var date : dates) {
-            var modifiedDate = date.modifiedDate();
-            var reportingYear = date.publicationDate().year();
+        for (TestPublication publication : publications) {
+            var modifiedDate = publication.getModifiedDate();
+            addApplicableNviCandidate(publication, modifiedDate, dataSet);
+            var reportingYear = publication.getDate().year();
             addNonApplicableNviCandidate(modifiedDate, reportingYear, dataSet);
             addReportedCandidate(modifiedDate, reportingYear, dataSet);
             addCoPublishedCandidate(modifiedDate, reportingYear, dataSet);
         }
         return dataSet;
+    }
+
+    private static void addApplicableNviCandidate(TestPublication publication, Instant modifiedDate,
+                                                  ArrayList<TestNviCandidate> dataSet) {
+        var nviCandidate = generateNviCandidate(modifiedDate, publication);
+        dataSet.add(nviCandidate);
     }
 
     private static void addCoPublishedCandidate(Instant modifiedDate, String reportingYear,
@@ -98,18 +103,8 @@ public final class NviTestData {
         dataSet.add(nonApplicableNviCandidate);
     }
 
-    private static void addCandidatesForPublications(List<TestPublication> publications, Instant modifiedDate,
-                                                     ArrayList<TestNviCandidate> dataSet) {
-        for (TestPublication publication : publications) {
-            var nviCandidate = generateNviCandidate(modifiedDate,
-                                                    publication.getPublicationUri());
-            dataSet.add(nviCandidate);
-        }
-    }
-
-    private static TestNviCandidate generateNviCandidate(Instant modifiedDate,
-                                                         String publicationId) {
-        var publicationDetails = generatePublicationDetails(publicationId);
+    private static TestNviCandidate generateNviCandidate(Instant modifiedDate, TestPublication publication) {
+        var publicationDetails = generatePublicationDetails(publication);
         var approvals = generateApprovals(publicationDetails);
         return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, SOME_YEAR).build();
     }
@@ -126,8 +121,9 @@ public final class NviTestData {
         var publicationDetails = TestPublicationDetails.builder()
                                      .withId(randomUri().toString())
                                      .withContributors(
-                                         new ArrayList<>(List.of(generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER),
-                                                                 generateNviContributor("90.0.0.0"))))
+                                         new ArrayList<>(List.of(
+                                             generateNviContributor(randomUri().toString(), SOME_TOP_LEVEL_IDENTIFIER),
+                                             generateNviContributor(randomUri().toString(), "90.0.0.0"))))
                                      .build();
         var approvals = generateApprovals(publicationDetails);
         return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, reportingYear).build();
@@ -144,17 +140,29 @@ public final class NviTestData {
         return generatePublicationDetails(randomUri().toString());
     }
 
-    private static TestPublicationDetails generatePublicationDetails(String publicationId) {
+    private static TestPublicationDetails generatePublicationDetails(TestPublication publication) {
+        var contributors = publication.getContributors().stream()
+                               .map(contributor -> generateNviContributor(contributor.getIdentity().uri(),
+                                                                          SOME_SUB_UNIT_IDENTIFIER))
+                               .toList();
         return TestPublicationDetails.builder()
-                   .withId(publicationId)
-                   .withContributors(new ArrayList<>(List.of(generateNviContributor(SOME_SUB_UNIT_IDENTIFIER),
-                                                             generateNviContributor(SOME_TOP_LEVEL_IDENTIFIER))))
+                   .withId(publication.getPublicationUri())
+                   .withContributors(new ArrayList<>(contributors))
                    .build();
     }
 
-    private static TestNviContributor generateNviContributor(String organizationIdentifier) {
+    private static TestPublicationDetails generatePublicationDetails(String publicationId) {
+        return TestPublicationDetails.builder()
+                   .withId(publicationId)
+                   .withContributors(new ArrayList<>(List.of(
+                       generateNviContributor(randomUri().toString(), SOME_SUB_UNIT_IDENTIFIER),
+                       generateNviContributor(randomUri().toString(), SOME_TOP_LEVEL_IDENTIFIER))))
+                   .build();
+    }
+
+    private static TestNviContributor generateNviContributor(String id, String organizationIdentifier) {
         return TestNviContributor.builder()
-                   .withId(randomUri().toString())
+                   .withId(id)
                    .withAffiliations(List.of(generateNviAffiliation(organizationIdentifier)))
                    .build();
     }
@@ -177,7 +185,7 @@ public final class NviTestData {
     private static TestApproval generateApproval(String topLevelOrganization) {
         return TestApproval.builder()
                    .withInstitutionId(URI.create(topLevelOrganization))
-                   .withApprovalStatus(randomElement(ApprovalStatus.values()))
+                   .withApprovalStatus(randomElement(TestApprovalStatus.values()))
                    .withPoints(randomBigDecimal())
                    .build();
     }
@@ -193,7 +201,7 @@ public final class NviTestData {
                    .withApprovals(approvals)
                    .withCreatorShareCount(countCombinationsOfCreatorsAndAffiliations(publicationDetails))
                    .withInternationalCollaborationFactor(BigDecimal.ONE)
-                   .withGlobalApprovalStatus(ApprovalStatus.PENDING.getValue())
+                   .withGlobalApprovalStatus(TestApprovalStatus.PENDING)
                    .withPublicationTypeChannelLevelPoints(randomBigDecimal())
                    .withTotalPoints(randomBigDecimal())
                    .withReportingPeriod(reportingPeriod);

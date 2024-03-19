@@ -25,7 +25,7 @@ public record TestNviCandidate(String identifier,
                                BigDecimal internationalCollaborationFactor,
                                boolean reported,
                                String reportingPeriod,
-                               String globalApprovalStatus) {
+                               TestApprovalStatus globalApprovalStatus) {
 
     private static final String DELIMITER = ",";
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
@@ -91,7 +91,7 @@ public record TestNviCandidate(String identifier,
                    .withInternationalCollaborationFactor(internationalCollaborationFactor.toString())
                    .withReported(reported)
                    .withReportingPeriod(new ReportingPeriodGenerator().withYear(reportingPeriod))
-                   .withGlobalApprovalStatus(globalApprovalStatus);
+                   .withGlobalApprovalStatus(globalApprovalStatus.getValue());
     }
 
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor) {
@@ -109,7 +109,7 @@ public record TestNviCandidate(String identifier,
             .append(approval.points()).append(DELIMITER)
             .append(calculateAffiliationPoints(affiliation)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
-            .append(globalApprovalStatus).append(DELIMITER)
+            .append(globalApprovalStatus.getValue()).append(DELIMITER)
             .append(reported ? reportingPeriod : "NotReported").append(DELIMITER)
             .append(totalPoints).append(DELIMITER)
             .append(publicationTypeChannelLevelPoints).append(DELIMITER)
@@ -163,7 +163,7 @@ public record TestNviCandidate(String identifier,
         private BigDecimal internationalCollaborationFactor;
         private boolean reported;
         private String reportingPeriod;
-        private String globalApprovalStatus;
+        private TestApprovalStatus globalApprovalStatus;
 
         private Builder() {
         }
@@ -223,7 +223,7 @@ public record TestNviCandidate(String identifier,
             return this;
         }
 
-        public Builder withGlobalApprovalStatus(String globalApprovalStatus) {
+        public Builder withGlobalApprovalStatus(TestApprovalStatus globalApprovalStatus) {
             this.globalApprovalStatus = globalApprovalStatus;
             return this;
         }

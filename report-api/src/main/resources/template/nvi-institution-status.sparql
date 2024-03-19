@@ -26,7 +26,7 @@ SELECT DISTINCT
   ?SIDEANTALL
   ?VA_TITTEL
   ?SPRAK
-  ?RAPPORTERT_STATUS
+  ?RAPPORTSTATUS
   ?VEKTINGSTALL
   ?FAKTORTALL_SAMARBEID
   ?FORFATTERDEL
@@ -37,7 +37,14 @@ SELECT DISTINCT
                :publicationDetails ?publicationUri ;
                :isApplicable ?isApplicable ;
                :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+               :globalApprovalStatus ?globalApprovalStatus ;
                :publicationTypeChannelLevelPoints ?VEKTINGSTALL .
+
+       BIND(
+         IF(?globalApprovalStatus = "Pending", "?",
+         IF(?globalApprovalStatus = "Approved", "J",
+         IF(?globalApprovalStatus = "Rejected", "N", xsd:string(?globalApprovalStatus)))) AS ?RAPPORTSTATUS
+       )
 
        BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
 
@@ -52,6 +59,7 @@ SELECT DISTINCT
        ?candidate :approval ?approval .
              ?approval a :Approval ;
                :approvalStatus ?STATUS_KONTROLLERT ;
+               :points ?institutionPoints ;
                :institutionId ?organizationUri .
 
        FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
@@ -64,23 +72,36 @@ SELECT DISTINCT
        BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
        BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
 
-       OPTIONAL {
-         ?candidate :reported ?reported .
-         BIND(IF(?reported = true, "Rapportert", "Ikke rapportert") AS ?RAPPORTERT_STATUS)
-       }
-
        #These are todos
        BIND("FORFATTERE_TOTALT" AS ?FORFATTERE_TOTALT)
        BIND("FORFATTERE_INT" AS ?FORFATTERE_INT)
-       BIND("ETTERNAVN" AS ?ETTERNAVN)
-       BIND("FORNAVN" AS ?FORNAVN)
        BIND("SIDE_FRA" AS ?SIDE_FRA)
        BIND("SIDE_TIL" AS ?SIDE_TIL)
        BIND("SIDEANTALL" AS ?SIDEANTALL)
        BIND("SPRAK" AS ?SPRAK)
        BIND("FORFATTERDEL" AS ?FORFATTERDEL)
-       BIND("FORFATTERVEKT" AS ?FORFATTERVEKT)
        BIND("FORFATTERVEKT" AS ?VEKTET)
+
+       {
+         SELECT ?publicationUri ?organizationUri (COUNT(DISTINCT ?contributorId) AS ?numberOfAffiliationsForInstitution){
+           ?candidate a :NviCandidate ;
+                   :publicationDetails ?publicationUri ;
+                   :approval ?approval .
+
+           ?publicationUri :contributor ?contributorId .
+                 ?contributorId a :NviContributor .
+
+           ?contributorId :affiliation ?affiliationUri .
+           ?affiliationUri a ?NviOrganization .
+
+           ?approval a :Approval ;
+             :institutionId ?organizationUri .
+
+           FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+         }
+         GROUP BY ?publicationUri ?organizationUri
+       }
+       BIND(STR(ROUND((xsd:decimal(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?FORFATTERVEKT)
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .
@@ -89,8 +110,8 @@ SELECT DISTINCT
      GRAPH ?nva {
         ?publicationUri a :Publication ;
              :identifier ?publicationIdentifier ;
-             :entityDescription ?entityDescription .
-
+             :entityDescription ?entityDescription ;
+             :entityDescription/:contributor ?contributor .
 
         ?entityDescription :mainTitle ?VA_TITTEL .
         ?entityDescription :reference ?reference .
@@ -114,6 +135,11 @@ SELECT DISTINCT
         OPTIONAL {
             ?publicationContext :printIssn ?ISSN
         }
+
+        ?contributor :identity ?contributorId .
+        ?contributorId :name ?contributorName .
+        BIND(?contributorName AS ?ETTERNAVN)
+        BIND(?contributorName AS ?FORNAVN)
      }
     } LIMIT 10000 #TODO: Handle cases where the limit is reached
 
