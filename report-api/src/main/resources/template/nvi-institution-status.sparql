@@ -43,7 +43,7 @@ SELECT DISTINCT
        BIND(
          IF(?globalApprovalStatus = "Pending", "?",
          IF(?globalApprovalStatus = "Approved", "J",
-         IF(?globalApprovalStatus = "Rejected", "N", xsd:string(?a)))) AS ?RAPPORTSTATUS
+         IF(?globalApprovalStatus = "Rejected", "N", xsd:string(?globalApprovalStatus)))) AS ?RAPPORTSTATUS
        )
 
        BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
