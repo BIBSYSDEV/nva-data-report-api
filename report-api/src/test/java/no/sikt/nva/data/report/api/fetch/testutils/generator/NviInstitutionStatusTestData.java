@@ -37,6 +37,8 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidat
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestContributor;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestIdentity;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication;
 import nva.commons.core.paths.UriWrapper;
 
@@ -88,7 +90,8 @@ public final class NviInstitutionStatusTestData {
                                                                TestNviOrganization affiliation,
                                                                TestNviCandidate candidate,
                                                                TestPublication publication) {
-        var approval = findExpectedApproval(affiliation, candidate);
+        var approval = getExpectedApproval(affiliation, candidate);
+        var identity = getExpectedContributorIdentity(contributor, publication);
         stringBuilder.append(publication.getIdentifier()).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(publication.getPublicationCategory()).append(DELIMITER)
@@ -104,8 +107,8 @@ public final class NviInstitutionStatusTestData {
             .append(AUTHOR_COUNT).append(DELIMITER)//TODO: Implement
             .append(AUTHOR_INT).append(DELIMITER)//TODO: Implement
             .append(POINTS_FOR_AFFILIATION).append(DELIMITER) //TODO: Implement
-            .append(LAST_NAME).append(DELIMITER)//TODO: Implement
-            .append(FIRST_NAME).append(DELIMITER)//TODO: Implement
+            .append(identity.name()).append(DELIMITER)
+            .append(identity.name()).append(DELIMITER)
             .append(publication.getChannel().getName()).append(DELIMITER)
             .append(PAGE_FROM).append(DELIMITER)//TODO: Implement
             .append(PAGE_TO).append(DELIMITER)//TODO: Implement
@@ -119,7 +122,16 @@ public final class NviInstitutionStatusTestData {
             .append(calculatePointsForAffiliation(affiliation, candidate, approval)).append(CRLF.getString());
     }
 
-    private static TestApproval findExpectedApproval(TestNviOrganization affiliation, TestNviCandidate candidate) {
+    private static TestIdentity getExpectedContributorIdentity(TestNviContributor contributor,
+                                                               TestPublication publication) {
+        return publication.getContributors().stream()
+                   .map(TestContributor::getIdentity)
+                   .filter(identity -> identity.uri().equals(contributor.id()))
+                   .findFirst()
+                   .orElse(null);
+    }
+
+    private static TestApproval getExpectedApproval(TestNviOrganization affiliation, TestNviCandidate candidate) {
         return candidate.approvals().stream()
                    .filter(approval -> isApprovalForOrganization(approval, affiliation))
                    .findFirst()
