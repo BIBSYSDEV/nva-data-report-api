@@ -40,6 +40,7 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganiza
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestIdentity;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestLevel;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication;
 import nva.commons.core.paths.UriWrapper;
 
@@ -99,7 +100,7 @@ public final class NviInstitutionStatusTestData {
             .append(publication.getChannel().getType()
                         .substring(publication.getChannel().getType().indexOf("#") + 1)).append(DELIMITER)
             .append(publication.getChannel().getPrintIssn()).append(DELIMITER)
-            .append(publication.getChannel().getScientificValue()).append(DELIMITER)
+            .append(getExpectedPublicationChannelLevel(publication)).append(DELIMITER)
             .append(UriWrapper.fromUri(contributor.id()).getLastPathElement()).append(DELIMITER)
             .append(affiliation.getOrganizationNumber()).append(DELIMITER)
             .append(affiliation.getSubUnitOneNumber()).append(DELIMITER)
@@ -137,6 +138,14 @@ public final class NviInstitutionStatusTestData {
             case APPROVED -> "J";
             case REJECTED -> "N";
             case PENDING -> "?";
+        };
+    }
+
+    private static String getExpectedPublicationChannelLevel(TestPublication publication) {
+        var level = TestLevel.parse(publication.getChannel().getScientificValue());
+        return switch (level) {
+            case LEVEL_ONE -> "1";
+            case LEVEL_TWO -> "2";
         };
     }
 
