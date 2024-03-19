@@ -52,6 +52,7 @@ SELECT DISTINCT
        ?candidate :approval ?approval .
              ?approval a :Approval ;
                :approvalStatus ?STATUS_KONTROLLERT ;
+               :points ?institutionPoints ;
                :institutionId ?organizationUri .
 
        FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
@@ -77,8 +78,28 @@ SELECT DISTINCT
        BIND("SIDEANTALL" AS ?SIDEANTALL)
        BIND("SPRAK" AS ?SPRAK)
        BIND("FORFATTERDEL" AS ?FORFATTERDEL)
-       BIND("FORFATTERVEKT" AS ?FORFATTERVEKT)
        BIND("FORFATTERVEKT" AS ?VEKTET)
+
+       {
+         SELECT ?publicationUri ?organizationUri (COUNT(DISTINCT ?contributorId) AS ?numberOfAffiliationsForInstitution){
+           ?candidate a :NviCandidate ;
+                   :publicationDetails ?publicationUri ;
+                   :approval ?approval .
+
+           ?publicationUri :contributor ?contributorId .
+                 ?contributorId a :NviContributor .
+
+           ?contributorId :affiliation ?affiliationUri .
+           ?affiliationUri a ?NviOrganization .
+
+           ?approval a :Approval ;
+             :institutionId ?organizationUri .
+
+           FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+         }
+         GROUP BY ?publicationUri ?organizationUri
+       }
+       BIND(STR(ROUND((xsd:decimal(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?FORFATTERVEKT)
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .
