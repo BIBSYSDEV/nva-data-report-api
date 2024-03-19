@@ -58,9 +58,15 @@ SELECT DISTINCT
 
        ?candidate :approval ?approval .
              ?approval a :Approval ;
-               :approvalStatus ?STATUS_KONTROLLERT ;
+               :approvalStatus ?approvalStatus ;
                :points ?institutionPoints ;
                :institutionId ?organizationUri .
+
+       BIND(
+          IF(?approvalStatus = "Pending", "?",
+          IF(?approvalStatus = "Approved", "J",
+          IF(?approvalStatus = "Rejected", "N", xsd:string(?approvalStatus)))) AS ?STATUS_KONTROLLERT
+       )
 
        FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
        FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
