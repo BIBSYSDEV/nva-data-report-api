@@ -29,16 +29,24 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstituti
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.TOTAL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestContributor;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestIdentity;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication;
 import nva.commons.core.paths.UriWrapper;
 
 public final class NviInstitutionStatusTestData {
+
+    public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
+    public static final int NVI_POINT_SCALE = 4;
 
     public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(PUBLICATION_IDENTIFIER,
                                                                               INSTITUTION_APPROVAL_STATUS,
@@ -83,7 +91,8 @@ public final class NviInstitutionStatusTestData {
                                                                TestNviOrganization affiliation,
                                                                TestNviCandidate candidate,
                                                                TestPublication publication) {
-        var approval = findExpectedApproval(affiliation, candidate);
+        var approval = getExpectedApproval(affiliation, candidate);
+        var identity = getExpectedContributorIdentity(contributor, publication);
         stringBuilder.append(publication.getIdentifier()).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(publication.getPublicationCategory()).append(DELIMITER)
@@ -99,8 +108,8 @@ public final class NviInstitutionStatusTestData {
             .append(AUTHOR_COUNT).append(DELIMITER)//TODO: Implement
             .append(AUTHOR_INT).append(DELIMITER)//TODO: Implement
             .append(POINTS_FOR_AFFILIATION).append(DELIMITER) //TODO: Implement
-            .append(LAST_NAME).append(DELIMITER)//TODO: Implement
-            .append(FIRST_NAME).append(DELIMITER)//TODO: Implement
+            .append(identity.name()).append(DELIMITER)
+            .append(identity.name()).append(DELIMITER)
             .append(publication.getChannel().getName()).append(DELIMITER)
             .append(PAGE_FROM).append(DELIMITER)//TODO: Implement
             .append(PAGE_TO).append(DELIMITER)//TODO: Implement
@@ -111,7 +120,16 @@ public final class NviInstitutionStatusTestData {
             .append(candidate.publicationTypeChannelLevelPoints()).append(DELIMITER) //TODO: Check if correct
             .append(candidate.internationalCollaborationFactor()).append(DELIMITER)
             .append(AUTHOR_SHARE_COUNT).append(DELIMITER)//TODO: Implement
-            .append(POINTS_FOR_AFFILIATION).append(CRLF.getString());//TODO: Implement
+            .append(calculatePointsForAffiliation(affiliation, candidate, approval)).append(CRLF.getString());
+    }
+
+    private static TestIdentity getExpectedContributorIdentity(TestNviContributor contributor,
+                                                               TestPublication publication) {
+        return publication.getContributors().stream()
+                   .map(TestContributor::getIdentity)
+                   .filter(identity -> identity.uri().equals(contributor.id()))
+                   .findFirst()
+                   .orElse(null);
     }
 
     private static String getExpectedGlobalStatus(TestApprovalStatus globalApprovalStatus) {
@@ -122,7 +140,7 @@ public final class NviInstitutionStatusTestData {
         };
     }
 
-    private static TestApproval findExpectedApproval(TestNviOrganization affiliation, TestNviCandidate candidate) {
+    private static TestApproval getExpectedApproval(TestNviOrganization affiliation, TestNviCandidate candidate) {
         return candidate.approvals().stream()
                    .filter(approval -> isApprovalForOrganization(approval, affiliation))
                    .findFirst()
@@ -133,5 +151,23 @@ public final class NviInstitutionStatusTestData {
         return approval.institutionId()
                    .toString()
                    .equals(organization.getTopLevelOrganization());
+    }
+
+    private static BigDecimal calculatePointsForAffiliation(TestNviOrganization affiliation, TestNviCandidate candidate,
+                                                            TestApproval approval) {
+        var topLevelOrganization = affiliation.getTopLevelOrganization();
+        var contributorCount = countNumberOfContributorsWithTopLevelAffiliation(topLevelOrganization,
+                                                                                candidate.publicationDetails());
+        return approval.points().divide(BigDecimal.valueOf(contributorCount), ROUNDING_MODE)
+                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE)
+                   .stripTrailingZeros();
+    }
+
+    private static long countNumberOfContributorsWithTopLevelAffiliation(String topLevelOrganization,
+                                                                         TestPublicationDetails publicationDetails) {
+        return publicationDetails.contributors().stream()
+                   .flatMap(contributor -> contributor.affiliations().stream())
+                   .filter(affiliation -> affiliation.getTopLevelOrganization().equals(topLevelOrganization))
+                   .count();
     }
 }
