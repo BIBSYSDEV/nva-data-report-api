@@ -26,7 +26,7 @@ SELECT DISTINCT
   ?SIDEANTALL
   ?VA_TITTEL
   ?SPRAK
-  ?RAPPORTERT_STATUS
+  ?RAPPORTSTATUS
   ?VEKTINGSTALL
   ?FAKTORTALL_SAMARBEID
   ?FORFATTERDEL
@@ -37,7 +37,14 @@ SELECT DISTINCT
                :publicationDetails ?publicationUri ;
                :isApplicable ?isApplicable ;
                :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+               :globalApprovalStatus ?globalApprovalStatus ;
                :publicationTypeChannelLevelPoints ?VEKTINGSTALL .
+
+       BIND(
+         IF(?globalApprovalStatus = "Pending", "?",
+         IF(?globalApprovalStatus = "Approved", "J",
+         IF(?globalApprovalStatus = "Rejected", "N", xsd:string(?globalApprovalStatus)))) AS ?RAPPORTSTATUS
+       )
 
        BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
 
@@ -64,11 +71,6 @@ SELECT DISTINCT
        BIND(STRBEFORE(str(?identifier), ".") AS ?INSTITUSJONSNR)
        BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
        BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
-
-       OPTIONAL {
-         ?candidate :reported ?reported .
-         BIND(IF(?reported = true, "Rapportert", "Ikke rapportert") AS ?RAPPORTERT_STATUS)
-       }
 
        #These are todos
        BIND("FORFATTERE_TOTALT" AS ?FORFATTERE_TOTALT)

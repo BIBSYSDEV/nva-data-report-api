@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval.ApprovalStatus;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate.Builder;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
@@ -185,7 +185,7 @@ public final class NviTestData {
     private static TestApproval generateApproval(String topLevelOrganization) {
         return TestApproval.builder()
                    .withInstitutionId(URI.create(topLevelOrganization))
-                   .withApprovalStatus(randomElement(ApprovalStatus.values()))
+                   .withApprovalStatus(randomElement(TestApprovalStatus.values()))
                    .withPoints(randomBigDecimal())
                    .build();
     }
@@ -201,7 +201,7 @@ public final class NviTestData {
                    .withApprovals(approvals)
                    .withCreatorShareCount(countCombinationsOfCreatorsAndAffiliations(publicationDetails))
                    .withInternationalCollaborationFactor(BigDecimal.ONE)
-                   .withGlobalApprovalStatus(ApprovalStatus.PENDING.getValue())
+                   .withGlobalApprovalStatus(TestApprovalStatus.PENDING)
                    .withPublicationTypeChannelLevelPoints(randomBigDecimal())
                    .withTotalPoints(randomBigDecimal())
                    .withReportingPeriod(reportingPeriod);
