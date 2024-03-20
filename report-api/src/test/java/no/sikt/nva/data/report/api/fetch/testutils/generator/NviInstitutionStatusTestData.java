@@ -26,6 +26,8 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstituti
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLISHED_YEAR;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.REPORTING_YEAR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.TOTAL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
@@ -49,7 +51,9 @@ public final class NviInstitutionStatusTestData {
     public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final int NVI_POINT_SCALE = 4;
 
-    public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(PUBLICATION_IDENTIFIER,
+    public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(REPORTING_YEAR,
+                                                                              PUBLICATION_IDENTIFIER,
+                                                                              PUBLISHED_YEAR,
                                                                               INSTITUTION_APPROVAL_STATUS,
                                                                               PUBLICATION_INSTANCE,
                                                                               PUBLICATION_CHANNEL_TYPE,
@@ -94,7 +98,9 @@ public final class NviInstitutionStatusTestData {
                                                                TestPublication publication) {
         var approval = getExpectedApproval(affiliation, candidate);
         var identity = getExpectedContributorIdentity(contributor, publication);
-        stringBuilder.append(publication.getIdentifier()).append(DELIMITER)
+        stringBuilder.append(candidate.reportingPeriod()).append(DELIMITER)
+            .append(publication.getIdentifier()).append(DELIMITER)
+            .append(publication.getDate().year()).append(DELIMITER)
             .append(getExpectedApprovalStatusValue(approval.approvalStatus())).append(DELIMITER)
             .append(publication.getPublicationCategory()).append(DELIMITER)
             .append(publication.getChannel().getType()

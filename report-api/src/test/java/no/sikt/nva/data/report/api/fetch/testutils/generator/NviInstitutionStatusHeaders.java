@@ -3,6 +3,8 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator;
 public final class NviInstitutionStatusHeaders {
 
     public static String PUBLICATION_IDENTIFIER = "VARBEIDLOPENR";
+    public static String REPORTING_YEAR = "ARSTALL";
+    public static String PUBLISHED_YEAR = "ARSTALL_REG";
     public static String INSTITUTION_APPROVAL_STATUS = "STATUS_KONTROLLERT";//TODO: Check if this is correct
     public static String PUBLICATION_INSTANCE = "PUBLIKASJONSFORM";
     public static String PUBLICATION_CHANNEL_TYPE = "PUBLISERINGSKANALTYPE";
