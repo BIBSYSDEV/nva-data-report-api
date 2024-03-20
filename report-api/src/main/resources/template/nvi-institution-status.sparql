@@ -4,7 +4,9 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 
 SELECT DISTINCT
+  ?ARSTALL
   ?VARBEIDLOPENR
+  ?ARSTALL_REG
   ?STATUS_KONTROLLERT
   ?PUBLIKASJONSFORM
   ?PUBLISERINGSKANALTYPE
@@ -38,7 +40,12 @@ SELECT DISTINCT
                :isApplicable ?isApplicable ;
                :internationalCollaborationFactor ?internationalCollaborationFactor ;
                :globalApprovalStatus ?globalApprovalStatus ;
-               :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+               :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
+               :reportingPeriod ?reportingPeriod .
+
+       ?reportingPeriod a :ReportingPeriod ;
+                        :year ?reportingYear .
+       BIND(STR(?reportingYear) AS ?ARSTALL)
 
        BIND(STR(?internationalCollaborationFactor) AS ?FAKTORTALL_SAMARBEID) .
        BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
@@ -122,12 +129,16 @@ SELECT DISTINCT
              :entityDescription ?entityDescription ;
              :entityDescription/:contributor ?contributor .
 
+        ?entityDescription :publicationDate ?publicationDate .
         ?entityDescription :mainTitle ?VA_TITTEL .
         ?entityDescription :reference ?reference .
         ?reference :publicationContext ?publicationContext .
         ?publicationContext a ?channelTypeId ;
                             :name ?PUBLISERINGSKANALNAVN ;
                             :scientificValue ?scientificValue .
+
+        ?publicationDate :year ?publicationYear .
+        BIND(STR(?publicationYear) AS ?ARSTALL_REG)
 
         BIND(
           IF(?scientificValue = "LevelOne", "1",
