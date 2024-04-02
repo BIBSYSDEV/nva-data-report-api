@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static com.google.common.net.HttpHeaders.ACCEPT;
 import static java.lang.String.valueOf;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
@@ -11,7 +12,6 @@ import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEq
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
-import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

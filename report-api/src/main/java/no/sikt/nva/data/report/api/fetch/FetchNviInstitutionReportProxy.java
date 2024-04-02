@@ -25,7 +25,6 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.secrets.SecretsReader;
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +36,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     private static final String BACKEND_CLIENT_AUTH_URL = "COGNITO_HOST";
     private static final String ACCEPT_HEADER = "Accept";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
+    public static final int OK = 200;
     private final NviInstitutionReportClient reportClient;
 
     @JacocoGenerated
@@ -70,7 +70,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
 
     @Override
     protected Integer getSuccessStatusCode(Void unused, String o) {
-        return HttpStatus.SC_OK;
+        return OK;
     }
 
     private static String encodeToString(InputStream inputStream) {
