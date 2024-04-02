@@ -8,6 +8,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI_CANDIDATES;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -82,7 +83,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var institutionId = randomUri();
         var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN),
-                                             AccessRight.MANAGE_NVI, institutionId);
+                                             institutionId);
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -93,7 +94,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     void shouldExtractAndLogPathParameterReportingYear() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN),
-                                             AccessRight.MANAGE_NVI, randomUri());
+                                             randomUri());
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
         handler.handleRequest(request, output, context);
@@ -106,7 +107,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         mockInternalServerError();
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        var handlerRequest = generateHandlerRequest(request, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
         assertEquals(HTTP_BAD_GATEWAY, responseFromOutput.getStatusCode());
@@ -118,7 +119,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         mockBadRequest();
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        var handlerRequest = generateHandlerRequest(request, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
         assertEquals(HTTP_BAD_REQUEST, responseFromOutput.getStatusCode());
@@ -130,7 +131,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         mockNotFound();
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        var handlerRequest = generateHandlerRequest(request, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var responseFromOutput = fromOutputStream(output, GatewayResponse.class);
         assertEquals(HTTP_NOT_FOUND, responseFromOutput.getStatusCode());
@@ -143,7 +144,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         mockResponse(expectedResponseBody, contentType);
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        var handlerRequest = generateHandlerRequest(request, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var response = fromOutputStream(output, GatewayResponse.class);
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
@@ -158,7 +159,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         mockResponse(expectedResponseBody, contentType);
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        var handlerRequest = generateHandlerRequest(request, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var response = fromOutputStream(output, GatewayResponse.class);
         assertEquals(contentType, response.getHeaders().get("Content-Type"));
@@ -174,11 +175,17 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         mockResponse(randomString(), contentType);
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
-        var handlerRequest = generateHandlerRequest(request, AccessRight.MANAGE_NVI, randomUri());
+        var handlerRequest = generateHandlerRequest(request, randomUri());
         handler.handleRequest(handlerRequest, output, new FakeContext());
         var response = fromOutputStream(output, GatewayResponse.class);
         assertEquals(200, response.getStatusCode());
         assertFalse(response.getIsBase64Encoded());
+    }
+
+    private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,
+                                                      URI topLevelCristinOrgId)
+        throws JsonProcessingException {
+        return generateHandlerRequest(request, MANAGE_NVI_CANDIDATES, topLevelCristinOrgId);
     }
 
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,

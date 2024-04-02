@@ -120,7 +120,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
     }
 
     private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
-        if (!requestInfo.userIsAuthorized(AccessRight.MANAGE_NVI)) {
+        if (!requestInfo.userIsAuthorized(AccessRight.MANAGE_NVI_CANDIDATES)) {
             throw new UnauthorizedException();
         }
     }
