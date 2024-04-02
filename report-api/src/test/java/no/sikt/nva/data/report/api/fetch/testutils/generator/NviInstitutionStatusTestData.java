@@ -36,6 +36,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestGlobalApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
@@ -137,6 +138,15 @@ public final class NviInstitutionStatusTestData {
                    .filter(identity -> identity.uri().equals(contributor.id()))
                    .findFirst()
                    .orElse(null);
+    }
+
+    private static String getExpectedApprovalStatusValue(TestGlobalApprovalStatus approvalStatus) {
+        return switch (approvalStatus) {
+            case PENDING -> "?";
+            case APPROVED -> "J";
+            case REJECTED -> "N";
+            case DISPUTE -> "T";
+        };
     }
 
     private static String getExpectedApprovalStatusValue(TestApprovalStatus approvalStatus) {

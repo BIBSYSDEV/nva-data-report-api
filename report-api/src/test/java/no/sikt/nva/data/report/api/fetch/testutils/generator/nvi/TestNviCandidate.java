@@ -25,7 +25,7 @@ public record TestNviCandidate(String identifier,
                                BigDecimal internationalCollaborationFactor,
                                boolean reported,
                                String reportingPeriod,
-                               TestApprovalStatus globalApprovalStatus) {
+                               TestGlobalApprovalStatus globalApprovalStatus) {
 
     private static final String DELIMITER = ",";
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
@@ -163,7 +163,7 @@ public record TestNviCandidate(String identifier,
         private BigDecimal internationalCollaborationFactor;
         private boolean reported;
         private String reportingPeriod;
-        private TestApprovalStatus globalApprovalStatus;
+        private TestGlobalApprovalStatus globalApprovalStatus;
 
         private Builder() {
         }
@@ -223,7 +223,7 @@ public record TestNviCandidate(String identifier,
             return this;
         }
 
-        public Builder withGlobalApprovalStatus(TestApprovalStatus globalApprovalStatus) {
+        public Builder withGlobalApprovalStatus(TestGlobalApprovalStatus globalApprovalStatus) {
             this.globalApprovalStatus = globalApprovalStatus;
             return this;
         }

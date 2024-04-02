@@ -51,9 +51,11 @@ SELECT DISTINCT
        BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
 
        BIND(
-         IF(?globalApprovalStatus = "Pending", "?",
-         IF(?globalApprovalStatus = "Approved", "J",
-         IF(?globalApprovalStatus = "Rejected", "N", xsd:string(?globalApprovalStatus)))) AS ?RAPPORTSTATUS
+           IF(?globalApprovalStatus = "Pending", "?",
+           IF(?globalApprovalStatus = "Approved", "J",
+           IF(?globalApprovalStatus = "Dispute", "T",
+           IF(?globalApprovalStatus = "Rejected", "N",
+           xsd:string(?globalApprovalStatus))))) AS ?RAPPORTSTATUS
        )
 
        BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
