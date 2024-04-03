@@ -5,6 +5,7 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static nva.commons.core.attempt.Try.attempt;
+import static nva.commons.core.ioutils.IoUtils.streamToString;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -59,8 +60,6 @@ public class NviInstitutionReportClient {
     private InputStream executeRequest(Builder request)
         throws IOException, InterruptedException, ApiGatewayException {
         var response = authorizedBackendClient.send(request, BodyHandlers.ofInputStream());
-        LOGGER.info("Response: {}", response);
-        LOGGER.info("Response body: {}", response.body());
         if (HTTP_OK != response.statusCode()) {
             handleError(response);
         }
@@ -74,7 +73,7 @@ public class NviInstitutionReportClient {
         if (HTTP_BAD_REQUEST == response.statusCode()) {
             throw new BadRequestException("Bad request!");
         }
-        LOGGER.error("Error fetching report: {} {}", response.statusCode(), response.body());
+        LOGGER.error("Error fetching report: {} {}", response.statusCode(), streamToString(response.body()));
         throw new BadGatewayException("Unexpected response from upstream!");
     }
 
