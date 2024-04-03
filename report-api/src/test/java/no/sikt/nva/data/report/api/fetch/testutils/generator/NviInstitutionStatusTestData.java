@@ -124,8 +124,8 @@ public final class NviInstitutionStatusTestData {
             .append(publication.getMainTitle()).append(DELIMITER)
             .append(LANGUAGE).append(DELIMITER)//TODO: Implement
             .append(getExpectedApprovalStatusValue(candidate.globalApprovalStatus())).append(DELIMITER)
-            .append(candidate.publicationTypeChannelLevelPoints().stripTrailingZeros()).append(DELIMITER)
-            .append(candidate.internationalCollaborationFactor().stripTrailingZeros()).append(DELIMITER)
+            .append(candidate.publicationTypeChannelLevelPoints()).append(DELIMITER)
+            .append(candidate.internationalCollaborationFactor()).append(DELIMITER)
             .append(AUTHOR_SHARE_COUNT).append(DELIMITER)//TODO: Implement
             .append(calculatePointsForAffiliation(affiliation, candidate, approval)).append(CRLF.getString());
     }
