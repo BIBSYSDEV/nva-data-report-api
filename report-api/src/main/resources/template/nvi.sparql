@@ -45,6 +45,7 @@ WHERE {
 
       ?publicationUri :contributor ?contributorId .
       ?contributorId a :NviContributor .
+      BIND(STR(?contributorId) AS ?contributorIdString)
       BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
 
       ?contributorId :affiliation ?affiliationUri .
@@ -54,35 +55,22 @@ WHERE {
       ?candidate :approval ?approval .
       ?approval a :Approval ;
         :approvalStatus ?institutionApprovalStatus ;
-        :points ?institutionPoints ;
+        :points ?institutionPointsNode ;
         :institutionId ?organizationUri .
       FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
       BIND(STR(?organizationUri) AS ?institutionId)
 
+      ?institutionPointsNode a :InstitutionPoints ;
+        :points ?institutionPoints ;
+        :breakdown ?pointsBreakdown .
+
+      ?pointsBreakdown a :CreatorAffiliationPoints ;
+        :creatorId ?contributorIdString ;
+        :affiliationId ?affiliationId ;
+        :points ?pointsForAffiliation .
+
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
-
-      {
-        SELECT ?publicationUri ?organizationUri (COUNT(DISTINCT ?contributorId) AS ?numberOfAffiliationsForInstitution){
-          ?candidate a :NviCandidate ;
-                  :modifiedDate ?modifiedDate ;
-                  :publicationDetails ?publicationUri ;
-                  :approval ?approval .
-
-          ?publicationUri :contributor ?contributorId .
-                ?contributorId a :NviContributor .
-
-          ?contributorId :affiliation ?affiliationUri .
-          ?affiliationUri a ?NviOrganization .
-
-          ?approval a :Approval ;
-            :institutionId ?organizationUri .
-
-          FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
-        }
-        GROUP BY ?publicationUri ?organizationUri
-      }
-      BIND(STR(ROUND((xsd:decimal(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?pointsForAffiliation)
     }
     UNION
     {
