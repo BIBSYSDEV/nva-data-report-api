@@ -20,6 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Base64;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
@@ -160,7 +162,7 @@ class FetchDataReportTest extends LocalFusekiTest {
         return new FetchDataReportRequest(
             TEXT_PLAIN.toString(),
             reportType,
-            "2024-01-01",
+            LocalDate.now(ZoneId.systemDefault()).toString(),
             "1998-01-01",
             offset,
             pageSize
