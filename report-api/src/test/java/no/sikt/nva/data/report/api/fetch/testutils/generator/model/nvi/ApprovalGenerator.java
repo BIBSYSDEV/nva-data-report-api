@@ -12,10 +12,10 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class ApprovalGenerator extends TripleBasedBuilder {
 
+    public static final PropertyImpl POINTS_PROPERTY = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "points");
+    public static final PropertyImpl APPROVAL_STATUS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "approvalStatus");
+    public static final PropertyImpl INSTITUTION_ID = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "institutionId");
     private static final Property APPROVAL = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "Approval");
-    private static final String INSTITUTION_ID = "institutionId";
-    private static final String APPROVAL_STATUS = "approvalStatus";
-    private static final String POINTS = "points";
     private final Model model;
     private final Resource subject;
 
@@ -26,18 +26,17 @@ public class ApprovalGenerator extends TripleBasedBuilder {
     }
 
     public ApprovalGenerator withInstitutionId(OrganizationGenerator organizationGenerator) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, INSTITUTION_ID),
-                  organizationGenerator.getSubject());
+        model.add(subject, INSTITUTION_ID, organizationGenerator.getSubject());
         return this;
     }
 
     public ApprovalGenerator withApprovalStatus(String approvalStatus) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, APPROVAL_STATUS), approvalStatus);
+        model.add(subject, APPROVAL_STATUS, approvalStatus);
         return this;
     }
 
     public ApprovalGenerator withPoints(InstitutionPointsGenerator institutionPointsGenerator) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, POINTS), institutionPointsGenerator.getSubject());
+        model.add(subject, POINTS_PROPERTY, institutionPointsGenerator.getSubject());
         model.add(institutionPointsGenerator.build());
         return this;
     }

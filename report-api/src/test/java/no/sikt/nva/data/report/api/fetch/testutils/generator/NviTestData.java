@@ -204,8 +204,9 @@ public final class NviTestData {
                    .build();
     }
 
-    private static List<TestCreatorAffiliationPoints> generateCreatorAffiliationPointsList(String topLevelOrganization,
-                                                                                           List<TestNviContributor> nviContributors) {
+    private static List<TestCreatorAffiliationPoints> generateCreatorAffiliationPointsList(
+        String topLevelOrganization,
+        List<TestNviContributor> nviContributors) {
         return nviContributors.stream()
                    .map(creator -> getCreatorAffiliationPoints(topLevelOrganization, creator))
                    .flatMap(List::stream)
