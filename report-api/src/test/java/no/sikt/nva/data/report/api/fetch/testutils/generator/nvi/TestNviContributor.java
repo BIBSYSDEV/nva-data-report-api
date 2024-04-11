@@ -6,6 +6,12 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.NviContri
 public record TestNviContributor(String id,
                                  List<TestNviOrganization> affiliations) {
 
+    public List<TestNviOrganization> filterAffiliationsWithTopLevelOrg(String institutionId) {
+        return affiliations.stream()
+                   .filter(affiliation -> affiliation.getTopLevelOrganization().equals(institutionId))
+                   .toList();
+    }
+
     public NviContributorGenerator toModel() {
         var contributor = new NviContributorGenerator(id);
         affiliations.stream().map(TestNviOrganization::toModel)

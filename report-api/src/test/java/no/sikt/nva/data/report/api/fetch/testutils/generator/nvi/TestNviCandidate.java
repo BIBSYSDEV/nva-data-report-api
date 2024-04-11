@@ -1,13 +1,16 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviTestData.randomBigDecimal;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CandidateGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CreatorAffiliationPointsGenerator;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.InstitutionPointsGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.PublicationDetailsGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ReportingPeriodGenerator;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.OrganizationGenerator;
@@ -54,12 +57,43 @@ public record TestNviCandidate(String identifier,
         return nviCandidate.build();
     }
 
-    private static ApprovalGenerator getApprovalGenerator(TestApproval testApproval) {
-        return testApproval.toModel()
-                   .withApprovalStatus(testApproval.approvalStatus().getValue())
-                   .withInstitutionId(
-                       new OrganizationGenerator(testApproval.institutionId().toString()))
-                   .withPoints(testApproval.points().toString());
+    private static boolean isForCreatorAndAffiliation(TestNviOrganization affiliation, TestNviContributor contributor,
+                                                      TestCreatorAffiliationPoints creatorAffiliationPoints) {
+        return creatorAffiliationPoints.creatorId().toString().equals(contributor.id()) &&
+               creatorAffiliationPoints.affiliationId().toString().equals(affiliation.id());
+    }
+
+    private static void addAllCreatorAffiliationPoints(URI institutionId,
+                                                       InstitutionPointsGenerator institutionPointsGenerator,
+                                                       TestNviContributor creator) {
+        creator.filterAffiliationsWithTopLevelOrg(institutionId.toString())
+            .forEach(
+                affiliation -> addCreatorAffiliationPoints(institutionPointsGenerator,
+                                                           creator, affiliation));
+    }
+
+    private static void addCreatorAffiliationPoints(InstitutionPointsGenerator institutionPointsGenerator,
+                                                    TestNviContributor creator,
+                                                    TestNviOrganization affiliation) {
+        institutionPointsGenerator.withCreatorAffiliationPoints(generateCreatorAffiliationPoints(creator, affiliation));
+    }
+
+    private static CreatorAffiliationPointsGenerator generateCreatorAffiliationPoints(TestNviContributor creator,
+                                                                                      TestNviOrganization affiliation) {
+        return new CreatorAffiliationPointsGenerator()
+                   .withAffiliationId(affiliation.id())
+                   .withCreatorId(creator.id())
+                   .withPoints(randomBigDecimal().toString());
+    }
+
+    private ApprovalGenerator getApprovalGenerator(TestApproval testApproval) {
+        var institutionPointsGenerator = new InstitutionPointsGenerator()
+                                             .withPoints(testApproval.points().points().toString());
+        addCreatorAffiliationPoints(testApproval.institutionId(), institutionPointsGenerator);
+        return new ApprovalGenerator()
+                           .withApprovalStatus(testApproval.approvalStatus().getValue())
+                           .withInstitutionId(new OrganizationGenerator(testApproval.institutionId().toString()))
+                           .withPoints(institutionPointsGenerator);
     }
 
     private void generateExpectedLinesForNonApplicableCandidate(StringBuilder stringBuilder) {
@@ -71,7 +105,7 @@ public record TestNviCandidate(String identifier,
 
     private void addApprovals(CandidateGenerator nviCandidate) {
         approvals().stream()
-            .map(TestNviCandidate::getApprovalGenerator)
+            .map(this::getApprovalGenerator)
             .forEach(nviCandidate::withApproval);
     }
 
@@ -79,6 +113,12 @@ public record TestNviCandidate(String identifier,
         publicationDetails().contributors().stream()
             .map(TestNviContributor::toModel)
             .forEach(publicationDetails::withNviContributor);
+    }
+
+    private void addCreatorAffiliationPoints(URI institutionId, InstitutionPointsGenerator institutionPointsGenerator) {
+        var nviCreators = publicationDetails.filterContributorsWithTopLevelOrg(institutionId.toString());
+        nviCreators.forEach(
+            creator -> addAllCreatorAffiliationPoints(institutionId, institutionPointsGenerator, creator));
     }
 
     private CandidateGenerator getCandidateGenerator(PublicationDetailsGenerator publicationDetails) {
@@ -106,8 +146,8 @@ public record TestNviCandidate(String identifier,
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
             .append(approval.institutionId()).append(DELIMITER)
-            .append(approval.points()).append(DELIMITER)
-            .append(calculateAffiliationPoints(affiliation)).append(DELIMITER)
+            .append(approval.points().points()).append(DELIMITER)
+            .append(getExpectedPointsForAffiliation(affiliation, contributor)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus.getValue()).append(DELIMITER)
             .append(reported ? reportingPeriod : "NotReported").append(DELIMITER)
@@ -119,22 +159,18 @@ public record TestNviCandidate(String identifier,
             .append(CRLF.getString());
     }
 
-    private BigDecimal calculateAffiliationPoints(TestNviOrganization affiliation) {
-        var topLevelOrganization = affiliation.getTopLevelOrganization();
-        var contributorCount = countNumberOfContributorsWithTopLevelAffiliation(topLevelOrganization);
-        var approvalPoints = Optional.ofNullable(findExpectedApproval(affiliation))
-                                 .map(TestApproval::points)
-                                 .orElseThrow();
-        return approvalPoints.divide(BigDecimal.valueOf(contributorCount), ROUNDING_MODE)
-                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE)
-                   .stripTrailingZeros();
-    }
-
-    private long countNumberOfContributorsWithTopLevelAffiliation(String topLevelOrganization) {
-        return publicationDetails.contributors().stream()
-                   .flatMap(contributor -> contributor.affiliations().stream())
-                   .filter(affiliation -> affiliation.getTopLevelOrganization().equals(topLevelOrganization))
-                   .count();
+    private BigDecimal getExpectedPointsForAffiliation(TestNviOrganization affiliation,
+                                                       TestNviContributor contributor) {
+        var approval = findExpectedApproval(affiliation);
+        return approval.points()
+                   .creatorAffiliationPoints()
+                   .stream()
+                   .filter(pointsForAffiliation -> isForCreatorAndAffiliation(affiliation, contributor,
+                                                                              pointsForAffiliation))
+                   .findFirst()
+                   .map(TestCreatorAffiliationPoints::points)
+                   .map(points -> points.stripTrailingZeros().setScale(NVI_POINT_SCALE, ROUNDING_MODE))
+                   .orElseThrow();
     }
 
     private TestApproval findExpectedApproval(TestNviOrganization affiliation) {

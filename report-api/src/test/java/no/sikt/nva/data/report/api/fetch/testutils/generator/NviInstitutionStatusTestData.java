@@ -183,9 +183,7 @@ public final class NviInstitutionStatusTestData {
         var topLevelOrganization = affiliation.getTopLevelOrganization();
         var contributorCount = countNumberOfContributorsWithTopLevelAffiliation(topLevelOrganization,
                                                                                 candidate.publicationDetails());
-        return approval.points().divide(BigDecimal.valueOf(contributorCount), ROUNDING_MODE)
-                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE)
-                   .stripTrailingZeros();
+        return null;
     }
 
     private static long countNumberOfContributorsWithTopLevelAffiliation(String topLevelOrganization,

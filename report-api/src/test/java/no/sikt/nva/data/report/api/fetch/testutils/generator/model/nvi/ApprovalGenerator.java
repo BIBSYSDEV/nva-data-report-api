@@ -27,7 +27,7 @@ public class ApprovalGenerator extends TripleBasedBuilder {
 
     public ApprovalGenerator withInstitutionId(OrganizationGenerator organizationGenerator) {
         model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, INSTITUTION_ID),
-                  organizationGenerator.subject);
+                  organizationGenerator.getSubject());
         return this;
     }
 
@@ -36,8 +36,9 @@ public class ApprovalGenerator extends TripleBasedBuilder {
         return this;
     }
 
-    public ApprovalGenerator withPoints(String points) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, POINTS), points);
+    public ApprovalGenerator withPoints(InstitutionPointsGenerator institutionPointsGenerator) {
+        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, POINTS), institutionPointsGenerator.getSubject());
+        model.add(institutionPointsGenerator.build());
         return this;
     }
 
