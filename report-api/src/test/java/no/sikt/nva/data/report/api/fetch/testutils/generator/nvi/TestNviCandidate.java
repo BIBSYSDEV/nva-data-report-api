@@ -67,21 +67,23 @@ public record TestNviCandidate(String identifier,
     private static void addCreatorAffiliationPoints(InstitutionPointsGenerator institutionPointsGenerator,
                                                     TestNviContributor creator,
                                                     TestNviOrganization affiliation) {
-        institutionPointsGenerator.withCreatorAffiliationPoints(generateCreatorAffiliationPoints(creator, affiliation));
+        institutionPointsGenerator.withCreatorAffiliationPoints(generateCreatorAffiliationPoints(creator, affiliation,
+                                                                                                 randomBigDecimal()));
     }
 
     private static CreatorAffiliationPointsGenerator generateCreatorAffiliationPoints(TestNviContributor creator,
-                                                                                      TestNviOrganization affiliation) {
+                                                                                      TestNviOrganization affiliation,
+                                                                                      BigDecimal points) {
         return new CreatorAffiliationPointsGenerator()
                    .withAffiliationId(affiliation.id())
                    .withCreatorId(creator.id())
-                   .withPoints(randomBigDecimal().toString());
+                   .withPoints(points.toString());
     }
 
     private ApprovalGenerator getApprovalGenerator(TestApproval testApproval) {
         var institutionPointsGenerator = new InstitutionPointsGenerator()
                                              .withPoints(testApproval.points().points().toString());
-        addCreatorAffiliationPoints(testApproval.institutionId(), institutionPointsGenerator);
+        addCreatorAffiliationPoints(testApproval, institutionPointsGenerator);
         return new ApprovalGenerator()
                    .withApprovalStatus(testApproval.approvalStatus().getValue())
                    .withInstitutionId(new OrganizationGenerator(testApproval.institutionId().toString()))
@@ -107,10 +109,15 @@ public record TestNviCandidate(String identifier,
             .forEach(publicationDetails::withNviContributor);
     }
 
-    private void addCreatorAffiliationPoints(URI institutionId, InstitutionPointsGenerator institutionPointsGenerator) {
-        var nviCreators = publicationDetails.filterContributorsWithTopLevelOrg(institutionId.toString());
-        nviCreators.forEach(
-            creator -> addAllCreatorAffiliationPoints(institutionId, institutionPointsGenerator, creator));
+    private void addCreatorAffiliationPoints(TestApproval approval,
+                                             InstitutionPointsGenerator institutionPointsGenerator) {
+        approval.points().creatorAffiliationPoints().forEach(
+            creatorAffiliationPoints -> institutionPointsGenerator.withCreatorAffiliationPoints(
+                new CreatorAffiliationPointsGenerator()
+                    .withAffiliationId(creatorAffiliationPoints.affiliationId().toString())
+                    .withCreatorId(creatorAffiliationPoints.creatorId().toString())
+                    .withPoints(creatorAffiliationPoints.points().toString())
+            ));
     }
 
     private CandidateGenerator getCandidateGenerator(PublicationDetailsGenerator publicationDetails) {
