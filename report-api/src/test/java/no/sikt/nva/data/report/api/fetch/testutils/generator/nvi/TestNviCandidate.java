@@ -1,10 +1,8 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 
 import static no.sikt.nva.data.report.api.fetch.testutils.NviTestUtils.getExpectedPointsForAffiliation;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviTestData.randomBigDecimal;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
@@ -53,31 +51,6 @@ public record TestNviCandidate(String identifier,
         var nviCandidate = getCandidateGenerator(publicationDetails);
         addApprovals(nviCandidate);
         return nviCandidate.build();
-    }
-
-    private static void addAllCreatorAffiliationPoints(URI institutionId,
-                                                       InstitutionPointsGenerator institutionPointsGenerator,
-                                                       TestNviContributor creator) {
-        creator.filterAffiliationsWithTopLevelOrg(institutionId.toString())
-            .forEach(
-                affiliation -> addCreatorAffiliationPoints(institutionPointsGenerator,
-                                                           creator, affiliation));
-    }
-
-    private static void addCreatorAffiliationPoints(InstitutionPointsGenerator institutionPointsGenerator,
-                                                    TestNviContributor creator,
-                                                    TestNviOrganization affiliation) {
-        institutionPointsGenerator.withCreatorAffiliationPoints(generateCreatorAffiliationPoints(creator, affiliation,
-                                                                                                 randomBigDecimal()));
-    }
-
-    private static CreatorAffiliationPointsGenerator generateCreatorAffiliationPoints(TestNviContributor creator,
-                                                                                      TestNviOrganization affiliation,
-                                                                                      BigDecimal points) {
-        return new CreatorAffiliationPointsGenerator()
-                   .withAffiliationId(affiliation.id())
-                   .withCreatorId(creator.id())
-                   .withPoints(points.toString());
     }
 
     private ApprovalGenerator getApprovalGenerator(TestApproval testApproval) {
