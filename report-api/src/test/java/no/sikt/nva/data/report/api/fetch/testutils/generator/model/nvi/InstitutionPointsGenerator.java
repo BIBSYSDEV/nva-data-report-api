@@ -13,7 +13,7 @@ public class InstitutionPointsGenerator extends TripleBasedBuilder {
 
     public static final PropertyImpl BREAKDOWN = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "breakdown");
     private static final Property INSTITUTION_POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI,
-                                                                        "institutionPoints");
+                                                                        "InstitutionPoints");
     private final Model model;
     private final Resource subject;
 
