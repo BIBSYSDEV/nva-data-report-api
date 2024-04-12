@@ -8,8 +8,12 @@ public record TestNviContributor(String id,
 
     public List<TestNviOrganization> filterAffiliationsWithTopLevelOrg(String institutionId) {
         return affiliations.stream()
-                   .filter(affiliation -> affiliation.getTopLevelOrganization().equals(institutionId))
+                   .filter(affiliation -> hasTopLevelOrg(affiliation, institutionId))
                    .toList();
+    }
+
+    private static boolean hasTopLevelOrg(TestNviOrganization organization, String topLevelOrgId) {
+        return organization.getTopLevelOrganization().equals(topLevelOrgId);
     }
 
     public NviContributorGenerator toModel() {

@@ -11,7 +11,8 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class InstitutionPointsGenerator extends TripleBasedBuilder {
 
-    public static final PropertyImpl BREAKDOWN = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "breakdown");
+    public static final PropertyImpl CREATOR_AFFILIATION_POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI,
+                                                                                   "creatorAffiliationPoints");
     private static final Property INSTITUTION_POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI,
                                                                         "InstitutionPoints");
     private final Model model;
@@ -28,11 +29,10 @@ public class InstitutionPointsGenerator extends TripleBasedBuilder {
         return this;
     }
 
-    public InstitutionPointsGenerator withCreatorAffiliationPoints(
+    public void withCreatorAffiliationPoints(
         CreatorAffiliationPointsGenerator creatorAffiliationPointsGenerator) {
-        model.add(subject, BREAKDOWN, creatorAffiliationPointsGenerator.getSubject());
+        model.add(subject, CREATOR_AFFILIATION_POINTS, creatorAffiliationPointsGenerator.getSubject());
         model.add(creatorAffiliationPointsGenerator.build());
-        return this;
     }
 
     @Override

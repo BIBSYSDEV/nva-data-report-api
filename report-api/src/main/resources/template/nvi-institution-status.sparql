@@ -76,9 +76,9 @@ SELECT DISTINCT
          :institutionId ?organizationUri .
 
        ?institutionPoints a :InstitutionPoints ;
-         :breakdown ?pointsBreakdown .
+         :creatorAffiliationPoints ?creatorAffiliationPoints .
 
-       ?pointsBreakdown a :CreatorAffiliationPoints ;
+       ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
          :creatorId ?contributorIdString ;
          :affiliationId ?affiliationId ;
          :points ?FORFATTERVEKT .

@@ -62,9 +62,9 @@ WHERE {
 
       ?institutionPointsNode a :InstitutionPoints ;
         :points ?institutionPoints ;
-        :breakdown ?pointsBreakdown .
+        :creatorAffiliationPoints ?creatorAffiliationPoints .
 
-      ?pointsBreakdown a :CreatorAffiliationPoints ;
+      ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
         :creatorId ?contributorIdString ;
         :affiliationId ?affiliationId ;
         :points ?pointsForAffiliation .
