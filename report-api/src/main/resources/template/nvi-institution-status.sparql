@@ -70,10 +70,18 @@ SELECT DISTINCT
              ?affiliationUri a ?NviOrganization .
 
        ?candidate :approval ?approval .
-             ?approval a :Approval ;
-               :approvalStatus ?approvalStatus ;
-               :points ?institutionPoints ;
-               :institutionId ?organizationUri .
+       ?approval a :Approval ;
+         :approvalStatus ?approvalStatus ;
+         :points ?institutionPoints ;
+         :institutionId ?organizationUri .
+
+       ?institutionPoints a :InstitutionPoints ;
+         :creatorAffiliationPoints ?creatorAffiliationPoints .
+
+       ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
+         :creatorId ?contributorIdString ;
+         :affiliationId ?affiliationId ;
+         :points ?FORFATTERVEKT .
 
        BIND(
           IF(?approvalStatus = "Pending", "?",
@@ -100,27 +108,6 @@ SELECT DISTINCT
        BIND("SPRAK" AS ?SPRAK)
        BIND("FORFATTERDEL" AS ?FORFATTERDEL)
        BIND("FORFATTERVEKT" AS ?VEKTET)
-
-       {
-         SELECT ?publicationUri ?organizationUri (COUNT(DISTINCT ?contributorId) AS ?numberOfAffiliationsForInstitution){
-           ?candidate a :NviCandidate ;
-                   :publicationDetails ?publicationUri ;
-                   :approval ?approval .
-
-           ?publicationUri :contributor ?contributorId .
-                 ?contributorId a :NviContributor .
-
-           ?contributorId :affiliation ?affiliationUri .
-           ?affiliationUri a ?NviOrganization .
-
-           ?approval a :Approval ;
-             :institutionId ?organizationUri .
-
-           FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
-         }
-         GROUP BY ?publicationUri ?organizationUri
-       }
-       BIND(STR(ROUND((xsd:decimal(?institutionPoints)*10000)/?numberOfAffiliationsForInstitution)/10000) AS ?FORFATTERVEKT)
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .

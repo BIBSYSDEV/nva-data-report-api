@@ -6,7 +6,7 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalG
 
 public record TestApproval(URI institutionId,
                            TestApprovalStatus approvalStatus,
-                           BigDecimal points) {
+                           TestInstitutionPoints points) {
 
     public static Builder builder() {
         return new Builder();
@@ -20,7 +20,7 @@ public record TestApproval(URI institutionId,
 
         private URI institutionId;
         private TestApprovalStatus approvalStatus;
-        private BigDecimal points;
+        private TestInstitutionPoints points;
 
         private Builder() {
         }
@@ -35,7 +35,7 @@ public record TestApproval(URI institutionId,
             return this;
         }
 
-        public Builder withPoints(BigDecimal points) {
+        public Builder withPoints(TestInstitutionPoints points) {
             this.points = points;
             return this;
         }

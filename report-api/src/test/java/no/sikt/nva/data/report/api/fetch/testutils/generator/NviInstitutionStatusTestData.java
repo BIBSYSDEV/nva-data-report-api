@@ -31,16 +31,14 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstituti
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.TOTAL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
+import no.sikt.nva.data.report.api.fetch.testutils.NviTestUtils;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestGlobalApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviOrganization;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestPublicationDetails;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestContributor;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestIdentity;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestLevel;
@@ -48,9 +46,6 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPub
 import nva.commons.core.paths.UriWrapper;
 
 public final class NviInstitutionStatusTestData {
-
-    public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
-    public static final int NVI_POINT_SCALE = 4;
 
     public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(REPORTING_YEAR,
                                                                               PUBLICATION_IDENTIFIER,
@@ -128,7 +123,8 @@ public final class NviInstitutionStatusTestData {
             .append(candidate.publicationTypeChannelLevelPoints().stripTrailingZeros()).append(DELIMITER)
             .append(candidate.internationalCollaborationFactor().stripTrailingZeros()).append(DELIMITER)
             .append(AUTHOR_SHARE_COUNT).append(DELIMITER)//TODO: Implement
-            .append(calculatePointsForAffiliation(affiliation, candidate, approval)).append(CRLF.getString());
+            .append(NviTestUtils.getExpectedPointsForAffiliation(affiliation, contributor, approval))
+            .append(CRLF.getString());
     }
 
     private static TestIdentity getExpectedContributorIdentity(TestNviContributor contributor,
@@ -176,23 +172,5 @@ public final class NviInstitutionStatusTestData {
         return approval.institutionId()
                    .toString()
                    .equals(organization.getTopLevelOrganization());
-    }
-
-    private static BigDecimal calculatePointsForAffiliation(TestNviOrganization affiliation, TestNviCandidate candidate,
-                                                            TestApproval approval) {
-        var topLevelOrganization = affiliation.getTopLevelOrganization();
-        var contributorCount = countNumberOfContributorsWithTopLevelAffiliation(topLevelOrganization,
-                                                                                candidate.publicationDetails());
-        return approval.points().divide(BigDecimal.valueOf(contributorCount), ROUNDING_MODE)
-                   .setScale(NVI_POINT_SCALE, ROUNDING_MODE)
-                   .stripTrailingZeros();
-    }
-
-    private static long countNumberOfContributorsWithTopLevelAffiliation(String topLevelOrganization,
-                                                                         TestPublicationDetails publicationDetails) {
-        return publicationDetails.contributors().stream()
-                   .flatMap(contributor -> contributor.affiliations().stream())
-                   .filter(affiliation -> affiliation.getTopLevelOrganization().equals(topLevelOrganization))
-                   .count();
     }
 }

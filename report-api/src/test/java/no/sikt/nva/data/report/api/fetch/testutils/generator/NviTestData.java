@@ -30,7 +30,9 @@ import java.util.List;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestCreatorAffiliationPoints;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestGlobalApprovalStatus;
+import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestInstitutionPoints;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviCandidate.Builder;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestNviContributor;
@@ -179,14 +181,50 @@ public final class NviTestData {
                    .flatMap(contributor -> contributor.affiliations().stream())
                    .map(TestNviOrganization::getTopLevelOrganization)
                    .distinct()
-                   .map(NviTestData::generateApproval)
+                   .map(topLevelOrganization -> generateApproval(topLevelOrganization, publicationDetails))
                    .toList();
     }
 
-    private static TestApproval generateApproval(String topLevelOrganization) {
+    private static TestApproval generateApproval(String topLevelOrganization,
+                                                 TestPublicationDetails publicationDetails) {
+        var nviContributors = publicationDetails.filterContributorsWithTopLevelOrg(topLevelOrganization);
         return TestApproval.builder()
                    .withInstitutionId(URI.create(topLevelOrganization))
                    .withApprovalStatus(randomElement(TestApprovalStatus.values()))
+                   .withPoints(generateInstitutionPoints(topLevelOrganization, nviContributors))
+                   .build();
+    }
+
+    private static TestInstitutionPoints generateInstitutionPoints(String topLevelOrganization,
+                                                                   List<TestNviContributor> nviContributors) {
+        return TestInstitutionPoints.builder()
+                   .withCreatorAffiliationPoints(generateCreatorAffiliationPointsList(topLevelOrganization,
+                                                                                      nviContributors))
+                   .withPoints(randomBigDecimal())
+                   .build();
+    }
+
+    private static List<TestCreatorAffiliationPoints> generateCreatorAffiliationPointsList(
+        String topLevelOrganization,
+        List<TestNviContributor> nviContributors) {
+        return nviContributors.stream()
+                   .map(creator -> getCreatorAffiliationPoints(topLevelOrganization, creator))
+                   .flatMap(List::stream)
+                   .toList();
+    }
+
+    private static List<TestCreatorAffiliationPoints> getCreatorAffiliationPoints(String topLevelOrganization,
+                                                                                  TestNviContributor creator) {
+        return creator.filterAffiliationsWithTopLevelOrg(topLevelOrganization).stream()
+                   .map(affiliation -> generateCreatorAffiliationPoints(creator, affiliation))
+                   .toList();
+    }
+
+    private static TestCreatorAffiliationPoints generateCreatorAffiliationPoints(TestNviContributor creator,
+                                                                                 TestNviOrganization affiliation) {
+        return TestCreatorAffiliationPoints.builder()
+                   .withCreatorId(URI.create(creator.id()))
+                   .withAffiliationId(URI.create(affiliation.id()))
                    .withPoints(randomBigDecimal())
                    .build();
     }
