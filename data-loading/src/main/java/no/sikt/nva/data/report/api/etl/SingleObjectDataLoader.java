@@ -1,12 +1,13 @@
 package no.sikt.nva.data.report.api.etl;
 
 import static no.sikt.nva.data.report.api.etl.model.EventType.UPSERT;
-import static commons.db.utils.DocumentUnwrapper.unwrap;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.databind.JsonNode;
 import commons.StorageReader;
 import commons.db.GraphStoreProtocolConnection;
+import commons.db.utils.DocumentUnwrapper;
 import java.net.URI;
 import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
@@ -22,6 +23,7 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
 
     public static final Logger LOGGER = LoggerFactory.getLogger(SingleObjectDataLoader.class);
     public static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
+    public static final String API_HOST = "API_HOST";
     private final StorageReader<UnixPath> storageReader;
     GraphService graphService;
 
@@ -52,9 +54,14 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         return null;
     }
 
+    private static JsonNode toJsonNode(String blob) {
+        var documentUnwrapper = new DocumentUnwrapper(new Environment().readEnv(API_HOST));
+        return attempt(() -> documentUnwrapper.unwrap(blob)).orElseThrow();
+    }
+
     private void storeObject(UnixPath objectKey) {
         var blob = storageReader.read(objectKey);
-        var resource = attempt(() -> unwrap(blob)).orElseThrow();
+        var resource = toJsonNode(blob);
         var graph = URI.create(resource.at("/id").textValue() + ".nt");
         graphService.persist(graph, resource.toString());
         LOGGER.info("Persisted object with key: {} in graph: {}", objectKey, graph);

@@ -15,11 +15,13 @@ public final class DocumentUnwrapper {
     public static final String SCIENTIFIC_INDEX = "scientific-index";
     public static final String NVI_CONTEXT_JSONLD = "nvi_context.jsonld";
     public static final String NVA_CONTEXT_JSONLD = "nva_context.jsonld";
+    private final String apiDomain;
 
-    private DocumentUnwrapper() {
+    public DocumentUnwrapper(String apiDomain) {
+        this.apiDomain = apiDomain;
     }
 
-    public static JsonNode unwrap(String indexDocument) throws JsonProcessingException {
+    public JsonNode unwrap(String indexDocument) throws JsonProcessingException {
         var objectNode = JsonUtils.dtoObjectMapper.readTree(indexDocument);
         var jsonld = objectNode.at(JSON_PTR_BODY);
         var context = getReplacementContext(jsonld);
@@ -27,7 +29,7 @@ public final class DocumentUnwrapper {
         return jsonld;
     }
 
-    private static JsonNode getReplacementContext(JsonNode jsonld) throws JsonProcessingException {
+    private JsonNode getReplacementContext(JsonNode jsonld) throws JsonProcessingException {
         var originalContext = jsonld.at(JSON_PTR_CONTEXT).asText();
         var contextFile = originalContext.contains(SCIENTIFIC_INDEX)
                               ? NVI_CONTEXT_JSONLD
@@ -35,7 +37,7 @@ public final class DocumentUnwrapper {
         return JsonUtils.dtoObjectMapper.readTree(getContext(contextFile));
     }
 
-    private static String getContext(String contextFile) {
-        return IoUtils.stringFromResources(Path.of(contextFile));
+    private String getContext(String contextFile) {
+        return IoUtils.stringFromResources(Path.of(contextFile)).replace("__REPLACE_WITH_API_DOMAIN__", apiDomain);
     }
 }
