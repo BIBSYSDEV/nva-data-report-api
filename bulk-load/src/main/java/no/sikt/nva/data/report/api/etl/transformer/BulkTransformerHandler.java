@@ -50,7 +50,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String ID_POINTER = "/id";
     private static final String NT_EXTENSION = ".nt";
     private static final String MISSING_ID_NODE_IN_CONTENT_ERROR = "Missing id-node in content: {}";
-
+    public static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
     private final S3Client s3OutputClient;
@@ -191,7 +191,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private JsonNode unwrap(String json) {
-        return attempt(() -> DocumentUnwrapper.unwrap(json)).orElseThrow();
+        return attempt(() -> new DocumentUnwrapper(API_HOST).unwrap(json)).orElseThrow();
     }
 
     private Stream<String> extractIdentifiers(String value) {

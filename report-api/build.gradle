@@ -35,5 +35,5 @@ test {
     environment("NEPTUNE_ENDPOINT", "localhost")
     environment("NEPTUNE_PORT", "8182")
     environment("QUERY_PATH", "gsp/sparql")
-    environment("API_HOST", "example.org")
+    environment("API_HOST", "https://example.org")
 }
