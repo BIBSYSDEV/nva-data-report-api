@@ -21,6 +21,9 @@ WHERE {
          :modifiedDate ?modifiedDate ;
          :entityDescription/:contributor ?contributor .
 
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
     ?contributor :identity ?personId ;
@@ -61,7 +64,5 @@ WHERE {
     ?personId :name ?contributorName .
     BIND(REPLACE(STR(?personId), "^.*/([^/]*)$", "$1") AS ?contributorId)
     FILTER(!ISBLANK(?personId))
-    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
   }
 } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

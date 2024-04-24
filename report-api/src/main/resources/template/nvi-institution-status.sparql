@@ -43,8 +43,11 @@ SELECT DISTINCT
                :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
                :reportingPeriod ?reportingPeriod .
 
+       FILTER (?isApplicable = true)
+
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .
+       FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
        BIND(STR(?reportingYear) AS ?ARSTALL)
 
        BIND(STR(?internationalCollaborationFactor) AS ?FAKTORTALL_SAMARBEID) .
@@ -61,7 +64,6 @@ SELECT DISTINCT
 
        BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
 
-       FILTER (?isApplicable = true)
        ?publicationUri :contributor ?contributorId .
              ?contributorId a :NviContributor .
        BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?PERSONLOPENR)
@@ -74,6 +76,9 @@ SELECT DISTINCT
          :approvalStatus ?approvalStatus ;
          :points ?institutionPoints ;
          :institutionId ?organizationUri .
+
+       FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+       FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
 
        ?institutionPoints a :InstitutionPoints ;
          :creatorAffiliationPoints ?creatorAffiliationPoints .
@@ -89,8 +94,6 @@ SELECT DISTINCT
           IF(?approvalStatus = "Rejected", "N", xsd:string(?approvalStatus)))) AS ?STATUS_KONTROLLERT
        )
 
-       FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
-       FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
        BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?identifier)
        BIND(STRAFTER(str(?identifier), ".") AS ?temp1)
        BIND(STRAFTER(str(?temp1), ".") AS ?temp2)
@@ -108,10 +111,6 @@ SELECT DISTINCT
        BIND("SPRAK" AS ?SPRAK)
        BIND("FORFATTERDEL" AS ?FORFATTERDEL)
        BIND("FORFATTERVEKT" AS ?VEKTET)
-
-       ?reportingPeriod a :ReportingPeriod ;
-                        :year ?reportingYear .
-        FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
      }
      GRAPH ?nva {
         ?publicationUri a :Publication ;

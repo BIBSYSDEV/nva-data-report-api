@@ -22,6 +22,9 @@ WHERE {
          :identifier ?publicationIdentifier ;
          :entityDescription ?entityDescription .
 
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
@@ -58,7 +61,5 @@ WHERE {
     OPTIONAL {
         ?publicationContext :printIssn ?channelPrintIssn
     }
-    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
   }
 } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

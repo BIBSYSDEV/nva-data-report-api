@@ -12,11 +12,16 @@ SELECT DISTINCT
   WHERE {
     GRAPH ?g {
       ?uri a :Publication ;
-           :status ?publicationStatus .
+           :status ?publicationStatus ;
+           :modifiedDate ?modifiedDate ;
+           :identifier ?publicationIdentifier .
+
+      FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+      FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+
       BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
-      ?uri :modifiedDate ?modifiedDate .
-      ?uri :identifier ?publicationIdentifier .
+
       ?uri :entityDescription/:contributor ?contributor .
       BIND(STR(?uri) AS ?publicationId)
 
@@ -28,7 +33,5 @@ SELECT DISTINCT
       ?roleRaw a ?roleType
       FILTER(!ISBLANK(?personId))
       BIND(REPLACE(STR(?roleType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?contributorRole)
-      FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-      FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
     }
 } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
