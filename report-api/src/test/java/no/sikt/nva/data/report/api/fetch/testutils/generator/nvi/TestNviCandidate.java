@@ -124,9 +124,9 @@ public record TestNviCandidate(String identifier,
             .append(globalApprovalStatus.getValue()).append(DELIMITER)
             .append(reported ? reportingPeriod : "NotReported").append(DELIMITER)
             .append(totalPoints).append(DELIMITER)
-            .append(publicationTypeChannelLevelPoints.stripTrailingZeros()).append(DELIMITER)
+            .append(publicationTypeChannelLevelPoints).append(DELIMITER)
             .append(creatorShareCount).append(DELIMITER)
-            .append(internationalCollaborationFactor.stripTrailingZeros()).append(DELIMITER)
+            .append(internationalCollaborationFactor).append(DELIMITER)
             .append(isApplicable())
             .append(CRLF.getString());
     }
