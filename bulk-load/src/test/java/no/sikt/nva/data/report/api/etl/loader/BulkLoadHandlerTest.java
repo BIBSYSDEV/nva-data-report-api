@@ -1,7 +1,6 @@
 package no.sikt.nva.data.report.api.etl.loader;
 
 import static nva.commons.core.attempt.Try.attempt;
-import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -21,7 +20,6 @@ import nva.commons.core.Environment;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 class BulkLoadHandlerTest {
@@ -32,7 +30,7 @@ class BulkLoadHandlerTest {
     @Test
     void shouldLogSuccessfulLoadingEvent() throws IOException, InterruptedException {
         final var logger = LogUtils.getTestingAppenderForRootLogger();
-        var response = new Response(SC_OK, new SuccessPayload(UUID.randomUUID()));
+        var response = new Response(200, new SuccessPayload(UUID.randomUUID()));
         var httpClient = setUpSuccessfulHttpResponse(response);
         var handler = new BulkLoadHandler(httpClient);
         handler.handleRequest(new ByteArrayInputStream("{}".getBytes()),
@@ -44,7 +42,7 @@ class BulkLoadHandlerTest {
     @Test
     void shouldLogFailingLoadingEvent() throws IOException, InterruptedException {
         final var logger = LogUtils.getTestingAppenderForRootLogger();
-        var response = new Response(HttpStatus.SC_FORBIDDEN, new SuccessPayload(UUID.randomUUID()));
+        var response = new Response(403, new SuccessPayload(UUID.randomUUID()));
         var httpClient = setUpFailingHttpResponse(response);
         var handler = new BulkLoadHandler(httpClient);
         handler.handleRequest(new ByteArrayInputStream("{}".getBytes()),
@@ -75,7 +73,7 @@ class BulkLoadHandlerTest {
     }
 
     private Response createErrorResponseLogString(UUID uuid) {
-        return new Response(SC_OK, new ErrorPayload(uuid));
+        return new Response(200, new ErrorPayload(uuid));
     }
 
     private HttpClient setUpFailingHttpResponse(Response response)

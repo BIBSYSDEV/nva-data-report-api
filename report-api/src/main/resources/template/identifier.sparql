@@ -14,13 +14,15 @@ WHERE {
                     :modifiedDate ?modifiedDate ;
                     :identifier ?publicationIdentifier ;
                     :funding ?funding .
+
+    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
     ?funding :identifier ?fundingId ;
              :source ?sourceId .
     ?sourceId :identifier ?fundingSource .
-    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
   }
 } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.fetch;
 
+import static com.google.common.net.HttpHeaders.ACCEPT;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
@@ -10,7 +11,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static nva.commons.core.attempt.Try.attempt;
-import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;

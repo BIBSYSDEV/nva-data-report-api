@@ -8,7 +8,7 @@ log4j = { strictly = '2.22.1' }
 slf4j = { strictly = '2.0.11' }
 awsSdk2 = { strictly = '2.23.12' }
 awsSdk2Events = { strictly = '3.11.4' }
-jena = { require = '4.10.0' }
+jena = { require = '5.0.0' }
 jackson = { require = '2.16.1' }
 guava = { strictly = '32.1.2-jre' }
 mockito = { strictly = '5.3.1' }
