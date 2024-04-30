@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Path;
 import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.ioutils.IoUtils;
+import nva.commons.core.paths.UriWrapper;
 
 public final class DocumentUnwrapper {
 
@@ -38,6 +39,7 @@ public final class DocumentUnwrapper {
     }
 
     private String getContext(String contextFile) {
-        return IoUtils.stringFromResources(Path.of(contextFile)).replace("__REPLACE_WITH_API_DOMAIN__", apiDomain);
+        return IoUtils.stringFromResources(Path.of(contextFile)).replace("__REPLACE_WITH_API_DOMAIN__",
+                                                                         UriWrapper.fromHost(apiDomain).toString());
     }
 }

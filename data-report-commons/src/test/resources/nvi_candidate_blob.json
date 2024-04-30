@@ -1,44 +1,52 @@
 {
-  "body" : {
-    "@context" : "https://api.dev.nva.aws.unit.no/scientific-index/context",
-    "id" : "https://api.dev.nva.aws.unit.no/scientific-index/candidate/04c0ffad-5d3d-4929-9a99-80593d077a79",
-    "type" : "NviCandidate",
-    "identifier" : "04c0ffad-5d3d-4929-9a99-80593d077a79",
-    "publicationDetails" : {
-      "id" : "https://api.dev.nva.aws.unit.no/publication/018c914b5071-ed4db6d4-34ab-44b6-8871-63a6c315ce36",
-      "type" : "AcademicArticle",
-      "title" : "test med kun årstall i resultat",
-      "publicationDate" : {
-        "year" : "2022"
+  "body": {
+    "@context": "https://api.dev.nva.aws.unit.no/scientific-index/context",
+    "id": "https://api.dev.nva.aws.unit.no/scientific-index/candidate/04c0ffad-5d3d-4929-9a99-80593d077a79",
+    "type": "NviCandidate",
+    "identifier": "04c0ffad-5d3d-4929-9a99-80593d077a79",
+    "publicationDetails": {
+      "id": "https://api.dev.nva.aws.unit.no/publication/018c914b5071-ed4db6d4-34ab-44b6-8871-63a6c315ce36",
+      "type": "AcademicArticle",
+      "title": "test med kun årstall i resultat",
+      "publicationDate": {
+        "year": "2022"
       },
-      "contributors" : [ {
-        "type" : "NviContributor",
-        "id" : "https://api.dev.nva.aws.unit.no/cristin/person/34322",
-        "name" : "Torbjørn Kvåle",
-        "role" : "Creator",
-        "affiliations" : [ {
-          "type" : "NviOrganization",
-          "id" : "https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0",
-          "partOf" : [ ]
-        } ]
-      } ]
+      "contributors": [
+        {
+          "type": "NviContributor",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/person/34322",
+          "name": "Torbjørn Kvåle",
+          "role": "Creator",
+          "affiliations": [
+            {
+              "type": "NviOrganization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/20754.1.0.0",
+              "partOf": [
+                "20754.0.0.0"
+              ]
+            }
+          ]
+        }
+      ]
     },
-    "approvals" : [ {
-      "type" : "Approval",
-      "institutionId" : "https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0",
-      "labels" : {
-        "nb" : "Sikt – Kunnskapssektorens tjenesteleverandør",
-        "en" : "Sikt - Norwegian Agency for Shared Services in Education and Research"
-      },
-      "approvalStatus" : "Pending",
-      "points" : 1
-    } ],
-    "numberOfApprovals" : 1,
-    "points" : 1,
-    "modifiedDate" : "2024-02-08T13:39:58.506796430Z"
+    "approvals": [
+      {
+        "type": "Approval",
+        "institutionId": "https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0",
+        "labels": {
+          "nb": "Sikt – Kunnskapssektorens tjenesteleverandør",
+          "en": "Sikt - Norwegian Agency for Shared Services in Education and Research"
+        },
+        "approvalStatus": "Pending",
+        "points": 1
+      }
+    ],
+    "numberOfApprovals": 1,
+    "points": 1,
+    "modifiedDate": "2024-02-08T13:39:58.506796430Z"
   },
-  "consumptionAttributes" : {
-    "documentIdentifier" : "04c0ffad-5d3d-4929-9a99-80593d077a79",
-    "index" : "nvi-candidates"
+  "consumptionAttributes": {
+    "documentIdentifier": "04c0ffad-5d3d-4929-9a99-80593d077a79",
+    "index": "nvi-candidates"
   }
 }
