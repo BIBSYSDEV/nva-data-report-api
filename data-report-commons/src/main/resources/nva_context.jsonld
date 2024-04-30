@@ -23,7 +23,7 @@
       "@container" : "@set"
     },
     "publicationNotes" : {
-      "@id" : "publicationNote",
+      "@id" : "publicationNoteBase",
       "@container" : "@set"
     },
     "alternativeTitles" : {
@@ -180,6 +180,16 @@
     "venues" : {
       "@id" : "venue",
       "@container" : "@set"
+    },
+    "curatingInstitutions" : {
+      "@id" : "curatingInstitution",
+      "@type" : "@id",
+      "@container" : "@set"
+    },
+    "contributorOrganizations" : {
+      "@id" : "contributorOrganization",
+      "@container" : "@set",
+      "@type" : "@id"
     }
   }
 }
