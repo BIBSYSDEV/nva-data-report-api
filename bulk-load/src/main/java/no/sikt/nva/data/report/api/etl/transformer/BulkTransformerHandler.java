@@ -201,6 +201,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private String fetchS3Content(String key) {
+        logger.info("Fetching content for key: {}", key);
         var s3Driver = new S3Driver(s3ResourcesClient, ENVIRONMENT.readEnv(EXPANDED_RESOURCES_BUCKET));
         return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
     }
