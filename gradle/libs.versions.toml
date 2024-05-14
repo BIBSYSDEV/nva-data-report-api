@@ -38,6 +38,7 @@ aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge',
 aws-sdk2-s3 = { group = 'software.amazon.awssdk', name = 's3', version.ref = 'awsSdk2' }
 aws-sdk2-sqs = { group = 'software.amazon.awssdk', name = 'sqs', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
+aws-sdk2-apache-client = { group = 'software.amazon.awssdk', name = 'apache-client', version.ref = 'awsSdk2' }
 aws-sdk2-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsSdk2Events' }
 aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
 
