@@ -39,7 +39,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
-import software.amazon.awssdk.services.s3.S3Client;
 
 class BulkTransformerHandlerTest {
 
@@ -57,11 +56,11 @@ class BulkTransformerHandlerTest {
     @BeforeEach
     void setup() {
         outputStream = new ByteArrayOutputStream();
-        S3Client s3ResourcesClient = new FakeS3Client();
+        var s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, "resources");
-        S3Client s3BatchesClient = new FakeS3Client();
+        var s3BatchesClient = new FakeS3Client();
         s3BatchesDriver = new S3Driver(s3BatchesClient, "batchesBucket");
-        S3Client s3OutputClient = new FakeS3Client();
+        var s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, "loaderBucket");
         queueClient = new FakeSqsClient();
         handler = new BulkTransformerHandler(s3ResourcesClient, s3BatchesClient, s3OutputClient, queueClient);
@@ -124,7 +123,7 @@ class BulkTransformerHandlerTest {
         list.add(expectedStarMarkerFromEmittedEvent);
         for (var item : list) {
             handler.handleRequest(eventStream(item), outputStream, Mockito.mock(Context.class));
-            var sentMessage = dtoObjectMapper.readValue(queueClient.getSentMessages().get(0).messageBody(),
+            var sentMessage = dtoObjectMapper.readValue(queueClient.getSentMessages().getFirst().messageBody(),
                                                         KeyBatchRequestEvent.class);
             assertEquals(batchKey, sentMessage.getStartMarker());
             assertEquals(DEFAULT_LOCATION, sentMessage.getLocation());
