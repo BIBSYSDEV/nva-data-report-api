@@ -6,7 +6,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.db.utils.DocumentUnwrapper;
-import no.sikt.nva.data.report.api.etl.queue.QueueClient;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Objects;
@@ -15,6 +14,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.etl.aws.AwsSqsClient;
+import no.sikt.nva.data.report.api.etl.queue.QueueClient;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.s3.S3Driver;
@@ -77,6 +77,10 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         var location = getLocation(input);
         var batchResponse = fetchSingleBatch(startMarker);
 
+        if (batchResponse.isTruncated()) {
+            sendNewKeyBatchEvent(batchResponse.getKey().orElse(null), location);
+        }
+
         batchResponse.getKey()
             .map(this::extractContent)
             .filter(keys -> !keys.isEmpty())
@@ -86,10 +90,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
             .map(this::persistNquads);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
-
-        if (batchResponse.isTruncated()) {
-            sendNewKeyBatchEvent(batchResponse.getKey().orElse(null), location);
-        }
         return null;
     }
 
