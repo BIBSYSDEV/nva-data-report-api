@@ -93,6 +93,7 @@ Resources:
   BulkTransformerQueue:
     Type: AWS::SQS::Queue
     Properties:
+      VisibilityTimeout: 300
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt BulkTransformerQueueDLQ.Arn
         maxReceiveCount: 5
@@ -193,6 +194,9 @@ Resources:
               - sqs:GetQueueAttributes
             Resource:
               - !GetAtt DataLoadingDLQ.Arn
+              - !GetAtt BulkTransformerQueue.Arn
+              - !GetAtt BulkTransformerQueueDLQ.Arn
+              - !GetAtt DataReportPersistedResourceDLQ.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -452,6 +456,7 @@ Resources:
       Handler: no.sikt.nva.data.report.api.etl.transformer.GenerateKeyBatchesHandler::handleRequest
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
+        - !GetAtt SqsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -480,11 +485,13 @@ Resources:
     Properties:
       CodeUri: bulk-load
       Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
+      Timeout: 300
       MemorySize: 1536
       AutoPublishAlias: live
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt DeleteS3ObjectPolicy.PolicyArn
+        - !GetAtt SqsManagedPolicy.PolicyArn
       Environment:
         Variables:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
