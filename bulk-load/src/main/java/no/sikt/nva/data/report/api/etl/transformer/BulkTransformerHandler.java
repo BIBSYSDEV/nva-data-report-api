@@ -173,7 +173,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
-                .startAfter(startMarker)
+                .continuationToken(startMarker)
                 .maxKeys(1)
                 .build());
         return new ListingResponse(response);
