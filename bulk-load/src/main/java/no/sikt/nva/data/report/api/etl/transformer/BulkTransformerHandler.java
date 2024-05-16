@@ -45,7 +45,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
     private static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
     private static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
-    private static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
+    private static final String LAST_CONSUMED_BATCH = "Processed batch batch: {}";
     private static final String LINE_BREAK = "\n";
     private static final String ID_POINTER = "/id";
     private static final String NT_EXTENSION = ".nt";
@@ -103,6 +103,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                                  String location,
                                  Context context) {
         if (batchResponse.isTruncated()) {
+            logger.info("Emitting event for next batch. Start marker: {}", batchResponse.getKey());
             sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
                                             location,
                                             context));
