@@ -126,30 +126,23 @@ class BulkTransformerHandlerTest {
 
     @Test
     void shouldEmitNewEventWhenThereAreMoreBatchesToIndex() throws IOException {
-        var expectedDocuments = createExpectedDocuments(10);
-        var batch = expectedDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
-                        .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        var expectedStarMarkerFromEmittedEvent = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(expectedStarMarkerFromEmittedEvent), batch);
-        var list = new ArrayList<String>();
-        list.add(null);
-        list.add(batchKey);
-        list.add(expectedStarMarkerFromEmittedEvent);
-        var handler = new BulkTransformerHandler(s3ResourcesClient,
-                                                 s3BatchesClient,
-                                                 s3OutputClient,
-                                                 eventBridgeClient);
-        for (var item : list) {
-            handler.handleRequest(eventStream(item), outputStream, Mockito.mock(Context.class));
+        var firstBatch = getBatch(10);
+        var firstBatchKey = "firstBatchKey";
+        s3BatchesDriver.insertFile(UnixPath.of(firstBatchKey), firstBatch);
+        var secondBatchKey = "secondBatchKey";
+        var secondBatch = getBatch(10);
+        s3BatchesDriver.insertFile(UnixPath.of(secondBatchKey), secondBatch);
+        var thirdBatchKey = "thirdBatchKey";
+        var thirdBatch = getBatch(10);
+        s3BatchesDriver.insertFile(UnixPath.of(thirdBatchKey), thirdBatch);
 
-            var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
-
-            assertEquals(batchKey, emittedEvent.getStartMarker());
-            assertEquals(DEFAULT_LOCATION, emittedEvent.getLocation());
-        }
+        var handler = new BulkTransformerHandler(s3ResourcesClient, s3BatchesClient, s3OutputClient, eventBridgeClient);
+        handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
+        var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+        assertEquals(firstBatchKey, emittedEvent.getStartMarker());
+        handler.handleRequest(eventStream(firstBatchKey), outputStream, Mockito.mock(Context.class));
+        var secondEmittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+        assertEquals(secondBatchKey, secondEmittedEvent.getStartMarker());
     }
 
     // TODO: Remove test once we have figured out how the GraphName should be provided.
@@ -194,6 +187,12 @@ class BulkTransformerHandlerTest {
 
     private static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
+    }
+
+    private String getBatch(int numberOfDocuments) {
+        return createExpectedDocuments(numberOfDocuments).stream()
+                   .map(IndexDocument::getDocumentIdentifier)
+                   .collect(Collectors.joining(System.lineSeparator()));
     }
 
     private boolean modelHasData(String contentString) {
