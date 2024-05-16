@@ -189,6 +189,9 @@ Resources:
               - sqs:GetQueueAttributes
             Resource:
               - !GetAtt DataLoadingDLQ.Arn
+              - !GetAtt BulkTransformerQueue.Arn
+              - !GetAtt BulkTransformerQueueDLQ.Arn
+              - !GetAtt DataReportPersistedResourceDLQ.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -448,6 +451,7 @@ Resources:
       Handler: no.sikt.nva.data.report.api.etl.transformer.GenerateKeyBatchesHandler::handleRequest
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
+        - !GetAtt SqsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
