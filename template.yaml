@@ -197,6 +197,7 @@ Resources:
               - !GetAtt BulkTransformerQueue.Arn
               - !GetAtt BulkTransformerQueueDLQ.Arn
               - !GetAtt DataReportPersistedResourceDLQ.Arn
+              - !GetAtt GenerateKeyBatchesDLQ.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
