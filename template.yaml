@@ -89,14 +89,6 @@ Globals:
 
 Resources:
 
-  # ---- SQS ----
-  BulkTransformerQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      VisibilityTimeout: 300
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt BulkTransformerQueueDLQ.Arn
-        maxReceiveCount: 5
   # ---- DLQs ----
   BulkTransformerQueueDLQ:
     Type: AWS::SQS::Queue
@@ -190,7 +182,6 @@ Resources:
               - sqs:GetQueueAttributes
             Resource:
               - !GetAtt DataLoadingDLQ.Arn
-              - !GetAtt BulkTransformerQueue.Arn
               - !GetAtt BulkTransformerQueueDLQ.Arn
               - !GetAtt DataReportPersistedResourceDLQ.Arn
   DeployToVpnPolicy:
@@ -485,17 +476,20 @@ Resources:
         - !GetAtt SqsManagedPolicy.PolicyArn
       Environment:
         Variables:
+          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           LOADER_BUCKET: !Ref LoaderBucket
-          API_HOST: !Ref ApiDomain
-          BULK_TRANSFORMER_QUEUE_URL: !Ref BulkTransformerQueue
           TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
+          API_HOST: !Ref ApiDomain
       Events:
-        SqsEvent:
-          Type: SQS
+        BatchIndexEvent:
+          Type: EventBridgeRule
           Properties:
-            Queue: !GetAtt BulkTransformerQueue.Arn
+            EventBusName: !GetAtt BatchLoadEventBus.Name
+            Pattern:
+              detail:
+                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
