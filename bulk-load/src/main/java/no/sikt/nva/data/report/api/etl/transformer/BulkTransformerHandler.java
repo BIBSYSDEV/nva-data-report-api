@@ -118,6 +118,10 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return URI.create(id.textValue() + NT_EXTENSION);
     }
 
+    private static boolean isNotEmpty(ListObjectsV2Response response) {
+        return !response.contents().isEmpty();
+    }
+
     private void sendNewKeyBatchEvent(String batchResponse, String location) {
         queueClient.sendMessage(new KeyBatchRequestEvent(batchResponse, TOPIC, location).toJsonString());
     }
@@ -151,12 +155,16 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private ListingResponse fetchSingleBatch(String startMarker) {
+        logger.info("Fetching batch with startMarker: {}", startMarker);
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
                 .startAfter(startMarker)
                 .maxKeys(1)
                 .build());
+        if (isNotEmpty(response)) {
+            logger.info("Fetched response with first key: {}", response.contents().getFirst().key());
+        }
         return new ListingResponse(response);
     }
 
