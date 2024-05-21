@@ -204,7 +204,7 @@ class BulkTransformerHandlerTest {
 
     private InputStream eventStream(String startMarker) throws JsonProcessingException {
         var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
-        event.setDetail(new KeyBatchRequestEvent(startMarker, randomString(), DEFAULT_LOCATION));
+        event.setDetail(new KeyBatchRequestEvent(startMarker, null , randomString(), DEFAULT_LOCATION));
         event.setId(randomString());
         var jsonString = objectMapperWithEmpty.writeValueAsString(event);
         return IoUtils.stringToStream(jsonString);

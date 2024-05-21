@@ -76,9 +76,9 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     protected Void processInput(KeyBatchRequestEvent input,
                                 AwsEventBridgeEvent<KeyBatchRequestEvent> event,
                                 Context context) {
-        var startMarker = getStartMarker(input);
+        var continuationToken = getContinuationToken(input);
         var location = getLocation(input);
-        var batchResponse = fetchSingleBatch(startMarker);
+        var batchResponse = fetchSingleBatch(continuationToken);
 
         emitNextEvent(batchResponse, location, context);
 
@@ -94,13 +94,14 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return null;
     }
 
-    private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
+    private static PutEventsRequestEntry constructRequestEntry(ListingResponse batchResponse,
                                                                String location,
                                                                Context context) {
         return PutEventsRequestEntry.builder()
                    .eventBusName(EVENT_BUS)
-                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location)
-                               .toJsonString())
+                   .detail(new KeyBatchRequestEvent(batchResponse.getKey().orElse(null),
+                                                    batchResponse.getContinuationToken(), TOPIC,
+                                                    location).toJsonString())
                    .detailType(MANDATORY_UNUSED_SUBTOPIC)
                    .source(BulkTransformerHandler.class.getName())
                    .resources(context.getInvokedFunctionArn())
@@ -108,8 +109,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                    .build();
     }
 
-    private static String getStartMarker(KeyBatchRequestEvent input) {
-        return nonNull(input) && nonNull(input.getStartMarker()) ? input.getStartMarker() : null;
+    private static String getContinuationToken(KeyBatchRequestEvent input) {
+        return nonNull(input) && nonNull(input.getContinuationToken()) ? input.getContinuationToken() : null;
     }
 
     @JacocoGenerated
@@ -140,10 +141,9 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                                String location,
                                Context context) {
         if (batchResponse.isTruncated()) {
-            logger.info("Emitting event for next batch. Start marker: {}", batchResponse.getKey());
-            sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
-                                            location,
-                                            context));
+            logger.info("Emitting event for next batch. Start marker: {}. Continuation token: {}",
+                        batchResponse.getKey(), batchResponse.getContinuationToken());
+            sendEvent(constructRequestEntry(batchResponse, location, context));
         }
     }
 
@@ -170,12 +170,12 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : null;
     }
 
-    private ListingResponse fetchSingleBatch(String startMarker) {
-        logger.info("Fetching batch with startMarker: {}", startMarker);
+    private ListingResponse fetchSingleBatch(String continuationToken) {
+        logger.info("Fetching batch with continuationToken: {}", continuationToken);
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
-                .startAfter(startMarker)
+                .continuationToken(continuationToken)
                 .maxKeys(1)
                 .build());
         if (!response.contents().isEmpty()) {
@@ -215,10 +215,16 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
 
         private final boolean truncated;
         private final String key;
+        private final String continuationToken;
 
         public ListingResponse(ListObjectsV2Response response) {
             this.truncated = Boolean.TRUE.equals(response.isTruncated());
             this.key = extractKey(response);
+            this.continuationToken = response.continuationToken();
+        }
+
+        public String getContinuationToken() {
+            return continuationToken;
         }
 
         public boolean isTruncated() {
