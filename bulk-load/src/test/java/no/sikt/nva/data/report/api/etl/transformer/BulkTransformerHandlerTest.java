@@ -5,6 +5,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -138,12 +139,11 @@ class BulkTransformerHandlerTest {
 
         var handler = new BulkTransformerHandler(s3ResourcesClient, s3BatchesClient, s3OutputClient, eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
-        var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
-        assertEquals(firstBatchKey, emittedEvent.getStartMarker());
+        var firstContinuationToken = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent().getContinuationToken();
         handler.handleRequest(eventStream(firstBatchKey), outputStream, Mockito.mock(Context.class));
-        //TODO: Fix fakeS3Client startAfter
-        //var secondEmittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
-        //assertEquals(secondBatchKey, secondEmittedEvent.getStartMarker());
+        var secondContinuationToken =
+            ((StubEventBridgeClient) eventBridgeClient).getLatestEvent().getContinuationToken();
+        assertNotEquals(firstContinuationToken, secondContinuationToken);
     }
 
     // TODO: Remove test once we have figured out how the GraphName should be provided.
@@ -202,9 +202,9 @@ class BulkTransformerHandlerTest {
         return !graph.isEmpty();
     }
 
-    private InputStream eventStream(String startMarker) throws JsonProcessingException {
+    private InputStream eventStream(String continuationToken) throws JsonProcessingException {
         var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
-        event.setDetail(new KeyBatchRequestEvent(startMarker, null , randomString(), DEFAULT_LOCATION));
+        event.setDetail(new KeyBatchRequestEvent(null, continuationToken, randomString(), DEFAULT_LOCATION));
         event.setId(randomString());
         var jsonString = objectMapperWithEmpty.writeValueAsString(event);
         return IoUtils.stringToStream(jsonString);

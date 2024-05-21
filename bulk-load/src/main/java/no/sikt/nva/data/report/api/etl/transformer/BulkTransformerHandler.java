@@ -46,7 +46,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
     private static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
     private static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
-    private static final String LAST_CONSUMED_BATCH = "Processed batch batch: {}";
+    private static final String LAST_CONSUMED_BATCH = "Processed batch: {}";
     private static final String LINE_BREAK = "\n";
     private static final String ID_POINTER = "/id";
     private static final String NT_EXTENSION = ".nt";
@@ -90,7 +90,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
             .map(nquads -> attempt(() -> compress(nquads)).orElseThrow())
             .map(this::persistNquads);
 
-        logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
+        logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey().orElse(null));
         return null;
     }
 
@@ -141,8 +141,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                                String location,
                                Context context) {
         if (batchResponse.isTruncated()) {
-            logger.info("Emitting event for next batch. Start marker: {}. Continuation token: {}",
-                        batchResponse.getKey(), batchResponse.getContinuationToken());
+            logger.info("Emitting event for next batch. Continuation token: {}", batchResponse.getContinuationToken());
             sendEvent(constructRequestEntry(batchResponse, location, context));
         }
     }
@@ -171,18 +170,12 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private ListingResponse fetchSingleBatch(String continuationToken) {
-        logger.info("Fetching batch with continuationToken: {}", continuationToken);
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
                 .continuationToken(continuationToken)
                 .maxKeys(1)
                 .build());
-        if (!response.contents().isEmpty()) {
-            logger.info("Response content key: {}", response.contents().getFirst().key());
-            logger.info("Response isTruncated: {}, next continuation token: {}", response.isTruncated(),
-                        response.nextContinuationToken());
-        }
         return new ListingResponse(response);
     }
 
