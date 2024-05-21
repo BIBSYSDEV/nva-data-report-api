@@ -36,6 +36,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
 
     private static final Logger logger = LoggerFactory.getLogger(BulkTransformerHandler.class);
     private static final Environment ENVIRONMENT = new Environment();
+    public static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
     private static final String LOADER_BUCKET = "LOADER_BUCKET";
     private static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
@@ -50,7 +51,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String ID_POINTER = "/id";
     private static final String NT_EXTENSION = ".nt";
     private static final String MISSING_ID_NODE_IN_CONTENT_ERROR = "Missing id-node in content: {}";
-    public static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
     private final S3Client s3OutputClient;
@@ -94,22 +94,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return null;
     }
 
-    private String aggregateNquads(Stream<JsonNode> element) {
-        return element.map(this::mapToNquads)
-                   .collect(Collectors.joining(System.lineSeparator()));
-    }
-
-    private void emitNextEvent(ListingResponse batchResponse,
-                                 String location,
-                                 Context context) {
-        if (batchResponse.isTruncated()) {
-            logger.info("Emitting event for next batch. Start marker: {}", batchResponse.getKey());
-            sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
-                                            location,
-                                            context));
-        }
-    }
-
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
                                                                String location,
                                                                Context context) {
@@ -138,6 +122,31 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
     }
 
+    private static URI extractGraphName(JsonNode content) {
+        var id = content.at(ID_POINTER);
+        if (id.isMissingNode()) {
+            logger.error(MISSING_ID_NODE_IN_CONTENT_ERROR, content);
+            throw new MissingIdException();
+        }
+        return URI.create(id.textValue() + NT_EXTENSION);
+    }
+
+    private String aggregateNquads(Stream<JsonNode> element) {
+        return element.map(this::mapToNquads)
+                   .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    private void emitNextEvent(ListingResponse batchResponse,
+                               String location,
+                               Context context) {
+        if (batchResponse.isTruncated()) {
+            logger.info("Emitting event for next batch. Start marker: {}", batchResponse.getKey());
+            sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
+                                            location,
+                                            context));
+        }
+    }
+
     private boolean persistNquads(byte[] nquads) {
         var request = PutObjectRequest.builder()
                           .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
@@ -151,15 +160,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return Nquads.transform(content.toString(), extractGraphName(content)).toString();
     }
 
-    private static URI extractGraphName(JsonNode content) {
-        var id = content.at(ID_POINTER);
-        if (id.isMissingNode()) {
-            logger.error(MISSING_ID_NODE_IN_CONTENT_ERROR, content);
-            throw new MissingIdException();
-        }
-        return URI.create(id.textValue() + NT_EXTENSION);
-    }
-
     private String extractContent(String key) {
         var s3Driver = new S3Driver(s3BatchesClient, KEY_BATCHES_BUCKET);
         logger.info(PROCESSING_BATCH_MESSAGE, key);
@@ -171,12 +171,16 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private ListingResponse fetchSingleBatch(String startMarker) {
+        logger.info("Fetching batch with startMarker: {}", startMarker);
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
-                .continuationToken(startMarker)
+                .startAfter(startMarker)
                 .maxKeys(1)
                 .build());
+        if (!response.contents().isEmpty()) {
+            logger.info("Response content key: {}", response.contents().getFirst().key());
+        }
         return new ListingResponse(response);
     }
 
@@ -217,17 +221,17 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
             this.key = extractKey(response);
         }
 
-        private static String extractKey(ListObjectsV2Response response) {
-            var contents = response.contents();
-            return contents.isEmpty() ? null : contents.getFirst().key();
-        }
-
         public boolean isTruncated() {
             return truncated;
         }
 
         public Optional<String> getKey() {
             return Optional.ofNullable(key);
+        }
+
+        private static String extractKey(ListObjectsV2Response response) {
+            var contents = response.contents();
+            return contents.isEmpty() ? null : contents.getFirst().key();
         }
     }
 }
