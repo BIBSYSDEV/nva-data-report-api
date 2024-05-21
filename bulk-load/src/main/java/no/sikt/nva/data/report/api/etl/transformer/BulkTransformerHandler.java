@@ -180,6 +180,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                 .build());
         if (!response.contents().isEmpty()) {
             logger.info("Response content key: {}", response.contents().getFirst().key());
+            logger.info("Response continuation token: {}", response.continuationToken());
         }
         return new ListingResponse(response);
     }
