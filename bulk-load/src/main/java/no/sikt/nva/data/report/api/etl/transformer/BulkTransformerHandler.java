@@ -180,8 +180,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                 .build());
         if (!response.contents().isEmpty()) {
             logger.info("Response content key: {}", response.contents().getFirst().key());
-            logger.info("Response isTruncated: {}, continuation token: {}", response.isTruncated(),
-                        response.continuationToken());
+            logger.info("Response isTruncated: {}, next continuation token: {}", response.isTruncated(),
+                        response.nextContinuationToken());
         }
         return new ListingResponse(response);
     }
@@ -222,7 +222,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         public ListingResponse(ListObjectsV2Response response) {
             this.truncated = Boolean.TRUE.equals(response.isTruncated());
             this.key = extractKey(response);
-            this.continuationToken = response.continuationToken();
+            this.continuationToken = response.nextContinuationToken();
         }
 
         public String getContinuationToken() {
