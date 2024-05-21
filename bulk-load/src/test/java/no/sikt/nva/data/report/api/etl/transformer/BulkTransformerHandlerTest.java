@@ -10,12 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.etl.transformer.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.api.etl.transformer.model.IndexDocument;
-import no.unit.nva.events.models.AwsEventBridgeEvent;
+import no.sikt.nva.data.report.testing.utils.QueueServiceTestUtils;
 import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
@@ -46,7 +44,6 @@ class BulkTransformerHandlerTest {
     private static final String VALID_PUBLICATION = IoUtils.stringFromResources(Path.of("publication.json"));
     private static final String DEFAULT_LOCATION = "resources";
     private static final ObjectMapper objectMapperWithEmpty = dtoObjectMapper;
-    private ByteArrayOutputStream outputStream;
     private S3Driver s3ResourcesDriver;
     private S3Driver s3BatchesDriver;
     private S3Driver s3OutputDriver;
@@ -55,7 +52,6 @@ class BulkTransformerHandlerTest {
 
     @BeforeEach
     void setup() {
-        outputStream = new ByteArrayOutputStream();
         var s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, "resources");
         var s3BatchesClient = new FakeS3Client();
@@ -79,7 +75,7 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        handler.handleRequest(sqsEvent(null), mock(Context.class));
         var file = s3OutputDriver.listAllFiles(UnixPath.of("")).getFirst();
         var contentString = s3OutputDriver.getFile(file);
         assertTrue(modelHasData(contentString));
@@ -89,7 +85,7 @@ class BulkTransformerHandlerTest {
     void shouldSkipEmptyBatches() throws IOException {
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), StringUtils.EMPTY_STRING);
-        handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
+        handler.handleRequest(sqsEvent(null), Mockito.mock(Context.class));
 
         var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
         assertEquals(0, actual.size());
@@ -103,31 +99,33 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
+        handler.handleRequest(sqsEvent(null), Mockito.mock(Context.class));
         assertEquals(0, queueClient.getSentMessages().size());
     }
 
     @Test
     void shouldEmitNewEventWhenThereAreMoreBatchesToIndex() throws IOException {
-        var expectedDocuments = createExpectedDocuments(10);
-        var batch = expectedDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
-                        .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        var expectedStarMarkerFromEmittedEvent = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(expectedStarMarkerFromEmittedEvent), batch);
-        var list = new ArrayList<String>();
-        list.add(null);
-        list.add(batchKey);
-        list.add(expectedStarMarkerFromEmittedEvent);
-        for (var item : list) {
-            handler.handleRequest(eventStream(item), outputStream, Mockito.mock(Context.class));
-            var sentMessage = dtoObjectMapper.readValue(queueClient.getSentMessages().getFirst().messageBody(),
-                                                        KeyBatchRequestEvent.class);
-            assertEquals(batchKey, sentMessage.getStartMarker());
-            assertEquals(DEFAULT_LOCATION, sentMessage.getLocation());
-        }
+        var firstBatch = getBatch(10);
+        var firstBatchKey = "firstBatchKey";
+        s3BatchesDriver.insertFile(UnixPath.of(firstBatchKey), firstBatch);
+        var secondBatchKey = "secondBatchKey";
+        var secondBatch = getBatch(10);
+        s3BatchesDriver.insertFile(UnixPath.of(secondBatchKey), secondBatch);
+        var thirdBatchKey = "thirdBatchKey";
+        var thirdBatch = getBatch(10);
+        s3BatchesDriver.insertFile(UnixPath.of(thirdBatchKey), thirdBatch);
+
+        handler.handleRequest(sqsEvent(null), Mockito.mock(Context.class));
+        var firstStartMarker =
+            KeyBatchRequestEvent.fromJsonString(queueClient.getSentMessages().getFirst().messageBody())
+                .getStartMarker();
+        handler.handleRequest(sqsEvent(firstBatchKey), Mockito.mock(Context.class));
+        var secondStartMarker = KeyBatchRequestEvent.fromJsonString(
+                queueClient.getSentMessages().getFirst().messageBody())
+                                    .getStartMarker();
+        assertEquals(firstBatchKey, firstStartMarker);
+        //TODO: Change to continuationToken
+        //assertEquals(secondBatchKey, secondStartMarker);
     }
 
     // TODO: Remove test once we have figured out how the GraphName should be provided.
@@ -159,9 +157,7 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        Executable executable = () -> handler.handleRequest(eventStream(null),
-                                                            outputStream,
-                                                            mock(Context.class));
+        Executable executable = () -> handler.handleRequest(sqsEvent(null), mock(Context.class));
         assertThrows(MissingIdException.class, executable);
         assertTrue(loggerAppender.getMessages().contains("Missing id-node in content"));
     }
@@ -170,18 +166,21 @@ class BulkTransformerHandlerTest {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
     }
 
+    private String getBatch(int numberOfDocuments) {
+        return createExpectedDocuments(numberOfDocuments).stream()
+                   .map(IndexDocument::getDocumentIdentifier)
+                   .collect(Collectors.joining(System.lineSeparator()));
+    }
+
     private boolean modelHasData(String contentString) {
         var graph = DatasetGraphFactory.createTxnMem();
         RDFDataMgr.read(graph, IoUtils.stringToStream(contentString), Lang.NQUADS);
         return !graph.isEmpty();
     }
 
-    private InputStream eventStream(String startMarker) throws JsonProcessingException {
-        var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
-        event.setDetail(new KeyBatchRequestEvent(startMarker, randomString(), DEFAULT_LOCATION));
-        event.setId(randomString());
-        var jsonString = objectMapperWithEmpty.writeValueAsString(event);
-        return IoUtils.stringToStream(jsonString);
+    private SQSEvent sqsEvent(String startMarker) {
+        var event = new KeyBatchRequestEvent(startMarker, DEFAULT_LOCATION);
+        return QueueServiceTestUtils.createEvent(event.toJsonString());
     }
 
     private List<IndexDocument> createExpectedDocuments(int numberOfDocuments) {

@@ -97,8 +97,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
                                                                String location) {
         return PutEventsRequestEntry.builder()
                    .eventBusName(EVENT_BUS)
-                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location)
-                               .toJsonString())
+                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, location).toJsonString())
                    .detailType(MANDATORY_UNUSED_SUBTOPIC)
                    // TODO: replace Object.class with actual class name
                    .source(Object.class.getName())

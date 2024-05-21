@@ -4,6 +4,8 @@ import static java.util.Objects.nonNull;
 import static no.sikt.nva.data.report.api.etl.transformer.util.GzipUtil.compress;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.db.utils.DocumentUnwrapper;
 import java.net.URI;
@@ -15,8 +17,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.etl.aws.AwsSqsClient;
 import no.sikt.nva.data.report.api.etl.queue.QueueClient;
-import no.unit.nva.events.handlers.EventHandler;
-import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, Void> {
+public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
 
     private static final Logger logger = LoggerFactory.getLogger(BulkTransformerHandler.class);
     private static final Environment ENVIRONMENT = new Environment();
@@ -62,7 +62,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                                   S3Client s3BatchesClient,
                                   S3Client s3OutputClient,
                                   QueueClient queueClient) {
-        super(KeyBatchRequestEvent.class);
         this.s3ResourcesClient = s3ResourcesClient;
         this.s3BatchesClient = s3BatchesClient;
         this.s3OutputClient = s3OutputClient;
@@ -70,15 +69,23 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     @Override
-    protected Void processInput(KeyBatchRequestEvent input,
-                                AwsEventBridgeEvent<KeyBatchRequestEvent> event,
-                                Context context) {
+    public Void handleRequest(SQSEvent sqsEvent, Context context) {
+        sqsEvent.getRecords()
+            .stream()
+            .map(record -> attempt(() -> KeyBatchRequestEvent.fromJsonString(record.getBody())).orElseThrow())
+            .forEach(this::processInput);
+        return null;
+    }
+
+    protected Void processInput(KeyBatchRequestEvent input) {
         var startMarker = getStartMarker(input);
         var location = getLocation(input);
         var batchResponse = fetchSingleBatch(startMarker);
 
         if (batchResponse.isTruncated()) {
             sendNewKeyBatchEvent(batchResponse.getKey().orElse(null), location);
+        } else {
+            logger.info("No more batches to process");
         }
 
         batchResponse.getKey()
@@ -119,7 +126,7 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private void sendNewKeyBatchEvent(String batchResponse, String location) {
-        queueClient.sendMessage(new KeyBatchRequestEvent(batchResponse, TOPIC, location).toJsonString());
+        queueClient.sendMessage(new KeyBatchRequestEvent(batchResponse, location).toJsonString());
     }
 
     private String aggregateNquads(Stream<JsonNode> element) {

@@ -115,7 +115,7 @@ class GenerateKeyBatchesHandlerTest {
 
     private InputStream eventStream(String location) throws JsonProcessingException {
         var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
-        event.setDetail(new KeyBatchRequestEvent(null, "topic", location));
+        event.setDetail(new KeyBatchRequestEvent(null, location));
         var jsonString = objectMapperWithEmpty.writeValueAsString(event);
         return IoUtils.stringToStream(jsonString);
     }
