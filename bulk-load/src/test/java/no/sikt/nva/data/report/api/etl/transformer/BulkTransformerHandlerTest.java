@@ -45,7 +45,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-import software.amazon.awssdk.services.s3.S3Client;
 
 class BulkTransformerHandlerTest {
 
@@ -54,25 +53,23 @@ class BulkTransformerHandlerTest {
     private static final String DEFAULT_LOCATION = "resources";
     private static final ObjectMapper objectMapperWithEmpty = JsonUtils.dtoObjectMapper;
     private ByteArrayOutputStream outputStream;
-    private S3Client s3ResourcesClient;
     private S3Driver s3ResourcesDriver;
-    private S3Client s3BatchesClient;
     private S3Driver s3BatchesDriver;
     private EventBridgeClient eventBridgeClient;
-    private S3Client s3OutputClient;
     private S3Driver s3OutputDriver;
+    private BulkTransformerHandler handler;
 
     @BeforeEach
     void setup() {
         outputStream = new ByteArrayOutputStream();
-        s3ResourcesClient = new FakeS3Client();
+        var s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, "resources");
-        s3BatchesClient = new FakeS3Client();
+        var s3BatchesClient = new FakeS3Client();
         s3BatchesDriver = new S3Driver(s3BatchesClient, "batchesBucket");
-        s3OutputClient = new FakeS3Client();
+        var s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, "loaderBucket");
-
         eventBridgeClient = new StubEventBridgeClient();
+        handler = new BulkTransformerHandler(s3ResourcesClient, s3BatchesClient, s3OutputClient, eventBridgeClient);
     }
 
     @Test
@@ -83,10 +80,6 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        var handler = new BulkTransformerHandler(s3ResourcesClient,
-                                                 s3BatchesClient,
-                                                 s3OutputClient,
-                                                 eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var file = s3OutputDriver.listAllFiles(UnixPath.of("")).getFirst();
         var contentString = s3OutputDriver.getFile(file);
@@ -97,10 +90,6 @@ class BulkTransformerHandlerTest {
     void shouldSkipEmptyBatches() throws IOException {
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), StringUtils.EMPTY_STRING);
-        var handler = new BulkTransformerHandler(s3ResourcesClient,
-                                                 s3BatchesClient,
-                                                 s3OutputClient,
-                                                 eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
 
         var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
@@ -115,10 +104,6 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        var handler = new BulkTransformerHandler(s3ResourcesClient,
-                                                 s3BatchesClient,
-                                                 s3OutputClient,
-                                                 eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
 
         var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
@@ -137,9 +122,9 @@ class BulkTransformerHandlerTest {
         var thirdBatch = getBatch(10);
         s3BatchesDriver.insertFile(UnixPath.of(thirdBatchKey), thirdBatch);
 
-        var handler = new BulkTransformerHandler(s3ResourcesClient, s3BatchesClient, s3OutputClient, eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
-        var firstContinuationToken = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent().getContinuationToken();
+        var firstContinuationToken = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent()
+                                         .getContinuationToken();
         handler.handleRequest(eventStream(firstBatchKey), outputStream, Mockito.mock(Context.class));
         var secondContinuationToken =
             ((StubEventBridgeClient) eventBridgeClient).getLatestEvent().getContinuationToken();
@@ -175,10 +160,6 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        var handler = new BulkTransformerHandler(s3ResourcesClient,
-                                                 s3BatchesClient,
-                                                 s3OutputClient,
-                                                 eventBridgeClient);
         Executable executable = () -> handler.handleRequest(eventStream(null),
                                                             outputStream,
                                                             mock(Context.class));
