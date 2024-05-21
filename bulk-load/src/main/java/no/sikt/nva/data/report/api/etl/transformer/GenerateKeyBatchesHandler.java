@@ -73,7 +73,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
                                 AwsEventBridgeEvent<KeyBatchRequestEvent> event,
                                 Context context) {
         var requestEvent = nonNull(input) ? input : new KeyBatchRequestEvent();
-        var startMarker = requestEvent.getStartMarker();
+        var startMarker = requestEvent.getContinuationToken();
         var location = requestEvent.getLocation();
         logger.info(INFO_MESSAGE, startMarker, location);
         var request = createRequest(startMarker, location);

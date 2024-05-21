@@ -39,7 +39,6 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
     private static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
     private static final String NQUADS_GZIPPED = ".nquads.gz";
     private static final String KEY_BATCHES_BUCKET = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
-    private static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
     private static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
     private static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
     private static final String LINE_BREAK = "\n";
@@ -77,13 +76,13 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
         return null;
     }
 
-    protected Void processInput(KeyBatchRequestEvent input) {
-        var startMarker = getStartMarker(input);
+    protected void processInput(KeyBatchRequestEvent input) {
+        var startMarker = getContinuationToken(input);
         var location = getLocation(input);
         var batchResponse = fetchSingleBatch(startMarker);
 
         if (batchResponse.isTruncated()) {
-            sendNewKeyBatchEvent(batchResponse.getKey().orElse(null), location);
+            sendNewKeyBatchEvent(batchResponse.getNextContinuationToken(), location);
         } else {
             logger.info("No more batches to process");
         }
@@ -97,7 +96,6 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
             .map(this::persistNquads);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
-        return null;
     }
 
     @JacocoGenerated
@@ -107,8 +105,8 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
         return new AwsSqsClient(Region.of(region), queueUrl);
     }
 
-    private static String getStartMarker(KeyBatchRequestEvent input) {
-        return nonNull(input) && nonNull(input.getStartMarker()) ? input.getStartMarker() : null;
+    private static String getContinuationToken(KeyBatchRequestEvent input) {
+        return nonNull(input) && nonNull(input.getContinuationToken()) ? input.getContinuationToken() : null;
     }
 
     @JacocoGenerated
@@ -125,8 +123,8 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
         return URI.create(id.textValue() + NT_EXTENSION);
     }
 
-    private void sendNewKeyBatchEvent(String batchResponse, String location) {
-        queueClient.sendMessage(new KeyBatchRequestEvent(batchResponse, location).toJsonString());
+    private void sendNewKeyBatchEvent(String continuationToken, String location) {
+        queueClient.sendMessage(new KeyBatchRequestEvent(continuationToken, location).toJsonString());
     }
 
     private String aggregateNquads(Stream<JsonNode> element) {
@@ -194,10 +192,16 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
 
         private final boolean truncated;
         private final String key;
+        private final String nextContinuationToken;
 
         public ListingResponse(ListObjectsV2Response response) {
             this.truncated = Boolean.TRUE.equals(response.isTruncated());
             this.key = extractKey(response);
+            this.nextContinuationToken = response.nextContinuationToken();
+        }
+
+        public String getNextContinuationToken() {
+            return nextContinuationToken;
         }
 
         public boolean isTruncated() {

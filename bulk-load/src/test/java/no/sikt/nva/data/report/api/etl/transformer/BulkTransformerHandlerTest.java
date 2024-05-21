@@ -6,11 +6,13 @@ import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -49,6 +51,7 @@ class BulkTransformerHandlerTest {
     private S3Driver s3OutputDriver;
     private FakeSqsClient queueClient;
     private BulkTransformerHandler handler;
+    private Context context;
 
     @BeforeEach
     void setup() {
@@ -60,6 +63,7 @@ class BulkTransformerHandlerTest {
         s3OutputDriver = new S3Driver(s3OutputClient, "loaderBucket");
         queueClient = new FakeSqsClient();
         handler = new BulkTransformerHandler(s3ResourcesClient, s3BatchesClient, s3OutputClient, queueClient);
+        context = mock(Context.class);
     }
 
     @AfterEach
@@ -75,7 +79,7 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        handler.handleRequest(sqsEvent(null), mock(Context.class));
+        handler.handleRequest(sqsEvent(null), context);
         var file = s3OutputDriver.listAllFiles(UnixPath.of("")).getFirst();
         var contentString = s3OutputDriver.getFile(file);
         assertTrue(modelHasData(contentString));
@@ -85,7 +89,7 @@ class BulkTransformerHandlerTest {
     void shouldSkipEmptyBatches() throws IOException {
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), StringUtils.EMPTY_STRING);
-        handler.handleRequest(sqsEvent(null), Mockito.mock(Context.class));
+        handler.handleRequest(sqsEvent(null), context);
 
         var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
         assertEquals(0, actual.size());
@@ -99,7 +103,7 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        handler.handleRequest(sqsEvent(null), Mockito.mock(Context.class));
+        handler.handleRequest(sqsEvent(null), context);
         assertEquals(0, queueClient.getSentMessages().size());
     }
 
@@ -115,17 +119,11 @@ class BulkTransformerHandlerTest {
         var thirdBatch = getBatch(10);
         s3BatchesDriver.insertFile(UnixPath.of(thirdBatchKey), thirdBatch);
 
-        handler.handleRequest(sqsEvent(null), Mockito.mock(Context.class));
-        var firstStartMarker =
-            KeyBatchRequestEvent.fromJsonString(queueClient.getSentMessages().getFirst().messageBody())
-                .getStartMarker();
-        handler.handleRequest(sqsEvent(firstBatchKey), Mockito.mock(Context.class));
-        var secondStartMarker = KeyBatchRequestEvent.fromJsonString(
-                queueClient.getSentMessages().getFirst().messageBody())
-                                    .getStartMarker();
-        assertEquals(firstBatchKey, firstStartMarker);
-        //TODO: Change to continuationToken
-        //assertEquals(secondBatchKey, secondStartMarker);
+        handler.handleRequest(sqsEvent(null), context);
+        var firstContinuationToken = getKeyBatchRequestEvent().getContinuationToken();
+        handler.handleRequest(sqsEvent(firstBatchKey), context);
+        var secondContinuationToken = getKeyBatchRequestEvent().getContinuationToken();
+        assertNotEquals(firstContinuationToken, secondContinuationToken);
     }
 
     // TODO: Remove test once we have figured out how the GraphName should be provided.
@@ -164,6 +162,11 @@ class BulkTransformerHandlerTest {
 
     private static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
+    }
+
+    private KeyBatchRequestEvent getKeyBatchRequestEvent() throws JsonProcessingException {
+        return KeyBatchRequestEvent.fromJsonString(
+            queueClient.getSentMessages().getFirst().messageBody());
     }
 
     private String getBatch(int numberOfDocuments) {
