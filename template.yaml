@@ -97,6 +97,13 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt BulkTransformerQueueDLQ.Arn
         maxReceiveCount: 5
+  GenerateKeyBatchesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt GenerateKeyBatchesDLQ.Arn
+        maxReceiveCount: 5
   # ---- DLQs ----
   BulkTransformerQueueDLQ:
     Type: AWS::SQS::Queue
@@ -198,6 +205,7 @@ Resources:
               - !GetAtt BulkTransformerQueueDLQ.Arn
               - !GetAtt DataReportPersistedResourceDLQ.Arn
               - !GetAtt GenerateKeyBatchesDLQ.Arn
+              - !GetAtt GenerateKeyBatchesQueue.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -458,7 +466,7 @@ Resources:
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
-      Timeout: 600
+      Timeout: 300
       MemorySize: 1536
       AutoPublishAlias: live
       Environment:
@@ -466,15 +474,12 @@ Resources:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
-          TOPIC: 'ReportApi.Bulk.KeyBasedBatch'
+          KEY_BATCHES_QUEUE_URL: !GetAtt GenerateKeyBatchesQueue.Arn
       Events:
-        BatchIndexEvent:
-          Type: EventBridgeRule
+        SqsEvent:
+          Type: SQS
           Properties:
-            EventBusName: !GetAtt BatchLoadEventBus.Name
-            Pattern:
-              detail:
-                topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
+            Queue: !GetAtt GenerateKeyBatchesQueue.Arn
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
@@ -500,7 +505,6 @@ Resources:
           LOADER_BUCKET: !Ref LoaderBucket
           API_HOST: !Ref ApiDomain
           BULK_TRANSFORMER_QUEUE_URL: !Ref BulkTransformerQueue
-          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
       Events:
         SqsEvent:
           Type: SQS
