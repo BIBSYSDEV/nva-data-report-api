@@ -71,6 +71,7 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
 
     @Override
     public Void handleRequest(SQSEvent sqsEvent, Context context) {
+        logger.info("Received event: {}", sqsEvent);
         getRecords(sqsEvent).ifPresentOrElse(this::processEvents, this::createInitialEvent);
         return null;
     }

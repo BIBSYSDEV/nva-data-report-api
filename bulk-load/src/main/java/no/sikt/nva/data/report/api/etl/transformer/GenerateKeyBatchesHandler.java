@@ -65,6 +65,7 @@ public class GenerateKeyBatchesHandler implements RequestHandler<SQSEvent, Void>
 
     @Override
     public Void handleRequest(SQSEvent sqsEvent, Context context) {
+        logger.info("Received event: {}", sqsEvent);
         getEvents(sqsEvent).ifPresentOrElse(this::processEvents, this::createInitialEvent);
         return null;
     }
