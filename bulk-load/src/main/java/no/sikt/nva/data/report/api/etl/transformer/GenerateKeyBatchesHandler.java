@@ -76,8 +76,15 @@ public class GenerateKeyBatchesHandler implements RequestHandler<SQSEvent, Void>
         var response = listObjects(request);
         if (response.isTruncated()) {
             emitNextRequest(location, response.nextContinuationToken());
+        } else {
+            logger.info("Last batch: {}", extractKey(response));
         }
         getKeys(response).ifPresent(keys -> writeObject(location, keys));
+    }
+
+    private static String extractKey(ListObjectsV2Response response) {
+        var contents = response.contents();
+        return contents.isEmpty() ? null : contents.getFirst().key();
     }
 
     private static Optional<List<KeyBatchRequestEvent>> getEvents(SQSEvent sqsEvent) {

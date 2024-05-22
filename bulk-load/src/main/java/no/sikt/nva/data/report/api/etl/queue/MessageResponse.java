@@ -7,8 +7,8 @@ public record MessageResponse(String messageId) {
     @Override
     @JacocoGenerated
     public String toString() {
-        return "MessageResponse{" +
-               "messageId='" + messageId + '\'' +
-               '}';
+        return "MessageResponse{"
+               + "messageId='" + messageId + '\''
+               + '}';
     }
 }

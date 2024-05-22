@@ -84,7 +84,7 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
         if (batchResponse.isTruncated()) {
             sendNewKeyBatchEvent(batchResponse.getNextContinuationToken(), location);
         } else {
-            logger.info("Batch is truncated");
+            logger.info("Last batch: {}", batchResponse.getKey());
         }
 
         batchResponse.getKey()
