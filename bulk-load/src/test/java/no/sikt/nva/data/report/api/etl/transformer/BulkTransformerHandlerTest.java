@@ -38,7 +38,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.Mockito;
 
 class BulkTransformerHandlerTest {
 
@@ -181,8 +180,8 @@ class BulkTransformerHandlerTest {
         return !graph.isEmpty();
     }
 
-    private SQSEvent sqsEvent(String startMarker) {
-        var event = new KeyBatchRequestEvent(startMarker, DEFAULT_LOCATION);
+    private SQSEvent sqsEvent(String continuationToken) {
+        var event = new KeyBatchRequestEvent(continuationToken, DEFAULT_LOCATION);
         return QueueServiceTestUtils.createEvent(event.toJsonString());
     }
 
