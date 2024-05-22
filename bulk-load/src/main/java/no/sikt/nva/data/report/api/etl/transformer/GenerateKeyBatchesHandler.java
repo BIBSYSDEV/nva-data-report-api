@@ -105,12 +105,12 @@ public class GenerateKeyBatchesHandler implements RequestHandler<SQSEvent, Void>
         return new KeyBatchRequestEvent(continuationToken, location);
     }
 
-    private static ListObjectsV2Request createRequest(String startMarker, String location) {
+    private static ListObjectsV2Request createRequest(String continuationToken, String location) {
         return ListObjectsV2Request.builder()
                    .bucket(INPUT_BUCKET)
                    .prefix(location + DELIMITER)
                    .delimiter(DELIMITER)
-                   .startAfter(startMarker)
+                   .continuationToken(continuationToken)
                    .maxKeys(MAX_KEYS)
                    .build();
     }
