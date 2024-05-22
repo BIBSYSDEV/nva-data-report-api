@@ -77,9 +77,9 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
     }
 
     protected void processInput(KeyBatchRequestEvent input) {
-        var startMarker = getContinuationToken(input);
+        var continuationToken = getContinuationToken(input);
         var location = getLocation(input);
-        var batchResponse = fetchSingleBatch(startMarker);
+        var batchResponse = fetchSingleBatch(continuationToken);
 
         if (batchResponse.isTruncated()) {
             sendNewKeyBatchEvent(batchResponse.getNextContinuationToken(), location);
@@ -124,6 +124,7 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
     }
 
     private void sendNewKeyBatchEvent(String continuationToken, String location) {
+        logger.info("Sending event with continuation token: {}", continuationToken);
         queueClient.sendMessage(new KeyBatchRequestEvent(continuationToken, location).toJsonString());
     }
 
@@ -155,11 +156,11 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
         return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : null;
     }
 
-    private ListingResponse fetchSingleBatch(String startMarker) {
+    private ListingResponse fetchSingleBatch(String continuationToken) {
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
-                .startAfter(startMarker)
+                .continuationToken(continuationToken)
                 .maxKeys(1)
                 .build());
         return new ListingResponse(response);

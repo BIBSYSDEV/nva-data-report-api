@@ -119,9 +119,9 @@ class BulkTransformerHandlerTest {
         s3BatchesDriver.insertFile(UnixPath.of(thirdBatchKey), thirdBatch);
 
         handler.handleRequest(sqsEvent(null), context);
-        var firstContinuationToken = getKeyBatchRequestEvent().getContinuationToken();
+        var firstContinuationToken = getKeyBatchRequestEvent(0).getContinuationToken();
         handler.handleRequest(sqsEvent(firstBatchKey), context);
-        var secondContinuationToken = getKeyBatchRequestEvent().getContinuationToken();
+        var secondContinuationToken = getKeyBatchRequestEvent(1).getContinuationToken();
         assertNotEquals(firstContinuationToken, secondContinuationToken);
     }
 
@@ -163,9 +163,9 @@ class BulkTransformerHandlerTest {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
     }
 
-    private KeyBatchRequestEvent getKeyBatchRequestEvent() throws JsonProcessingException {
+    private KeyBatchRequestEvent getKeyBatchRequestEvent(int index) throws JsonProcessingException {
         return KeyBatchRequestEvent.fromJsonString(
-            queueClient.getSentMessages().getFirst().messageBody());
+            queueClient.getSentMessages().get(index).messageBody());
     }
 
     private String getBatch(int numberOfDocuments) {

@@ -41,7 +41,5 @@ dependencies {
         environment("LOADER_BUCKET", "s3://loaderBucket")
         environment("EXPANDED_RESOURCES_BUCKET", "s3://persistedResources")
         environment("KEY_BATCHES_BUCKET", "s3://keyBatches")
-        environment("EVENT_BUS", "eventBus")
-        environment("TOPIC", "some topic")
     }
 }
