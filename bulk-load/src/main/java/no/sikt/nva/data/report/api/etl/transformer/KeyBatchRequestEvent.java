@@ -2,9 +2,9 @@ package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Objects;
 import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.JacocoGenerated;
@@ -30,8 +30,8 @@ public class KeyBatchRequestEvent implements JsonSerializable {
         this.location = location;
     }
 
-    public static KeyBatchRequestEvent fromJsonString(String body) throws JsonProcessingException {
-        return dtoObjectMapper.readValue(body, KeyBatchRequestEvent.class);
+    public static KeyBatchRequestEvent fromJsonString(String body) {
+        return attempt(() -> dtoObjectMapper.readValue(body, KeyBatchRequestEvent.class)).orElseThrow();
     }
 
     @JacocoGenerated

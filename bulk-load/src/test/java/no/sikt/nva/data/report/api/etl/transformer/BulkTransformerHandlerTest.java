@@ -1,10 +1,12 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.util.UUID.randomUUID;
+import static no.sikt.nva.data.report.testing.utils.QueueServiceTestUtils.emptyEvent;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -141,6 +143,12 @@ class BulkTransformerHandlerTest {
     }
 
     @Test
+    void shouldProcessWithDefaultsWhenInputEventIsNull() throws IOException {
+        s3BatchesDriver.insertFile(UnixPath.of("someKey"), getBatch(10));
+        assertDoesNotThrow(() -> handler.handleRequest(emptyEvent(), mock(Context.class)));
+    }
+
+    @Test
     void shouldThrowExceptionWhenInputJsonIsNonsense() throws IOException {
         final var loggerAppender = LogUtils.getTestingAppenderForRootLogger();
         var documents = new ArrayList<>(createExpectedDocuments(1));
@@ -163,9 +171,8 @@ class BulkTransformerHandlerTest {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
     }
 
-    private KeyBatchRequestEvent getKeyBatchRequestEvent(int index) throws JsonProcessingException {
-        return KeyBatchRequestEvent.fromJsonString(
-            queueClient.getSentMessages().get(index).messageBody());
+    private KeyBatchRequestEvent getKeyBatchRequestEvent(int index) {
+        return KeyBatchRequestEvent.fromJsonString(queueClient.getSentMessages().get(index).messageBody());
     }
 
     private String getBatch(int numberOfDocuments) {

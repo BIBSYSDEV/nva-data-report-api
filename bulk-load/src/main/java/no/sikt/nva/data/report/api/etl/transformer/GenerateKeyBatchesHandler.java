@@ -1,13 +1,11 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Objects.nonNull;
+import static java.util.Objects.isNull;
 import static java.util.UUID.randomUUID;
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
-import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,11 +65,7 @@ public class GenerateKeyBatchesHandler implements RequestHandler<SQSEvent, Void>
 
     @Override
     public Void handleRequest(SQSEvent sqsEvent, Context context) {
-        sqsEvent.getRecords()
-            .stream()
-            .map(GenerateKeyBatchesHandler::getKeyBatchRequestEvent)
-            .forEach(this::processInput);
-
+        getEvents(sqsEvent).ifPresentOrElse(this::processEvents, this::createInitialEvent);
         return null;
     }
 
@@ -87,14 +81,18 @@ public class GenerateKeyBatchesHandler implements RequestHandler<SQSEvent, Void>
         }
     }
 
+    private static Optional<List<KeyBatchRequestEvent>> getEvents(SQSEvent sqsEvent) {
+        return isNull(sqsEvent.getRecords()) || sqsEvent.getRecords().isEmpty()
+                   ? Optional.empty()
+                   : Optional.of(sqsEvent.getRecords()
+                                     .stream()
+                                     .map(sqsMessage -> KeyBatchRequestEvent.fromJsonString(sqsMessage.getBody()))
+                                     .collect(Collectors.toList()));
+    }
+
     private static ListObjectsV2Request createListObjectsRequest(String continuationToken, String location) {
         logger.info(INFO_MESSAGE, continuationToken, location);
         return createRequest(continuationToken, location);
-    }
-
-    private static KeyBatchRequestEvent getKeyBatchRequestEvent(SQSMessage record) {
-        return attempt(() -> KeyBatchRequestEvent.fromJsonString(record.getBody())).toOptional()
-                   .orElse(new KeyBatchRequestEvent());
     }
 
     private static KeyBatchRequestEvent constructRequestEntry(String continuationToken, String location) {
@@ -135,6 +133,14 @@ public class GenerateKeyBatchesHandler implements RequestHandler<SQSEvent, Void>
         var region = environment.readEnv(REGION);
         var queueUrl = environment.readEnv(QUEUE_URL);
         return new AwsSqsClient(Region.of(region), queueUrl);
+    }
+
+    private void createInitialEvent() {
+        processInput(new KeyBatchRequestEvent());
+    }
+
+    private void processEvents(List<KeyBatchRequestEvent> keyBatchRequestEvents) {
+        keyBatchRequestEvents.forEach(this::processInput);
     }
 
     private ListObjectsV2Response listObjects(ListObjectsV2Request request) {

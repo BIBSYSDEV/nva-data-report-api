@@ -1,5 +1,7 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
+import static no.sikt.nva.data.report.testing.utils.QueueServiceTestUtils.createEvent;
+import static no.sikt.nva.data.report.testing.utils.QueueServiceTestUtils.emptyEvent;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
@@ -15,7 +17,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.sikt.nva.data.report.testing.utils.QueueServiceTestUtils;
 import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
@@ -106,7 +107,7 @@ class GenerateKeyBatchesHandlerTest {
     @Test
     void shouldProcessWithDefaultsWhenInputEventIsNull() {
         putObjectsInInputBucket(MULTIPLE_BATCH_FILE_SIZE, DEFAULT_LOCATION);
-        assertDoesNotThrow(() -> handler.handleRequest(sqsEvent(null), mock(Context.class)));
+        assertDoesNotThrow(() -> handler.handleRequest(emptyEvent(), mock(Context.class)));
     }
 
     private static String getBucketPath(UriWrapper uri) {
@@ -116,7 +117,7 @@ class GenerateKeyBatchesHandlerTest {
 
     private SQSEvent sqsEvent(String location) {
         var event = new KeyBatchRequestEvent(null, location);
-        return QueueServiceTestUtils.createEvent(event.toJsonString());
+        return createEvent(event.toJsonString());
     }
 
     private KeyBatchRequestEvent getEmittedEvent() throws JsonProcessingException {

@@ -16,6 +16,10 @@ public final class QueueServiceTestUtils {
         return sqsEvent;
     }
 
+    public static SQSEvent emptyEvent() {
+        return new SQSEvent();
+    }
+
     private static SQSMessage createMessage(String body) {
         var message = new SQSMessage();
         message.setBody(body);

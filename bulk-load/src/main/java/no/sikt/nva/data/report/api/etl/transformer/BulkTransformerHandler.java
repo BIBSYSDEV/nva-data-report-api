@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.sikt.nva.data.report.api.etl.transformer.util.GzipUtil.compress;
 import static nva.commons.core.attempt.Try.attempt;
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import commons.db.utils.DocumentUnwrapper;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,10 +71,7 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
 
     @Override
     public Void handleRequest(SQSEvent sqsEvent, Context context) {
-        sqsEvent.getRecords()
-            .stream()
-            .map(record -> attempt(() -> KeyBatchRequestEvent.fromJsonString(record.getBody())).orElseThrow())
-            .forEach(this::processInput);
+        getRecords(sqsEvent).ifPresentOrElse(this::processEvents, this::createInitialEvent);
         return null;
     }
 
@@ -84,7 +83,7 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
         if (batchResponse.isTruncated()) {
             sendNewKeyBatchEvent(batchResponse.getNextContinuationToken(), location);
         } else {
-            logger.info("No more batches to process");
+            logger.info("Batch is truncated");
         }
 
         batchResponse.getKey()
@@ -96,6 +95,15 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
             .map(this::persistNquads);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
+    }
+
+    private static Optional<List<KeyBatchRequestEvent>> getRecords(SQSEvent sqsEvent) {
+        return isNull(sqsEvent.getRecords()) || sqsEvent.getRecords().isEmpty()
+                   ? Optional.empty()
+                   : Optional.of(sqsEvent.getRecords()
+                                     .stream()
+                                     .map(sqsMessage -> KeyBatchRequestEvent.fromJsonString(sqsMessage.getBody()))
+                                     .collect(Collectors.toList()));
     }
 
     @JacocoGenerated
@@ -121,6 +129,14 @@ public class BulkTransformerHandler implements RequestHandler<SQSEvent, Void> {
             throw new MissingIdException();
         }
         return URI.create(id.textValue() + NT_EXTENSION);
+    }
+
+    private void createInitialEvent() {
+        processInput(new KeyBatchRequestEvent());
+    }
+
+    private void processEvents(List<KeyBatchRequestEvent> records) {
+        records.forEach(this::processInput);
     }
 
     private void sendNewKeyBatchEvent(String continuationToken, String location) {
