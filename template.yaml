@@ -474,7 +474,7 @@ Resources:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
-          KEY_BATCHES_QUEUE_URL: !GetAtt GenerateKeyBatchesQueue.Arn
+          KEY_BATCHES_QUEUE_URL: !Ref GenerateKeyBatchesQueue
       Events:
         SqsEvent:
           Type: SQS
