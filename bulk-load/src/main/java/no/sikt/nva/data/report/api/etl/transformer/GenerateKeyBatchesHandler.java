@@ -73,12 +73,10 @@ public class GenerateKeyBatchesHandler implements RequestHandler<SQSEvent, Void>
         var location = input.getLocation();
         var request = createListObjectsRequest(input.getContinuationToken(), location);
         var response = listObjects(request);
-
-        getKeys(response).ifPresent(keys -> writeObject(location, keys));
-
         if (response.isTruncated()) {
             emitNextRequest(location, response.nextContinuationToken());
         }
+        getKeys(response).ifPresent(keys -> writeObject(location, keys));
     }
 
     private static Optional<List<KeyBatchRequestEvent>> getEvents(SQSEvent sqsEvent) {
