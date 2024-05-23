@@ -93,7 +93,6 @@ Resources:
   BulkTransformerQueue:
     Type: AWS::SQS::Queue
     Properties:
-      VisibilityTimeout: 300
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt BulkTransformerQueueDLQ.Arn
         maxReceiveCount: 5
@@ -476,7 +475,6 @@ Resources:
     Properties:
       CodeUri: bulk-load
       Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
-      Timeout: 300
       MemorySize: 1536
       AutoPublishAlias: live
       Policies:
