@@ -90,23 +90,7 @@ Globals:
 Resources:
 
   # ---- SQS ----
-  BulkTransformerQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      VisibilityTimeout: 300
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt BulkTransformerQueueDLQ.Arn
-        maxReceiveCount: 5
-  # ---- DLQs ----
-  BulkTransformerQueueDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
   DataReportPersistedResourceDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
-  GenerateKeyBatchesDLQ:
     Type: AWS::SQS::Queue
     Properties:
       MessageRetentionPeriod: 1209600 #14 days
@@ -194,10 +178,6 @@ Resources:
               - sqs:GetQueueAttributes
             Resource:
               - !GetAtt DataLoadingDLQ.Arn
-              - !GetAtt BulkTransformerQueue.Arn
-              - !GetAtt BulkTransformerQueueDLQ.Arn
-              - !GetAtt DataReportPersistedResourceDLQ.Arn
-              - !GetAtt GenerateKeyBatchesDLQ.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -457,7 +437,6 @@ Resources:
       Handler: no.sikt.nva.data.report.api.etl.transformer.GenerateKeyBatchesHandler::handleRequest
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
-        - !GetAtt SqsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -475,42 +454,34 @@ Resources:
             Pattern:
               detail:
                 topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt GenerateKeyBatchesDLQ.Arn
 
   BulkTransformerHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: bulk-load
       Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
-      Timeout: 300
+      Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt DeleteS3ObjectPolicy.PolicyArn
-        - !GetAtt SqsManagedPolicy.PolicyArn
       Environment:
         Variables:
+          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           LOADER_BUCKET: !Ref LoaderBucket
-          API_HOST: !Ref ApiDomain
-          BULK_TRANSFORMER_QUEUE_URL: !Ref BulkTransformerQueue
           TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
+          API_HOST: !Ref ApiDomain
       Events:
-        SqsEvent:
-          Type: SQS
+        BatchIndexEvent:
+          Type: EventBridgeRule
           Properties:
-            Queue: !GetAtt BulkTransformerQueue.Arn
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt BulkTransformerQueueDLQ.Arn
+            EventBusName: !GetAtt BatchLoadEventBus.Name
+            Pattern:
+              detail:
+                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
 
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
