@@ -483,7 +483,6 @@ Resources:
           LOADER_BUCKET: !Ref LoaderBucket
           API_HOST: !Ref ApiDomain
           BULK_TRANSFORMER_QUEUE_URL: !Ref BulkTransformerQueue
-          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
       Events:
         SqsEvent:
           Type: SQS
