@@ -106,10 +106,6 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       MessageRetentionPeriod: 1209600 #14 days
-  GenerateKeyBatchesDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
   DataLoadingDLQ:
     Type: AWS::SQS::Queue
     Properties:
@@ -197,7 +193,6 @@ Resources:
               - !GetAtt BulkTransformerQueue.Arn
               - !GetAtt BulkTransformerQueueDLQ.Arn
               - !GetAtt DataReportPersistedResourceDLQ.Arn
-              - !GetAtt GenerateKeyBatchesDLQ.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -475,11 +470,6 @@ Resources:
             Pattern:
               detail:
                 topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt GenerateKeyBatchesDLQ.Arn
 
   BulkTransformerHandler:
     Type: AWS::Serverless::Function
