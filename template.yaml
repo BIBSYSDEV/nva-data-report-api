@@ -471,6 +471,7 @@ Resources:
     Properties:
       CodeUri: bulk-load
       Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
+      Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
       Policies:
