@@ -476,7 +476,6 @@ Resources:
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt DeleteS3ObjectPolicy.PolicyArn
-        - !GetAtt SqsManagedPolicy.PolicyArn
       Environment:
         Variables:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
