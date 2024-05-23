@@ -90,17 +90,6 @@ Globals:
 Resources:
 
   # ---- SQS ----
-  BulkTransformerQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt BulkTransformerQueueDLQ.Arn
-        maxReceiveCount: 5
-  # ---- DLQs ----
-  BulkTransformerQueueDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
   DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
@@ -479,21 +468,20 @@ Resources:
         - !GetAtt DeleteS3ObjectPolicy.PolicyArn
       Environment:
         Variables:
+          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           LOADER_BUCKET: !Ref LoaderBucket
+          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
           API_HOST: !Ref ApiDomain
-          BULK_TRANSFORMER_QUEUE_URL: !Ref BulkTransformerQueue
       Events:
-        SqsEvent:
-          Type: SQS
+        BatchIndexEvent:
+          Type: EventBridgeRule
           Properties:
-            Queue: !GetAtt BulkTransformerQueue.Arn
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt BulkTransformerQueueDLQ.Arn
+            EventBusName: !GetAtt BatchLoadEventBus.Name
+            Pattern:
+              detail:
+                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
 
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default

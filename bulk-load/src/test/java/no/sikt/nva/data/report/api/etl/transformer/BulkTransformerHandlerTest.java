@@ -1,11 +1,11 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.util.UUID.randomUUID;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -23,10 +23,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.etl.transformer.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.api.etl.transformer.model.IndexDocument;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
+import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
@@ -34,41 +36,42 @@ import nva.commons.logutils.LogUtils;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+import software.amazon.awssdk.services.s3.S3Client;
 
 class BulkTransformerHandlerTest {
 
     private static final String IDENTIFIER = "__IDENTIFIER__";
     private static final String VALID_PUBLICATION = IoUtils.stringFromResources(Path.of("publication.json"));
     private static final String DEFAULT_LOCATION = "resources";
-    private static final ObjectMapper objectMapperWithEmpty = dtoObjectMapper;
+    private static final ObjectMapper objectMapperWithEmpty = JsonUtils.dtoObjectMapper;
     private ByteArrayOutputStream outputStream;
+    private S3Client s3ResourcesClient;
     private S3Driver s3ResourcesDriver;
+    private S3Client s3BatchesClient;
     private S3Driver s3BatchesDriver;
+    private EventBridgeClient eventBridgeClient;
+    private S3Client s3OutputClient;
     private S3Driver s3OutputDriver;
-    private FakeSqsClient queueClient;
-    private BulkTransformerHandler handler;
 
     @BeforeEach
     void setup() {
         outputStream = new ByteArrayOutputStream();
-        var s3ResourcesClient = new FakeS3Client();
+        s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, "resources");
-        var s3BatchesClient = new FakeS3Client();
+        s3BatchesClient = new FakeS3Client();
         s3BatchesDriver = new S3Driver(s3BatchesClient, "batchesBucket");
-        var s3OutputClient = new FakeS3Client();
+        s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, "loaderBucket");
-        queueClient = new FakeSqsClient();
-        handler = new BulkTransformerHandler(s3ResourcesClient, s3BatchesClient, s3OutputClient, queueClient);
-    }
 
-    @AfterEach
-    void tearDown() {
-        queueClient.removeSentMessages();
+        eventBridgeClient = new StubEventBridgeClient();
     }
 
     @Test
@@ -79,6 +82,10 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var file = s3OutputDriver.listAllFiles(UnixPath.of("")).getFirst();
         var contentString = s3OutputDriver.getFile(file);
@@ -89,6 +96,10 @@ class BulkTransformerHandlerTest {
     void shouldSkipEmptyBatches() throws IOException {
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), StringUtils.EMPTY_STRING);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
 
         var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
@@ -103,8 +114,14 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
-        assertEquals(0, queueClient.getSentMessages().size());
+
+        var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+        assertNull(emittedEvent);
     }
 
     @Test
@@ -121,12 +138,17 @@ class BulkTransformerHandlerTest {
         list.add(null);
         list.add(batchKey);
         list.add(expectedStarMarkerFromEmittedEvent);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
         for (var item : list) {
             handler.handleRequest(eventStream(item), outputStream, Mockito.mock(Context.class));
-            var sentMessage = dtoObjectMapper.readValue(queueClient.getSentMessages().getFirst().messageBody(),
-                                                        KeyBatchRequestEvent.class);
-            assertEquals(batchKey, sentMessage.getStartMarker());
-            assertEquals(DEFAULT_LOCATION, sentMessage.getLocation());
+
+            var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+
+            assertEquals(batchKey, emittedEvent.getStartMarker());
+            assertEquals(DEFAULT_LOCATION, emittedEvent.getLocation());
         }
     }
 
@@ -159,6 +181,10 @@ class BulkTransformerHandlerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
         Executable executable = () -> handler.handleRequest(eventStream(null),
                                                             outputStream,
                                                             mock(Context.class));
@@ -202,5 +228,37 @@ class BulkTransformerHandlerTest {
         return attempt(
             () -> objectMapperWithEmpty.readTree(
                 VALID_PUBLICATION.replace(IDENTIFIER, randomUUID().toString()))).orElseThrow();
+    }
+
+    private static class StubEventBridgeClient implements EventBridgeClient {
+
+        private KeyBatchRequestEvent latestEvent;
+
+        public KeyBatchRequestEvent getLatestEvent() {
+            return latestEvent;
+        }
+
+        public PutEventsResponse putEvents(PutEventsRequest putEventsRequest) {
+            this.latestEvent = saveContainedEvent(putEventsRequest);
+            return PutEventsResponse.builder().failedEntryCount(0).build();
+        }
+
+        @Override
+        public String serviceName() {
+            return null;
+        }
+
+        @Override
+        public void close() {
+
+        }
+
+        private KeyBatchRequestEvent saveContainedEvent(PutEventsRequest putEventsRequest) {
+            PutEventsRequestEntry eventEntry = putEventsRequest.entries()
+                                                   .stream()
+                                                   .collect(SingletonCollector.collect());
+            return attempt(eventEntry::detail).map(
+                jsonString -> objectMapperWithEmpty.readValue(jsonString, KeyBatchRequestEvent.class)).orElseThrow();
+        }
     }
 }

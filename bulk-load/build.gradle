@@ -24,7 +24,6 @@ dependencies {
     implementation libs.aws.sdk2.sqs
     implementation libs.aws.lambda.events
     implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.sdk2.apache.client
     implementation libs.nva.identifiers
 
     testImplementation(libs.nva.testutils) {
