@@ -88,7 +88,7 @@ class BulkTransformerHandlerTest {
                                                  s3OutputClient,
                                                  eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
-        var contentString = getPersistedFile();
+        var contentString = getActualPersistedFile();
         assertTrue(modelHasData(contentString));
     }
 
@@ -116,7 +116,7 @@ class BulkTransformerHandlerTest {
                                                  s3OutputClient,
                                                  eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
-        var contentString = getPersistedFile();
+        var contentString = getActualPersistedFile();
         assertFalse(contentString.contains("\\u0000"));
     }
 
@@ -224,10 +224,9 @@ class BulkTransformerHandlerTest {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
     }
 
-    private String getPersistedFile() {
+    private String getActualPersistedFile() {
         var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
-        var contentString = s3OutputDriver.getFile(file);
-        return contentString;
+        return s3OutputDriver.getFile(file);
     }
 
     private boolean modelHasData(String contentString) {
