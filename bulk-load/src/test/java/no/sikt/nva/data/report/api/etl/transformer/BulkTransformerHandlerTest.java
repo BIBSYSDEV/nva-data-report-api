@@ -5,6 +5,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -87,9 +88,36 @@ class BulkTransformerHandlerTest {
                                                  s3OutputClient,
                                                  eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
-        var file = s3OutputDriver.listAllFiles(UnixPath.of("")).getFirst();
-        var contentString = s3OutputDriver.getFile(file);
+        var contentString = getPersistedFile();
         assertTrue(modelHasData(contentString));
+    }
+
+    @Test
+    void shouldReplaceNullCharacters() throws IOException {
+        var json = """
+            {
+                "body": {
+                  "type": "Publication",
+                  "@context": "https://api.dev.nva.aws.unit.no/publication/context",
+                  "id": "https://example.org/publication/publicationIdentifier",
+                  "identifier": "publicationIdentifier",
+                  "entityDescription": {
+                    "mainTitle": "\\u0000 propertyValue"
+                  }
+                }
+              }
+            """;
+        var documentIdentifier = "publicationIdentifier";
+        s3ResourcesDriver.insertFile(UnixPath.of(documentIdentifier), json);
+        var batchKey = randomString();
+        s3BatchesDriver.insertFile(UnixPath.of(batchKey), documentIdentifier);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var contentString = getPersistedFile();
+        assertFalse(contentString.contains("\\u0000"));
     }
 
     @Test
@@ -194,6 +222,12 @@ class BulkTransformerHandlerTest {
 
     private static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
+    }
+
+    private String getPersistedFile() {
+        var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
+        var contentString = s3OutputDriver.getFile(file);
+        return contentString;
     }
 
     private boolean modelHasData(String contentString) {
