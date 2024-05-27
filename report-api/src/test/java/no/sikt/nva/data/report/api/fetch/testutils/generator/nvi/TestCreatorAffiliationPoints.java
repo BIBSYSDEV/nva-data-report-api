@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.CreatorAffiliationPointsGenerator;
 
-public record TestCreatorAffiliationPoints(URI creatorId,
+public record TestCreatorAffiliationPoints(URI nviCreator,
                                            URI affiliationId,
                                            BigDecimal points) {
 
@@ -18,15 +18,15 @@ public record TestCreatorAffiliationPoints(URI creatorId,
 
     public static final class Builder {
 
-        private URI creatorId;
+        private URI nviCreator;
         private URI affiliationId;
         private BigDecimal points;
 
         private Builder() {
         }
 
-        public Builder withCreatorId(URI creatorId) {
-            this.creatorId = creatorId;
+        public Builder withNviCreator(URI nviCreator) {
+            this.nviCreator = nviCreator;
             return this;
         }
 
@@ -41,7 +41,7 @@ public record TestCreatorAffiliationPoints(URI creatorId,
         }
 
         public TestCreatorAffiliationPoints build() {
-            return new TestCreatorAffiliationPoints(creatorId, affiliationId, points);
+            return new TestCreatorAffiliationPoints(nviCreator, affiliationId, points);
         }
     }
 }

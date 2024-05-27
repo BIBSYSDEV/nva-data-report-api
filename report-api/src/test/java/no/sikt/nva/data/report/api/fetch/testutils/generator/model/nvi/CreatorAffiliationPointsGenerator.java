@@ -11,7 +11,7 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class CreatorAffiliationPointsGenerator extends TripleBasedBuilder {
 
-    public static final PropertyImpl CREATOR_ID = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "creatorId");
+    public static final PropertyImpl CREATOR_ID = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "nviCreator");
     public static final PropertyImpl AFFILIATION_ID = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "affiliationId");
     public static final PropertyImpl POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "points");
     private static final Property CREATOR_AFFILIATION_POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI,

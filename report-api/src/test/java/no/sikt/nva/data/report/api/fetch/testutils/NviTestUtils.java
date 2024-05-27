@@ -27,7 +27,7 @@ public final class NviTestUtils {
 
     private static boolean isForCreatorAndAffiliation(TestNviOrganization affiliation, TestNviContributor contributor,
                                                       TestCreatorAffiliationPoints creatorAffiliationPoints) {
-        return creatorAffiliationPoints.creatorId().toString().equals(contributor.id())
+        return creatorAffiliationPoints.nviCreator().toString().equals(contributor.id())
                && creatorAffiliationPoints.affiliationId().toString().equals(affiliation.id());
     }
 }
