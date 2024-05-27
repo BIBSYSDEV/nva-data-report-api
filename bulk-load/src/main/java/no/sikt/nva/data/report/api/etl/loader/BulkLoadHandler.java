@@ -112,7 +112,7 @@ public class BulkLoadHandler implements RequestStreamHandler {
         return new LoaderSpec.Builder()
                    .withSource(getLoaderSpecSource(environment))
                    .withFormat(Format.NQUADS)
-                   .withFailOnError(true)
+                   .withFailOnError(false)
                    .withParallelism(Parallelism.MEDIUM)
                    .withIamRoleArn(environment.readEnv(LOADER_IAM_ROLE))
                    .withQueueRequest(true)
