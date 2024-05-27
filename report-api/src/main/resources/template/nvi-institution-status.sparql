@@ -84,7 +84,7 @@ SELECT DISTINCT
          :creatorAffiliationPoints ?creatorAffiliationPoints .
 
        ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
-         :creatorId ?contributorIdString ;
+         :nviCreator ?contributorIdString ;
          :affiliationId ?affiliationId ;
          :points ?FORFATTERVEKT .
 

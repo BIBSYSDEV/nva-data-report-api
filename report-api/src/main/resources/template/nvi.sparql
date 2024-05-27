@@ -68,7 +68,7 @@ WHERE {
         :creatorAffiliationPoints ?creatorAffiliationPoints .
 
       ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
-        :creatorId ?contributorIdString ;
+        :nviCreator ?contributorIdString ;
         :affiliationId ?affiliationId ;
         :points ?pointsForAffiliation .
     }

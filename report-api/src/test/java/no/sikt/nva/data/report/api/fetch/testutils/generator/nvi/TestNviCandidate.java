@@ -88,7 +88,7 @@ public record TestNviCandidate(String identifier,
             creatorAffiliationPoints -> institutionPointsGenerator.withCreatorAffiliationPoints(
                 new CreatorAffiliationPointsGenerator()
                     .withAffiliationId(creatorAffiliationPoints.affiliationId().toString())
-                    .withCreatorId(creatorAffiliationPoints.creatorId().toString())
+                    .withCreatorId(creatorAffiliationPoints.nviCreator().toString())
                     .withPoints(creatorAffiliationPoints.points().toString())
             ));
     }

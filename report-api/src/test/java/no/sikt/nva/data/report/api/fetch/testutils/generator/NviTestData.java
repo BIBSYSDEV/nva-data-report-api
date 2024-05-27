@@ -223,7 +223,7 @@ public final class NviTestData {
     private static TestCreatorAffiliationPoints generateCreatorAffiliationPoints(TestNviContributor creator,
                                                                                  TestNviOrganization affiliation) {
         return TestCreatorAffiliationPoints.builder()
-                   .withCreatorId(URI.create(creator.id()))
+                   .withNviCreator(URI.create(creator.id()))
                    .withAffiliationId(URI.create(affiliation.id()))
                    .withPoints(randomBigDecimal())
                    .build();
