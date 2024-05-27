@@ -29,7 +29,7 @@ public final class Nquads {
     @Override
     public String toString() {
         var stringWriter = new StringWriter();
-        RDFDataMgr.write(stringWriter, graph, RDFFormat.NQUADS);
+        RDFDataMgr.write(stringWriter, graph, RDFFormat.NQUADS_ASCII);
         return stringWriter.toString();
     }
 
