@@ -134,6 +134,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return URI.create(id.textValue() + NT_EXTENSION);
     }
 
+    // Necessary to avoid issues with Neptune downstream
+    // https://docs.aws.amazon.com/neptune/latest/userguide/limits.html#limits-nulls
     private String removeNullCharacters(String nquads) {
         return nquads.replace(NULL_CHARACTER, EMPTY_STRING);
     }
