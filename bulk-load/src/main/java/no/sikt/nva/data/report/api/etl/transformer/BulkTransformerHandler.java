@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.util.Objects.nonNull;
 import static no.sikt.nva.data.report.api.etl.transformer.util.GzipUtil.compress;
+import static nva.commons.core.StringUtils.EMPTY_STRING;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,8 +35,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, Void> {
 
+    public static final String NULL_CHARACTER = "\\u0000";
     private static final Logger logger = LoggerFactory.getLogger(BulkTransformerHandler.class);
     private static final Environment ENVIRONMENT = new Environment();
+    public static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
     private static final String LOADER_BUCKET = "LOADER_BUCKET";
     private static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
@@ -50,7 +53,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private static final String ID_POINTER = "/id";
     private static final String NT_EXTENSION = ".nt";
     private static final String MISSING_ID_NODE_IN_CONTENT_ERROR = "Missing id-node in content: {}";
-    public static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
     private final S3Client s3OutputClient;
@@ -87,26 +89,12 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
             .filter(keys -> !keys.isEmpty())
             .map(this::mapToIndexDocuments)
             .map(this::aggregateNquads)
+            .map(this::removeNullCharacters)
             .map(nquads -> attempt(() -> compress(nquads)).orElseThrow())
             .map(this::persistNquads);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
         return null;
-    }
-
-    private String aggregateNquads(Stream<JsonNode> element) {
-        return element.map(this::mapToNquads)
-                   .collect(Collectors.joining(System.lineSeparator()));
-    }
-
-    private void emitNextEvent(ListingResponse batchResponse,
-                                 String location,
-                                 Context context) {
-        if (batchResponse.isTruncated()) {
-            sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
-                                            location,
-                                            context));
-        }
     }
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
@@ -137,6 +125,36 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
     }
 
+    private static URI extractGraphName(JsonNode content) {
+        var id = content.at(ID_POINTER);
+        if (id.isMissingNode()) {
+            logger.error(MISSING_ID_NODE_IN_CONTENT_ERROR, content);
+            throw new MissingIdException();
+        }
+        return URI.create(id.textValue() + NT_EXTENSION);
+    }
+
+    // Necessary to avoid issues with Neptune downstream
+    // https://docs.aws.amazon.com/neptune/latest/userguide/limits.html#limits-nulls
+    private String removeNullCharacters(String nquads) {
+        return nquads.replace(NULL_CHARACTER, EMPTY_STRING);
+    }
+
+    private String aggregateNquads(Stream<JsonNode> element) {
+        return element.map(this::mapToNquads)
+                   .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    private void emitNextEvent(ListingResponse batchResponse,
+                               String location,
+                               Context context) {
+        if (batchResponse.isTruncated()) {
+            sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
+                                            location,
+                                            context));
+        }
+    }
+
     private boolean persistNquads(byte[] nquads) {
         var request = PutObjectRequest.builder()
                           .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
@@ -148,15 +166,6 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
 
     private String mapToNquads(JsonNode content) {
         return Nquads.transform(content.toString(), extractGraphName(content)).toString();
-    }
-
-    private static URI extractGraphName(JsonNode content) {
-        var id = content.at(ID_POINTER);
-        if (id.isMissingNode()) {
-            logger.error(MISSING_ID_NODE_IN_CONTENT_ERROR, content);
-            throw new MissingIdException();
-        }
-        return URI.create(id.textValue() + NT_EXTENSION);
     }
 
     private String extractContent(String key) {
@@ -216,17 +225,17 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
             this.key = extractKey(response);
         }
 
-        private static String extractKey(ListObjectsV2Response response) {
-            var contents = response.contents();
-            return contents.isEmpty() ? null : contents.getFirst().key();
-        }
-
         public boolean isTruncated() {
             return truncated;
         }
 
         public Optional<String> getKey() {
             return Optional.ofNullable(key);
+        }
+
+        private static String extractKey(ListObjectsV2Response response) {
+            var contents = response.contents();
+            return contents.isEmpty() ? null : contents.getFirst().key();
         }
     }
 }

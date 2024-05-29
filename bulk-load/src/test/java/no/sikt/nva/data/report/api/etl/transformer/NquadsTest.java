@@ -18,7 +18,7 @@ class NquadsTest {
                         "@type": "http://someType.org"
                     }
                 },
-                "someProperty": "\\u0000 propertyValue"
+                "someProperty": "\\u0000\\u0000\\u0000\\u0000 propertyValue"
             }
             """;
         var result = Nquads.transform(json, GRAPH_NAME).toString();
