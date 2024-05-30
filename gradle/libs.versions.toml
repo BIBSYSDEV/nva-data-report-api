@@ -1,17 +1,17 @@
 [versions]
 junit = { strictly = '5.10.0' }
-nva = { strictly = '1.37.4' }
+nva = { strictly = '1.39.3' }
 zalando = { strictly = '0.27.1' }
 awsLambdaJavaCore = { strictly = '1.2.3' }
 awsLambdaEvents = { strictly = '3.11.4' }
-log4j = { strictly = '2.22.1' }
-slf4j = { strictly = '2.0.11' }
-awsSdk2 = { strictly = '2.23.12' }
+log4j = { strictly = '2.23.0' }
+slf4j = { require = '2.0.12' }
+awsSdk2 = { strictly = '2.24.12' }
 awsSdk2Events = { strictly = '3.11.4' }
 jena = { require = '5.0.0' }
 jackson = { require = '2.16.1' }
-guava = { strictly = '32.1.2-jre' }
-mockito = { strictly = '5.3.1' }
+guava = { require = '32.1.2-jre' }
+mockito = { strictly = '5.10.0' }
 
 
 [libraries]
