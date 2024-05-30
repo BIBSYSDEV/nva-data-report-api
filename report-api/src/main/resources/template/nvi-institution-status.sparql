@@ -37,18 +37,15 @@ SELECT DISTINCT
    GRAPH ?nvi {
        ?candidate a :NviCandidate ;
                :publicationDetails ?publicationUri ;
-               :isApplicable ?isApplicable ;
+               :isApplicable true ;
                :internationalCollaborationFactor ?internationalCollaborationFactor ;
                :globalApprovalStatus ?globalApprovalStatus ;
                :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
                :reportingPeriod ?reportingPeriod .
 
-       FILTER (?isApplicable = true)
-
        ?reportingPeriod a :ReportingPeriod ;
-                        :year ?reportingYear .
-       FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
-       BIND(STR(?reportingYear) AS ?ARSTALL)
+                        :year "__REPLACE_WITH_REPORTING_YEAR__" .
+       BIND("__REPLACE_WITH_REPORTING_YEAR__" AS ?ARSTALL)
 
        BIND(STR(?internationalCollaborationFactor) AS ?FAKTORTALL_SAMARBEID) .
        BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
