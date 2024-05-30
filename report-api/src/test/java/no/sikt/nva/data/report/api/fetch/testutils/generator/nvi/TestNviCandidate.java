@@ -60,7 +60,8 @@ public record TestNviCandidate(String identifier,
         return new ApprovalGenerator()
                    .withApprovalStatus(testApproval.approvalStatus().getValue())
                    .withInstitutionId(new OrganizationGenerator(testApproval.institutionId().toString()))
-                   .withPoints(institutionPointsGenerator);
+                   .withPoints(institutionPointsGenerator)
+                   .withInvolvedOrganizations(testApproval.involvedOrganizations());
     }
 
     private void generateExpectedLinesForNonApplicableCandidate(StringBuilder stringBuilder) {
