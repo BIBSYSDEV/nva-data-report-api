@@ -2,7 +2,6 @@ PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-
 SELECT DISTINCT
   ?ARSTALL
   ?VARBEIDLOPENR
@@ -17,21 +16,13 @@ SELECT DISTINCT
   ?AVDNR
   ?UNDAVDNR
   ?GRUPPENR
-  ?FORFATTERE_TOTALT
-  ?FORFATTERE_INT
-  ?VEKTET
   ?ETTERNAVN
   ?FORNAVN
   ?PUBLISERINGSKANALNAVN
-  ?SIDE_FRA
-  ?SIDE_TIL
-  ?SIDEANTALL
   ?VA_TITTEL
-  ?SPRAK
   ?RAPPORTSTATUS
   ?VEKTINGSTALL
   ?FAKTORTALL_SAMARBEID
-  ?FORFATTERDEL
   ?FORFATTERVEKT
   WHERE {
    GRAPH ?nvi {
@@ -100,15 +91,6 @@ SELECT DISTINCT
        BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
        BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
 
-       #These are todos
-       BIND("FORFATTERE_TOTALT" AS ?FORFATTERE_TOTALT)
-       BIND("FORFATTERE_INT" AS ?FORFATTERE_INT)
-       BIND("SIDE_FRA" AS ?SIDE_FRA)
-       BIND("SIDE_TIL" AS ?SIDE_TIL)
-       BIND("SIDEANTALL" AS ?SIDEANTALL)
-       BIND("SPRAK" AS ?SPRAK)
-       BIND("FORFATTERDEL" AS ?FORFATTERDEL)
-       BIND("FORFATTERVEKT" AS ?VEKTET)
      }
      GRAPH ?nva {
         ?publicationUri a :Publication ;
