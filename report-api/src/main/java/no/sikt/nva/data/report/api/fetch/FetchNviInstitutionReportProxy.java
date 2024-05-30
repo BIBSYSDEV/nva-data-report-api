@@ -62,9 +62,11 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
         var topLevelOrganization = extractTopLevelOrganization(requestInfo);
         var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
+        var pageSize = requestInfo.getQueryParameterOpt("pageSize").orElse("10000");
+        var offset = requestInfo.getQueryParameterOpt("offset").orElse("0");
         setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
         logRequest(topLevelOrganization, reportingYear);
-        var result = reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader);
+        var result = reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader, pageSize, offset);
         return isExcelOrOpenXml(acceptHeader) ? encodeToString(result) : IoUtils.streamToString(result);
     }
 

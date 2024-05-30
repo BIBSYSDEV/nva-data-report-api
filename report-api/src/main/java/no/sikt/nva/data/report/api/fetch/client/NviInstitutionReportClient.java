@@ -40,9 +40,10 @@ public class NviInstitutionReportClient {
         this.apiHost = apiHost;
     }
 
-    public InputStream fetchReport(String reportingYear, String topLevelOrganization, String acceptHeader)
+    public InputStream fetchReport(String reportingYear, String topLevelOrganization, String acceptHeader,
+                                   String pageSize, String offset)
         throws ApiGatewayException {
-        var request = generateRequest(reportingYear, topLevelOrganization, acceptHeader);
+        var request = generateRequest(reportingYear, topLevelOrganization, acceptHeader, pageSize, offset);
         return attempt(() -> executeRequest(request)).orElseThrow(
             failure -> logAndCreateBadGatewayException(request.build().uri(), failure.getException()));
     }
@@ -77,20 +78,23 @@ public class NviInstitutionReportClient {
         throw new BadGatewayException("Unexpected response from upstream!");
     }
 
-    private Builder generateRequest(String reportingYear, String topLevelOrganization, String acceptHeader) {
+    private Builder generateRequest(String reportingYear, String topLevelOrganization, String acceptHeader,
+                                    String pageSize, String offset) {
         return HttpRequest.newBuilder()
-                   .uri(generateUri(reportingYear, topLevelOrganization))
+                   .uri(generateUri(reportingYear, topLevelOrganization, pageSize, offset))
                    .header(ACCEPT_HEADER, acceptHeader)
                    .GET();
     }
 
-    private URI generateUri(String reportingYear, String institutionId) {
+    private URI generateUri(String reportingYear, String institutionId, String pageSize, String offset) {
         return UriWrapper.fromHost(apiHost)
                    .addChild(CUSTOM_DOMAIN_PATH)
                    .addChild(INSTITUTION_PATH)
                    .addChild(NVI_APPROVAL_PATH)
                    .addQueryParameter(QUERY_PARAM_REPORTING_YEAR, reportingYear)
                    .addQueryParameter(QUERY_PARAM_INSTITUTION_ID, URLEncoder.encode(institutionId, UTF_8))
+                   .addQueryParameter("pageSize", pageSize)
+                   .addQueryParameter("offset", offset)
                    .getUri();
     }
 }
