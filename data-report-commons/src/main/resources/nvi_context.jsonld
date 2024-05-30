@@ -40,6 +40,6 @@
     "involvedOrganizations": {
       "@id": "involvedOrganization",
       "@container": "@set"
-    },
+    }
   }
 }
