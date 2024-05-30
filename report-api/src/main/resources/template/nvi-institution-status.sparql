@@ -67,7 +67,7 @@ SELECT DISTINCT
          :approvalStatus ?approvalStatus ;
          :points ?institutionPoints ;
          :institutionId ?organizationUri ;
-         :involvedOrganizations ?affiliationUriString .
+         :involvedOrganization ?affiliationUriString .
 
        ?institutionPoints a :InstitutionPoints ;
          :creatorAffiliationPoints ?creatorAffiliationPoints .

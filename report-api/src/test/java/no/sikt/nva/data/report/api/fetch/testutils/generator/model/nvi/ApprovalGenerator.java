@@ -17,7 +17,7 @@ public class ApprovalGenerator extends TripleBasedBuilder {
     public static final PropertyImpl APPROVAL_STATUS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "approvalStatus");
     public static final PropertyImpl INSTITUTION_ID = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "institutionId");
     public static final Property INVOLVED_ORGANIZATION = new PropertyImpl(Constants.ONTOLOGY_BASE_URI,
-                                                                          "involvedOrganizations");
+                                                                          "involvedOrganization");
     private static final Property APPROVAL = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "Approval");
     private final Model model;
     private final Resource subject;
