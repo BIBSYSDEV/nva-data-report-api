@@ -69,14 +69,14 @@ SELECT DISTINCT
              ?affiliationUri a ?NviOrganization .
 
        BIND(URI("__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__") AS ?organizationUri)
+       BIND(STR(?affiliationUri) AS ?affiliationUriString)
 
        ?candidate :approval ?approval .
        ?approval a :Approval ;
          :approvalStatus ?approvalStatus ;
          :points ?institutionPoints ;
          :institutionId ?organizationUri ;
-
-       FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+         :involvedOrganizations ?affiliationUriString .
 
        ?institutionPoints a :InstitutionPoints ;
          :creatorAffiliationPoints ?creatorAffiliationPoints .
