@@ -34,6 +34,8 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     private static final String NVI_INSTITUTION_SPARQL = "nvi-institution-status";
     private static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
     private static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
+    private static final String PAGE_SIZE = "__PAGE_SIZE__";
+    public static final String OFFSET = "__OFFSET__";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -56,9 +58,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
         var reportingYear = requestInfo.getQueryParameter(QUERY_PARAM_REPORTING_YEAR);
         var topLevelOrganization =
             URLDecoder.decode(requestInfo.getQueryParameter(QUERY_PARAM_INSTITUTION_ID), UTF_8);
+        var pageSize = requestInfo.getQueryParameterOpt("pageSize").orElse("10000");
+        var offset = requestInfo.getQueryParameterOpt("offset").orElse("0");
         logRequest(topLevelOrganization, reportingYear);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
-        var result = getResult(reportingYear, topLevelOrganization, reportFormat);
+        var result = getResult(reportingYear, topLevelOrganization, reportFormat, pageSize, offset);
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
     }
@@ -81,9 +85,12 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
         };
     }
 
-    private String getResult(String reportingYear, String topLevelOrganization, ReportFormat reportFormat) {
+    private String getResult(String reportingYear, String topLevelOrganization, ReportFormat reportFormat,
+                             String pageSize, String offset) {
         var replacementStrings = Map.of(REPLACE_REPORTING_YEAR, reportingYear,
-                                        REPLACE_TOP_LEVEL_ORG, topLevelOrganization);
+                                        REPLACE_TOP_LEVEL_ORG, topLevelOrganization,
+                                        PAGE_SIZE, pageSize,
+                                        OFFSET, offset);
         return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings, getFormatter(reportFormat));
     }
 
