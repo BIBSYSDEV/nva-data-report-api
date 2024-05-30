@@ -36,6 +36,10 @@
         "@base": "__REPLACE_WITH_API_DOMAIN__/cristin/organization/"
       },
       "@type": "@id"
+    },
+    "involvedOrganizations": {
+      "@id": "involvedOrganization",
+      "@container": "@set"
     }
   }
 }
