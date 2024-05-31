@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 @JacocoGenerated//TODO: Remove after testing
 public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
+    public static final String OFFSET = "__OFFSET__";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final String ACCEPT = "Accept";
     private static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
@@ -36,7 +37,6 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     private static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
     private static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
     private static final String PAGE_SIZE = "__PAGE_SIZE__";
-    public static final String OFFSET = "__OFFSET__";
     private final QueryService queryService;
 
     @JacocoGenerated
@@ -61,7 +61,7 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
             URLDecoder.decode(requestInfo.getQueryParameter(QUERY_PARAM_INSTITUTION_ID), UTF_8);
         var pageSize = requestInfo.getQueryParameterOpt("pageSize").orElse("10000");
         var offset = requestInfo.getQueryParameterOpt("offset").orElse("0");
-        logRequest(topLevelOrganization, reportingYear);
+        logRequest(topLevelOrganization, reportingYear, offset, pageSize);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var result = getResult(reportingYear, topLevelOrganization, reportFormat, pageSize, offset);
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
@@ -73,9 +73,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
         return 200;
     }
 
-    private static void logRequest(String topLevelOrganization, String reportingYear) {
-        logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
-                    topLevelOrganization, reportingYear);
+    private static void logRequest(String topLevelOrganization, String reportingYear, String offset, String pageSize) {
+        logger.info(
+            "NVI institution status report requested for organization: {}, reporting year: {}, offset: {}, pageSize: "
+            + "{}",
+            topLevelOrganization, reportingYear, offset, pageSize);
     }
 
     private static ResponseFormatter getFormatter(ReportFormat reportFormat) {

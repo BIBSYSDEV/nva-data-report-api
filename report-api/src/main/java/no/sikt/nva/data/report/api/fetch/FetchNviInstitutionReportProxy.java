@@ -30,13 +30,13 @@ import org.slf4j.LoggerFactory;
 
 public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, String> {
 
+    public static final int OK = 200;
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final String API_HOST = "API_HOST";
     private static final String BACKEND_CLIENT_SECRET_NAME = "BACKEND_CLIENT_SECRET_NAME";
     private static final String BACKEND_CLIENT_AUTH_URL = "COGNITO_HOST";
     private static final String ACCEPT_HEADER = "Accept";
     private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
-    public static final int OK = 200;
     private final NviInstitutionReportClient reportClient;
 
     @JacocoGenerated
@@ -65,7 +65,7 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
         var pageSize = requestInfo.getQueryParameterOpt("pageSize").orElse("10000");
         var offset = requestInfo.getQueryParameterOpt("offset").orElse("0");
         setIsBase64EncodedIfContentTypeIsExcel(acceptHeader);
-        logRequest(topLevelOrganization, reportingYear);
+        logRequest(topLevelOrganization, reportingYear, offset, pageSize);
         var result = reportClient.fetchReport(reportingYear, topLevelOrganization, acceptHeader, pageSize, offset);
         return isExcelOrOpenXml(acceptHeader) ? encodeToString(result) : IoUtils.streamToString(result);
     }
@@ -106,9 +106,10 @@ public class FetchNviInstitutionReportProxy extends ApiGatewayHandler<Void, Stri
                    .orElse("UnknownRequestTopLevelOrganization");
     }
 
-    private static void logRequest(String topLevelOrganization, String reportingYear) {
-        logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
-                    topLevelOrganization, reportingYear);
+    private static void logRequest(String topLevelOrganization, String reportingYear, String offset, String pageSize) {
+        logger.info("NVI institution status report requested for organization: {}, reporting year: {}, offset: {}, "
+                    + "pageSize: {}",
+                    topLevelOrganization, reportingYear, offset, pageSize);
     }
 
     private static boolean isExcelOrOpenXml(String acceptHeader) {
