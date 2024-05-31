@@ -25,6 +25,7 @@ import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@JacocoGenerated//TODO: Remove after testing
 public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);

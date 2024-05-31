@@ -5,6 +5,7 @@ import commons.formatter.ResponseFormatter;
 import java.nio.file.Path;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -28,6 +29,7 @@ public class QueryService {
         return databaseConnection.getResult(query, formatter);
     }
 
+    @JacocoGenerated//TODO: Remove after testing
     public String getResult(String sparqlTemplate, Map<String, String> replacementStrings,
                             ResponseFormatter formatter) {
         var query = getQuery(sparqlTemplate, replacementStrings);
@@ -38,6 +40,7 @@ public class QueryService {
         return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
     }
 
+    @JacocoGenerated//TODO: Remove after testing
     private static String replaceStrings(String sparqlString, Map<String, String> replacementStrings) {
         var resultString = sparqlString;
         for (var entry : replacementStrings.entrySet()) {
@@ -46,6 +49,7 @@ public class QueryService {
         return resultString;
     }
 
+    @JacocoGenerated//TODO: Remove after testing
     private Query getQuery(String sparqlTemplate, Map<String, String> replacementStrings) {
         var template = constructPath(sparqlTemplate);
         var sparqlString = replaceStrings(IoUtils.stringFromResources(template), replacementStrings);

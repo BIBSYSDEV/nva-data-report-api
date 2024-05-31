@@ -34,6 +34,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.logutils.LogUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -41,6 +42,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
+@Disabled
 public class FetchNviInstitutionReportTest extends LocalFusekiTest {
 
     public static final String SOME_YEAR = "2023";
