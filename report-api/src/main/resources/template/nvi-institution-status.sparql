@@ -29,42 +29,30 @@ SELECT DISTINCT
        ?candidate a :NviCandidate ;
                :publicationDetails ?publicationUri ;
                :isApplicable true ;
-               :internationalCollaborationFactor ?internationalCollaborationFactor ;
-               :globalApprovalStatus ?globalApprovalStatus ;
-               :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
+               :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+               :globalApprovalStatus ?RAPPORTSTATUS ;
+               :publicationTypeChannelLevelPoints ?VEKTINGSTALL ;
                :reportingPeriod ?reportingPeriod .
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year "__REPLACE_WITH_REPORTING_YEAR__" .
        BIND("__REPLACE_WITH_REPORTING_YEAR__" AS ?ARSTALL)
 
-       BIND(STR(?internationalCollaborationFactor) AS ?FAKTORTALL_SAMARBEID) .
-       BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
-
-       BIND(
-          COALESCE (
-              IF(?globalApprovalStatus = "Pending", "?", ?ignored),
-              IF(?globalApprovalStatus = "Approved", "J", ?ignored),
-              IF(?globalApprovalStatus = "Dispute", "T", ?ignored),
-              IF(?globalApprovalStatus = "Rejected", "N", ?ignored)
-          ) AS ?RAPPORTSTATUS
-       )
-
-       BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
+       BIND(?publicationUri AS ?VARBEIDLOPENR)
 
        ?publicationUri :contributor ?contributorId .
-             ?contributorId a :NviContributor .
-       BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?PERSONLOPENR)
+       ?contributorId a :NviContributor .
+       BIND(?contributorId AS ?PERSONLOPENR)
 
        ?contributorId :affiliation ?affiliationUri .
-             ?affiliationUri a ?NviOrganization .
+       ?affiliationUri a ?NviOrganization .
 
        BIND(URI("__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__") AS ?organizationUri)
        BIND(STR(?affiliationUri) AS ?affiliationUriString)
 
        ?candidate :approval ?approval .
        ?approval a :Approval ;
-         :approvalStatus ?approvalStatus ;
+         :approvalStatus ?STATUS_KONTROLLERT ;
          :points ?institutionPoints ;
          :institutionId ?organizationUri ;
          :involvedOrganization ?affiliationUriString .
@@ -77,19 +65,10 @@ SELECT DISTINCT
          :affiliationId ?affiliationId ;
          :points ?FORFATTERVEKT .
 
-       BIND(
-          IF(?approvalStatus = "Pending", "?",
-          IF(?approvalStatus = "Approved", "J",
-          IF(?approvalStatus = "Rejected", "N", xsd:string(?approvalStatus)))) AS ?STATUS_KONTROLLERT
-       )
-
-       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?identifier)
-       BIND(STRAFTER(str(?identifier), ".") AS ?temp1)
-       BIND(STRAFTER(str(?temp1), ".") AS ?temp2)
-       BIND(STRAFTER(str(?temp2), ".") AS ?GRUPPENR)
-       BIND(STRBEFORE(str(?identifier), ".") AS ?INSTITUSJONSNR)
-       BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
-       BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
+       BIND(?affiliationUri AS ?GRUPPENR)
+       BIND(?affiliationUri AS ?INSTITUSJONSNR)
+       BIND(?affiliationUri AS ?AVDNR)
+       BIND(?affiliationUri AS ?UNDAVDNR)
 
      }
      GRAPH ?nva {
@@ -102,24 +81,13 @@ SELECT DISTINCT
         ?entityDescription :mainTitle ?VA_TITTEL .
         ?entityDescription :reference ?reference .
         ?reference :publicationContext ?publicationContext .
-        ?publicationContext a ?channelTypeId ;
+        ?publicationContext a ?PUBLISERINGSKANALTYPE ;
                             :name ?PUBLISERINGSKANALNAVN ;
-                            :scientificValue ?scientificValue .
+                            :scientificValue ?KVALITETSNIVAKODE .
 
-        ?publicationDate :year ?publicationYear .
-        BIND(STR(?publicationYear) AS ?ARSTALL_REG)
-
-        BIND(
-          IF(?scientificValue = "LevelOne", "1",
-          IF(?scientificValue = "LevelTwo", "2", xsd:string(?scientificValue))) AS ?KVALITETSNIVAKODE
-        )
-
-        BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
-        BIND(STR(?channelTypeId) AS ?channelType)
-        BIND(REPLACE(STR(?channelType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLISERINGSKANALTYPE)
+        ?publicationDate :year ?ARSTALL_REG .
         ?reference :publicationInstance ?instance .
-        ?instance a ?instanceType .
-        BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLIKASJONSFORM)
+        ?instance a ?PUBLIKASJONSFORM .
 
         OPTIONAL {
             ?publicationContext :printIssn ?ISSN
