@@ -16,6 +16,10 @@ dependencies {
     implementation group: 'org.apache.poi', name: 'poi', version: '5.2.4'
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.4'
 
+    implementation libs.aws.sdk2.s3
+    implementation libs.aws.sdk2.sqs
+    implementation libs.aws.sdk2.apache.client
+
     testImplementation libs.jena.fuseki
     testImplementation libs.bundles.logging
     testImplementation(project(':testing-utils'))
@@ -36,4 +40,7 @@ test {
     environment("NEPTUNE_PORT", "8182")
     environment("QUERY_PATH", "gsp/sparql")
     environment("API_HOST", "https://example.org")
+    environment("AWS_REGION_NAME", "eu-west-1")
+    environment("AWS_REGION", "eu-west-1")
+    environment("NVI_REPORTS_BUCKET", "nvi-reports")
 }

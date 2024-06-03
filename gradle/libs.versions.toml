@@ -1,6 +1,6 @@
 [versions]
 junit = { strictly = '5.10.0' }
-nva = { strictly = '1.39.3' }
+nva = { strictly = '1.39.4' }
 zalando = { strictly = '0.27.1' }
 awsLambdaJavaCore = { strictly = '1.2.3' }
 awsLambdaEvents = { strictly = '3.11.4' }
@@ -40,6 +40,7 @@ aws-sdk2-sqs = { group = 'software.amazon.awssdk', name = 'sqs', version.ref = '
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsSdk2Events' }
 aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
+aws-sdk2-apache-client = { group = 'software.amazon.awssdk', name = 'apache-client', version.ref = 'awsSdk2' }
 
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaJavaCore' }
 aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
