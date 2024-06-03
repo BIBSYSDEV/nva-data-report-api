@@ -1,13 +1,8 @@
 package no.sikt.nva.data.report.api.fetch;
 
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
-import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.MANAGE_NVI_CANDIDATES;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
@@ -17,26 +12,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpHeaders;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportProxyRequest;
-import no.unit.nva.auth.AuthorizedBackendClient;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.core.ioutils.IoUtils;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -120,11 +105,11 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         var topLevelCristinOrgId = randomUri();
         handler.handleRequest(generateHandlerRequest(request, topLevelCristinOrgId), output, context);
         var actualSentRequest = dtoObjectMapper.readValue(queueClient.getSentMessages().getFirst().messageBody(),
-                                                          GenerateNviInstitutionReportRequest.class);
+                                                          NviInstitutionReportRequest.class);
         assertEquals(SOME_YEAR, actualSentRequest.reportingYear());
         assertEquals(TEXT_CSV, actualSentRequest.mediaType());
-        assertTrue(actualSentRequest.location().toString().contains(context.getAwsRequestId()));
-        assertEquals(topLevelCristinOrgId, actualSentRequest.topLevelOrganization());
+        assertTrue(actualSentRequest.presignedFileName().contains(context.getAwsRequestId()));
+        assertEquals(topLevelCristinOrgId, actualSentRequest.nviOrganization());
     }
 
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,

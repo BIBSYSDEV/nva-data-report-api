@@ -6,7 +6,6 @@ import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.aws.AwsSqsClient;
@@ -23,8 +22,6 @@ public class FetchNviInstitutionReportProxy extends ApiS3PresignerGatewayHandler
 
     public static final String NVI_REPORTS_BUCKET = "NVI_REPORTS_BUCKET";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
-    private static final String ACCEPT_HEADER = "Accept";
-    private static final String PATH_PARAMETER_REPORTING_YEAR = "reportingYear";
     private static final Duration SIGN_DURATION = Duration.ofMinutes(60);
     private static final String REGION = "AWS_REGION_NAME";
     private static final String QUEUE_URL = "REPORT_QUEUE_URL";
@@ -47,13 +44,11 @@ public class FetchNviInstitutionReportProxy extends ApiS3PresignerGatewayHandler
     }
 
     @Override
-    protected void generateAndWriteDataToS3(String s, Void unused, RequestInfo requestInfo, Context context) {
+    protected void generateAndWriteDataToS3(String fileName, Void unused, RequestInfo requestInfo, Context context) {
         validateAccessRights(requestInfo);
-        var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
-        var topLevelOrganization = extractTopLevelOrganization(requestInfo);
-        var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
-        logRequest(topLevelOrganization, reportingYear);
-        sendEvent(reportingYear, topLevelOrganization, acceptHeader);
+        var reportRequest = NviInstitutionReportRequest.from(requestInfo, fileName);
+        logRequest(reportRequest);
+        sendMessage(reportRequest);
     }
 
     @Override
@@ -66,19 +61,14 @@ public class FetchNviInstitutionReportProxy extends ApiS3PresignerGatewayHandler
         return SIGN_DURATION;
     }
 
-    private static String extractTopLevelOrganization(RequestInfo requestInfo) {
-        return requestInfo.getTopLevelOrgCristinId()
-                   .map(URI::toString)
-                   .orElse("UnknownRequestTopLevelOrganization");
-    }
-
-    private static void logRequest(String topLevelOrganization, String reportingYear) {
+    private static void logRequest(NviInstitutionReportRequest request) {
         logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
-                    topLevelOrganization, reportingYear);
+                    request.nviOrganization(), request.reportingYear());
     }
 
-    private void sendEvent(String reportingYear, String topLevelOrganization, String mediaType) {
-        //TODO
+    private void sendMessage(NviInstitutionReportRequest nviInstitutionReportRequest) {
+        queueClient.sendMessage(nviInstitutionReportRequest.toJsonString());
+        logger.info("Message sent to queue: {}", nviInstitutionReportRequest.toJsonString());
     }
 
     private void validateAccessRights(RequestInfo requestInfo) {
