@@ -5,6 +5,7 @@ import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -53,11 +54,13 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     private static final String SOME_YEAR = "2023";
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     private FetchNviInstitutionReportProxy handler;
-    private AuthorizedBackendClient authorizedBackendClient;
+
+    private FakeSqsClient queueClient;
 
     @BeforeEach
     public void setup() {
-        handler = new FetchNviInstitutionReportProxy(new FakeSqsClient());
+        queueClient = new FakeSqsClient();
+        handler = new FetchNviInstitutionReportProxy(queueClient);
     }
 
     @Test
@@ -109,6 +112,21 @@ public class FetchNviInstitutionReportHandlerProxyTest {
         assertEquals(HTTP_MOVED_TEMP, response.getStatusCode());
     }
 
+    @Test
+    void shouldSendMessageWithGenerateNviReportRequest() throws IOException {
+        var output = new ByteArrayOutputStream();
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_CSV);
+        var context = new FakeContext();
+        var topLevelCristinOrgId = randomUri();
+        handler.handleRequest(generateHandlerRequest(request, topLevelCristinOrgId), output, context);
+        var actualSentRequest = dtoObjectMapper.readValue(queueClient.getSentMessages().getFirst().messageBody(),
+                                                          GenerateNviInstitutionReportRequest.class);
+        assertEquals(SOME_YEAR, actualSentRequest.reportingYear());
+        assertEquals(TEXT_CSV, actualSentRequest.mediaType());
+        assertTrue(actualSentRequest.location().toString().contains(context.getAwsRequestId()));
+        assertEquals(topLevelCristinOrgId, actualSentRequest.topLevelOrganization());
+    }
+
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,
                                                       URI topLevelCristinOrgId)
         throws JsonProcessingException {
@@ -119,7 +137,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                       AccessRight accessRight,
                                                       URI topLevelCristinOrgId)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<InputStream>(JsonUtils.dtoObjectMapper)
+        return new HandlerRequestBuilder<InputStream>(dtoObjectMapper)
                    .withHeaders(request.acceptHeader())
                    .withAccessRights(randomUri(), accessRight)
                    .withPathParameters(request.pathParameters())
@@ -134,47 +152,5 @@ public class FetchNviInstitutionReportHandlerProxyTest {
                                                                  .withDetail("Unauthorized")
                                                                  .with("requestId", requestId)
                                                                  .build())).orElseThrow();
-    }
-
-    private String convertInputStreamToBase64(byte[] bytes) {
-        return Base64.getEncoder().encodeToString(bytes);
-    }
-
-    private void mockNotFound() throws IOException, InterruptedException {
-        var response = mock(HttpResponse.class);
-        when(response.statusCode()).thenReturn(HTTP_NOT_FOUND);
-        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
-    }
-
-    private void mockBadRequest() throws IOException, InterruptedException {
-        var response = mock(HttpResponse.class);
-        when(response.statusCode()).thenReturn(HTTP_BAD_REQUEST);
-        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
-    }
-
-    private void mockInternalServerError() throws IOException, InterruptedException {
-        var response = mock(HttpResponse.class);
-        when(response.statusCode()).thenReturn(HTTP_INTERNAL_ERROR);
-        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
-    }
-
-    private void mockResponse(String responseBody, String contentType)
-        throws IOException, InterruptedException {
-        var response = mockHttpResponse(responseBody, contentType);
-        mockResponse(response);
-    }
-
-    private void mockResponse(HttpResponse<String> response)
-        throws IOException, InterruptedException {
-        when(authorizedBackendClient.send(any(), any(BodyHandler.class))).thenReturn(response);
-    }
-
-    private HttpResponse<String> mockHttpResponse(String expectedResponse, String contentType) {
-        var response = mock(HttpResponse.class);
-        when(response.statusCode()).thenReturn(HTTP_OK);
-        when(response.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of(contentType)),
-                                                           (s, l) -> true));//?
-        when(response.body()).thenReturn(IoUtils.stringToStream(expectedResponse));
-        return response;
     }
 }
