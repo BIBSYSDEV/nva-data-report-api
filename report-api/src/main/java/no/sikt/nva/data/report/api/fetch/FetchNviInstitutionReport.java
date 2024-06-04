@@ -54,7 +54,8 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
 
     @Override
     protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        //no-op
+        //This handler is in lambda subnet in vpc, and only triggered via SQS via FetchDataReportPresigner
+        //TODO: Validate input
     }
 
     @Override
