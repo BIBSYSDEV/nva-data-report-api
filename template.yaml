@@ -94,6 +94,18 @@ Globals:
 Resources:
 
   # ---- SQS ----
+  GenerateNviInstitutionReportQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt GenerateNviInstitutionReportDLQ.Arn
+        maxReceiveCount: 5
+      # ---- DLQs ----
+  GenerateNviInstitutionReportDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600 #14 days
   DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
@@ -182,6 +194,8 @@ Resources:
               - sqs:GetQueueAttributes
             Resource:
               - !GetAtt DataLoadingDLQ.Arn
+              - !GetAtt GenerateNviInstitutionReportQueue.Arn
+              - !GetAtt GenerateNviInstitutionReportDLQ.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -351,6 +365,7 @@ Resources:
           COGNITO_HOST: !Ref CognitoAuthorizationUri
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           NVI_REPORTS_BUCKET: !Ref NviReportsBucket
+          REPORT_QUEUE_URL: !GetAtt GenerateNviInstitutionReportQueue
       Events:
         ApiEvent:
           Type: Api
