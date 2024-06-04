@@ -8,10 +8,7 @@ import static nva.commons.apigateway.AccessRight.MANAGE_NVI_CANDIDATES;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,7 +21,6 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -40,7 +36,6 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     private static final String SOME_YEAR = "2023";
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     private FetchNviInstitutionReportProxy handler;
-
     private FakeSqsClient queueClient;
 
     @BeforeEach
@@ -50,7 +45,6 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     }
 
     @Test
-    @Disabled
     void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
         var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI,
