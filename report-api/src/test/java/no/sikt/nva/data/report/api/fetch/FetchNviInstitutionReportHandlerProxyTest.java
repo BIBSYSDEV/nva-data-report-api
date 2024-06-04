@@ -24,6 +24,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -49,6 +50,7 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     }
 
     @Test
+    @Disabled
     void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
         var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI,

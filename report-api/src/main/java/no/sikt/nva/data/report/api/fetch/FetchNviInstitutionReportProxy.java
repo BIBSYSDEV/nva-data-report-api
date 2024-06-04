@@ -10,8 +10,11 @@ import java.time.Duration;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.aws.AwsSqsClient;
 import no.sikt.nva.data.report.api.fetch.queue.QueueClient;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.ApiS3PresignerGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -44,8 +47,12 @@ public class FetchNviInstitutionReportProxy extends ApiS3PresignerGatewayHandler
     }
 
     @Override
-    protected void generateAndWriteDataToS3(String fileName, Void unused, RequestInfo requestInfo, Context context) {
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         validateAccessRights(requestInfo);
+    }
+
+    @Override
+    protected void generateAndWriteDataToS3(String fileName, Void unused, RequestInfo requestInfo, Context context) {
         var reportRequest = NviInstitutionReportRequest.from(requestInfo, fileName);
         logRequest(reportRequest);
         sendMessage(reportRequest);
@@ -71,10 +78,9 @@ public class FetchNviInstitutionReportProxy extends ApiS3PresignerGatewayHandler
         logger.info("Message sent to queue: {}", nviInstitutionReportRequest.toJsonString());
     }
 
-    private void validateAccessRights(RequestInfo requestInfo) {
-        //TODO
-        //if (!requestInfo.userIsAuthorized(AccessRight.MANAGE_NVI_CANDIDATES)) {
-        //    throw new UnauthorizedException();
-        //}
+    private void validateAccessRights(RequestInfo requestInfo) throws UnauthorizedException {
+        if (!requestInfo.userIsAuthorized(AccessRight.MANAGE_NVI_CANDIDATES)) {
+            throw new UnauthorizedException();
+        }
     }
 }

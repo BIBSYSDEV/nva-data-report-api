@@ -40,6 +40,11 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
         return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL, OOXML_SHEET);
     }
 
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //no-op
+    }
+
     protected String processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         var reportRequest = ReportRequest.fromRequestInfo(requestInfo);
         var reportFormat = reportRequest.getReportFormat();
