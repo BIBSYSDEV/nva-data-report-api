@@ -26,7 +26,7 @@ public class BulkLoadHandler implements RequestStreamHandler {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
     private static final String LOADER_IAM_ROLE = "LOADER_IAM_ROLE";
-    private static final String AWS_REGION = "AWS_REGION_NAME";
+    private static final String AWS_REGION = "AWS_REGION";
     private static final String LOADER_BUCKET = "LOADER_BUCKET";
     private static final int HTTP_OK = 200;
     private static final String LOADER_PATH = "loader";

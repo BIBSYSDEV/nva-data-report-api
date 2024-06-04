@@ -40,7 +40,7 @@ test {
     environment("NEPTUNE_PORT", "8182")
     environment("QUERY_PATH", "gsp/sparql")
     environment("API_HOST", "https://example.org")
-    environment("AWS_REGION_NAME", "eu-west-1")
+    environment("AWS_REGION", "eu-west-1")
     environment("AWS_REGION", "eu-west-1")
     environment("NVI_REPORTS_BUCKET", "nvi-reports")
 }
