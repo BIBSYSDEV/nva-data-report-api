@@ -53,6 +53,10 @@ Parameters:
     Type: 'String'
     Default: "data-report-key-batches"
     Description: Name of bucket for key batch files
+  NviReportsBucketName:
+    Type: 'String'
+    Default: "nvi-reports"
+    Description: Name of bucket for nvi reports
 
 Mappings:
   SubnetConfig:
@@ -331,11 +335,11 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
-  FetchNviInstitutionReportProxyHandler:
+  FetchNviInstitutionReportPresignerHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: report-api
-      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportProxy::handleRequest
+      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportPresigner::handleRequest
       Policies:
         - !GetAtt SecretsManagerPolicy.PolicyArn
       Timeout: 600
@@ -346,6 +350,7 @@ Resources:
           ALLOWED_ORIGIN: '*'
           COGNITO_HOST: !Ref CognitoAuthorizationUri
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
+          NVI_REPORTS_BUCKET: !Ref NviReportsBucket
       Events:
         ApiEvent:
           Type: Api
@@ -721,6 +726,17 @@ Resources:
     Properties:
       AccessControl: Private
       BucketName: !Sub "${KeyBatchesBucketName}-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteContentAfter3Days
+            Status: Enabled
+            ExpirationInDays: 3
+
+  NviReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${NviReportsBucketName}-${AWS::AccountId}"
       LifecycleConfiguration:
         Rules:
           - Id: DeleteContentAfter3Days

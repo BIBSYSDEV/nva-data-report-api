@@ -23,11 +23,11 @@ import software.amazon.awssdk.regions.Region;
 
 public class FetchNviInstitutionReportPresigner extends ApiS3PresignerGatewayHandler<Void> {
 
-    public static final String NVI_REPORTS_BUCKET = "NVI_REPORTS_BUCKET";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
     private static final Duration SIGN_DURATION = Duration.ofMinutes(60);
     private static final String REGION = "AWS_REGION";
     private static final String QUEUE_URL = "REPORT_QUEUE_URL";
+    private static final String NVI_REPORTS_BUCKET = "NVI_REPORTS_BUCKET";
     private final QueueClient queueClient;
 
     @JacocoGenerated
