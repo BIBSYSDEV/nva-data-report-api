@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
 
-public class FetchNviInstitutionReportProxy extends ApiS3PresignerGatewayHandler<Void> {
+public class FetchNviInstitutionReportPresigner extends ApiS3PresignerGatewayHandler<Void> {
 
     public static final String NVI_REPORTS_BUCKET = "NVI_REPORTS_BUCKET";
     private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
@@ -31,12 +31,12 @@ public class FetchNviInstitutionReportProxy extends ApiS3PresignerGatewayHandler
     private final QueueClient queueClient;
 
     @JacocoGenerated
-    public FetchNviInstitutionReportProxy() {
+    public FetchNviInstitutionReportPresigner() {
         this(new AwsSqsClient(Region.of(new Environment().readEnv(REGION)),
                               new Environment().readEnv(QUEUE_URL)));
     }
 
-    public FetchNviInstitutionReportProxy(QueueClient queueClient) {
+    public FetchNviInstitutionReportPresigner(QueueClient queueClient) {
         super(Void.class, ApiS3PresignerGatewayHandler.defaultS3Presigner());
         this.queueClient = queueClient;
     }

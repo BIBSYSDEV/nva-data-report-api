@@ -35,13 +35,13 @@ public class FetchNviInstitutionReportHandlerProxyTest {
     private static final String EXCEL = "application/vnd.ms-excel";
     private static final String SOME_YEAR = "2023";
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
-    private FetchNviInstitutionReportProxy handler;
+    private FetchNviInstitutionReportPresigner handler;
     private FakeSqsClient queueClient;
 
     @BeforeEach
     public void setup() {
         queueClient = new FakeSqsClient();
-        handler = new FetchNviInstitutionReportProxy(queueClient);
+        handler = new FetchNviInstitutionReportPresigner(queueClient);
     }
 
     @Test
