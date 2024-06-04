@@ -9,11 +9,16 @@ import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchNviInstitutionReportProxyRequest;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -26,6 +31,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 public class FetchNviInstitutionReportHandlerPresignerTest {
 
@@ -37,11 +45,13 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
     private static final AccessRight SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI = AccessRight.SUPPORT;
     private FetchNviInstitutionReportPresigner handler;
     private FakeSqsClient queueClient;
+    private S3Presigner mockedS3Presigner;
 
     @BeforeEach
     public void setup() {
         queueClient = new FakeSqsClient();
-        handler = new FetchNviInstitutionReportPresigner(queueClient);
+        mockedS3Presigner = mock(S3Presigner.class);
+        handler = new FetchNviInstitutionReportPresigner(queueClient, mockedS3Presigner);
     }
 
     @Test
@@ -87,6 +97,9 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
         var context = new FakeContext();
+        var presignedGetObjectRequest = mockPresignResponse(context.getAwsRequestId());
+        when(mockedS3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
+            .thenReturn(presignedGetObjectRequest);
         handler.handleRequest(generateHandlerRequest(request, randomUri()), output, context);
         var response = fromOutputStream(output, GatewayResponse.class);
         assertTrue(response.getHeaders().get("Location").contains(context.getAwsRequestId()));
@@ -100,12 +113,18 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
         var context = new FakeContext();
         var topLevelCristinOrgId = randomUri();
         handler.handleRequest(generateHandlerRequest(request, topLevelCristinOrgId), output, context);
+        var expectedSentRequest = new NviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId, TEXT_CSV,
+                                                                  context.getAwsRequestId());
         var actualSentRequest = dtoObjectMapper.readValue(queueClient.getSentMessages().getFirst().messageBody(),
                                                           NviInstitutionReportRequest.class);
-        assertEquals(SOME_YEAR, actualSentRequest.reportingYear());
-        assertEquals(TEXT_CSV, actualSentRequest.mediaType());
-        assertTrue(actualSentRequest.presignedFileName().contains(context.getAwsRequestId()));
-        assertEquals(topLevelCristinOrgId, actualSentRequest.nviOrganization());
+        assertEquals(expectedSentRequest, actualSentRequest);
+    }
+
+    private static PresignedGetObjectRequest mockPresignResponse(String filename) throws MalformedURLException {
+        var presignRequest = mock(PresignedGetObjectRequest.class);
+        var presignedUrl = "https://example.com/" + filename;
+        when(presignRequest.url()).thenReturn(new URL(presignedUrl));
+        return presignRequest;
     }
 
     private static InputStream generateHandlerRequest(FetchNviInstitutionReportProxyRequest request,

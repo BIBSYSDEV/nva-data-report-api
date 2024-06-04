@@ -20,6 +20,7 @@ import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 public class FetchNviInstitutionReportPresigner extends ApiS3PresignerGatewayHandler<Void> {
 
@@ -33,11 +34,11 @@ public class FetchNviInstitutionReportPresigner extends ApiS3PresignerGatewayHan
     @JacocoGenerated
     public FetchNviInstitutionReportPresigner() {
         this(new AwsSqsClient(Region.of(new Environment().readEnv(REGION)),
-                              new Environment().readEnv(QUEUE_URL)));
+                              new Environment().readEnv(QUEUE_URL)), ApiS3PresignerGatewayHandler.defaultS3Presigner());
     }
 
-    public FetchNviInstitutionReportPresigner(QueueClient queueClient) {
-        super(Void.class, ApiS3PresignerGatewayHandler.defaultS3Presigner());
+    public FetchNviInstitutionReportPresigner(QueueClient queueClient, S3Presigner s3Presigner) {
+        super(Void.class, s3Presigner);
         this.queueClient = queueClient;
     }
 
