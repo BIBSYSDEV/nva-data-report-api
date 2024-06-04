@@ -27,7 +27,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
-public class FetchNviInstitutionReportHandlerProxyTest {
+public class FetchNviInstitutionReportHandlerPresignerTest {
 
     private static final String TEXT_PLAIN = "text/plain";
     private static final String TEXT_CSV = "text/csv";
