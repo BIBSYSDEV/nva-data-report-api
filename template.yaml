@@ -366,6 +366,7 @@ Resources:
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           NVI_REPORTS_BUCKET: !Ref NviReportsBucket
           REPORT_QUEUE_URL: !GetAtt GenerateNviInstitutionReportQueue
+          SIGN_DURATION_IN_MINUTES: 60
       Events:
         ApiEvent:
           Type: Api

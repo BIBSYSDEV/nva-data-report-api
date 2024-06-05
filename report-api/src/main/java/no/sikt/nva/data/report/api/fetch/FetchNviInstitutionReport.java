@@ -20,7 +20,6 @@ import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -53,9 +52,8 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     }
 
     @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) {
         //This handler is in lambda subnet in vpc, and only triggered via SQS via FetchDataReportPresigner
-        //TODO: Validate input
     }
 
     @Override

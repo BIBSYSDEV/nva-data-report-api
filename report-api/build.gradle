@@ -42,4 +42,5 @@ test {
     environment("API_HOST", "https://example.org")
     environment("AWS_REGION", "eu-west-1")
     environment("NVI_REPORTS_BUCKET", "nvi-reports")
+    environment("SIGN_DURATION_IN_MINUTES", "60")
 }
