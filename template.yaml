@@ -53,6 +53,10 @@ Parameters:
     Type: 'String'
     Default: "data-report-key-batches"
     Description: Name of bucket for key batch files
+  NviReportsBucketName:
+    Type: 'String'
+    Default: "nvi-reports"
+    Description: Name of bucket for nvi reports
 
 Mappings:
   SubnetConfig:
@@ -85,11 +89,23 @@ Globals:
         API_HOST: !Ref ApiDomain
         QUERY_PATH: 'none'
         NEPTUNE_PORT: 8182
-        AWS_REGION_NAME: !Ref AWS::Region
+        AWS_REGION: !Ref AWS::Region
 
 Resources:
 
   # ---- SQS ----
+  GenerateNviInstitutionReportQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt GenerateNviInstitutionReportDLQ.Arn
+        maxReceiveCount: 5
+      # ---- DLQs ----
+  GenerateNviInstitutionReportDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600 #14 days
   DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
@@ -178,6 +194,8 @@ Resources:
               - sqs:GetQueueAttributes
             Resource:
               - !GetAtt DataLoadingDLQ.Arn
+              - !GetAtt GenerateNviInstitutionReportQueue.Arn
+              - !GetAtt GenerateNviInstitutionReportDLQ.Arn
   DeployToVpnPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -331,11 +349,11 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
-  FetchNviInstitutionReportProxyHandler:
+  FetchNviInstitutionReportPresignerHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: report-api
-      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportProxy::handleRequest
+      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportPresigner::handleRequest
       Policies:
         - !GetAtt SecretsManagerPolicy.PolicyArn
       Timeout: 600
@@ -346,6 +364,9 @@ Resources:
           ALLOWED_ORIGIN: '*'
           COGNITO_HOST: !Ref CognitoAuthorizationUri
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
+          NVI_REPORTS_BUCKET: !Ref NviReportsBucket
+          REPORT_QUEUE_URL: !GetAtt GenerateNviInstitutionReportQueue
+          SIGN_DURATION_IN_MINUTES: 60
       Events:
         ApiEvent:
           Type: Api
@@ -721,6 +742,17 @@ Resources:
     Properties:
       AccessControl: Private
       BucketName: !Sub "${KeyBatchesBucketName}-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteContentAfter3Days
+            Status: Enabled
+            ExpirationInDays: 3
+
+  NviReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${NviReportsBucketName}-${AWS::AccountId}"
       LifecycleConfiguration:
         Rules:
           - Id: DeleteContentAfter3Days

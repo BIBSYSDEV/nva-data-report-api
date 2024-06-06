@@ -52,6 +52,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     }
 
     @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) {
+        //This handler is in lambda subnet in vpc, and only triggered via SQS via FetchDataReportPresigner
+    }
+
+    @Override
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws BadRequestException {
         var reportingYear = requestInfo.getQueryParameter(QUERY_PARAM_REPORTING_YEAR);
         var topLevelOrganization =
