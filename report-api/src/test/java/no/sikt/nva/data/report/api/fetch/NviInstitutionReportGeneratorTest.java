@@ -42,7 +42,7 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     void setUp() {
         var s3Client = new FakeS3Client();
         s3Driver = new S3Driver(s3Client, "nvi-reports");
-        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection));
+        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection), s3Client);
     }
 
     @Test

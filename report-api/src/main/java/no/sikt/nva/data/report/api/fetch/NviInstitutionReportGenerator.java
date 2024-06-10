@@ -1,30 +1,24 @@
 package no.sikt.nva.data.report.api.fetch;
 
-import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
-import static com.google.common.net.MediaType.OOXML_SHEET;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
-import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
-import static no.sikt.nva.data.report.api.fetch.model.ReportFormat.EXCEL;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.google.common.net.MediaType;
 import commons.db.GraphStoreProtocolConnection;
 import commons.formatter.ResponseFormatter;
 import java.net.URLDecoder;
-import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
-import nva.commons.apigateway.ApiGatewayHandler;
+import no.unit.nva.s3.S3Driver;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3Client;
 
 public class NviInstitutionReportGenerator implements RequestHandler<NviInstitutionReportRequest, String> {
 
@@ -36,14 +30,16 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
     private static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
     private static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
     private final QueryService queryService;
+    private final S3Client s3Client;
 
     @JacocoGenerated
     public NviInstitutionReportGenerator() {
-        this(new QueryService(new GraphStoreProtocolConnection()));
+        this(new QueryService(new GraphStoreProtocolConnection()), defaultS3Client());
     }
 
-    public NviInstitutionReportGenerator(QueryService queryService) {
+    public NviInstitutionReportGenerator(QueryService queryService, S3Client s3Client) {
         this.queryService = queryService;
+        this.s3Client = s3Client;
     }
 
     @Override
@@ -59,6 +55,11 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var result = getResult(reportingYear, topLevelOrganization, reportFormat);
         return result;
+    }
+
+    @JacocoGenerated
+    private static S3Client defaultS3Client() {
+        return S3Driver.defaultS3Client().build();
     }
 
     private static void logRequest(String topLevelOrganization, String reportingYear) {
@@ -79,5 +80,4 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
                                         REPLACE_TOP_LEVEL_ORG, topLevelOrganization);
         return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings, getFormatter(reportFormat));
     }
-
 }
