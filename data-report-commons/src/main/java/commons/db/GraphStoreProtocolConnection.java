@@ -64,6 +64,16 @@ public class GraphStoreProtocolConnection implements DatabaseConnection {
     }
 
     @Override
+    public ResultSet getResult(Query query) {
+        try (var connection = configureReadConnection()) {
+            if (query.isSelectType()) {
+                return transactionalQuery(query, connection);
+            }
+            throw new UnsupportedOperationException(UNSUPPORTED_SPARQL_METHOD_MESSAGE);
+        }
+    }
+
+    @Override
     public String fetch(URI graph) {
         try (var connection = configureReadConnection()) {
             var data = connection.fetch(graph.toString());

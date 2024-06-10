@@ -21,6 +21,7 @@ import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeS3Client;
+import nva.commons.core.Environment;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -42,7 +43,7 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     void setUp() {
         var s3Client = new FakeS3Client();
         s3Driver = new S3Driver(s3Client, "nvi-reports");
-        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection), s3Client);
+        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection), s3Client, new Environment());
     }
 
     @Test

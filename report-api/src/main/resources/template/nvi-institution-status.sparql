@@ -150,6 +150,6 @@ SELECT DISTINCT
         BIND(?contributorName AS ?ETTERNAVN)
         BIND(?contributorName AS ?FORNAVN)
      }
-    } LIMIT 10000 #TODO: Handle cases where the limit is reached
+    } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
 
 
