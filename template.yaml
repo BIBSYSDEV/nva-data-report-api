@@ -320,10 +320,10 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
-  FetchNviInstitutionReportHandler:
+  NviInstitutionReportGenerator:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
+      Handler: no.sikt.nva.data.report.api.fetch.NviInstitutionReportGenerator::handleRequest
       CodeUri: report-api
       VpcConfig:
         SecurityGroupIds:
@@ -341,12 +341,15 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
       Events:
-        ApiEvent:
-          Type: Api
+        SqsEvent:
+          Type: SQS
           Properties:
-            Path: /institution/nvi-approval
-            Method: get
-            RestApiId: !Ref DataReportApi
+            Queue: !GetAtt GenerateNviInstitutionReportQueue.Arn
+      EventInvokeConfig:
+        DestinationConfig:
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt GenerateNviInstitutionReportDLQ.Arn
 
   FetchNviInstitutionReportPresignerHandler:
     Type: AWS::Serverless::Function
