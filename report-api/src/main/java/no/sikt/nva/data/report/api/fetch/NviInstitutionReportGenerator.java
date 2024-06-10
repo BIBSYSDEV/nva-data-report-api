@@ -44,6 +44,9 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
 
     @Override
     public String handleRequest(NviInstitutionReportRequest request, Context context) {
+        logRequest(request);
+        var reportFormat = ReportFormat.fromMediaType(request.mediaType());
+
         return null;
     }
 
@@ -51,7 +54,6 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
         var reportingYear = requestInfo.getQueryParameter(QUERY_PARAM_REPORTING_YEAR);
         var topLevelOrganization =
             URLDecoder.decode(requestInfo.getQueryParameter(QUERY_PARAM_INSTITUTION_ID), UTF_8);
-        logRequest(topLevelOrganization, reportingYear);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var result = getResult(reportingYear, topLevelOrganization, reportFormat);
         return result;
@@ -62,9 +64,9 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
         return S3Driver.defaultS3Client().build();
     }
 
-    private static void logRequest(String topLevelOrganization, String reportingYear) {
+    private static void logRequest(NviInstitutionReportRequest request) {
         logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
-                    topLevelOrganization, reportingYear);
+                    request.nviOrganization(), request.reportingYear());
     }
 
     private static ResponseFormatter getFormatter(ReportFormat reportFormat) {
