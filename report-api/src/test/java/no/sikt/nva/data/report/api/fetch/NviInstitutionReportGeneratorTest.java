@@ -41,18 +41,18 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
-public class FetchNviInstitutionReportTest extends LocalFusekiTest {
+public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
 
     public static final String SOME_YEAR = "2023";
     public static final String HARDCODED_INSTITUTION_ID = organizationUri(SOME_TOP_LEVEL_IDENTIFIER);
     public static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     public static final String QUERY_PARAM_REPORTING_YEAR = "reportingYear";
     public static final String TEXT_PLAIN = "text/plain";
-    private FetchNviInstitutionReport handler;
+    private NviInstitutionReportGenerator handler;
 
     @BeforeEach
     void setUp() {
-        handler = new FetchNviInstitutionReport(new QueryService(databaseConnection));
+        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection));
     }
 
     @Test

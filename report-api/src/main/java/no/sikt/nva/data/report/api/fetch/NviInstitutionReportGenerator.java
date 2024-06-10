@@ -25,9 +25,9 @@ import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
+public class NviInstitutionReportGenerator extends ApiGatewayHandler<Void, String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
+    private static final Logger logger = LoggerFactory.getLogger(NviInstitutionReportGenerator.class);
     private static final String ACCEPT = "Accept";
     private static final String QUERY_PARAM_INSTITUTION_ID = "institutionId";
     private static final String QUERY_PARAM_REPORTING_YEAR = "reportingYear";
@@ -37,11 +37,11 @@ public class FetchNviInstitutionReport extends ApiGatewayHandler<Void, String> {
     private final QueryService queryService;
 
     @JacocoGenerated
-    public FetchNviInstitutionReport() {
+    public NviInstitutionReportGenerator() {
         this(new QueryService(new GraphStoreProtocolConnection()));
     }
 
-    public FetchNviInstitutionReport(QueryService queryService) {
+    public NviInstitutionReportGenerator(QueryService queryService) {
         super(Void.class);
         this.queryService = queryService;
     }
