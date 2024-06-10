@@ -7,6 +7,7 @@ import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.model.ReportFormat.EXCEL;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.google.common.net.MediaType;
 import commons.db.GraphStoreProtocolConnection;
 import commons.formatter.ResponseFormatter;
@@ -25,7 +26,7 @@ import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NviInstitutionReportGenerator extends ApiGatewayHandler<Void, String> {
+public class NviInstitutionReportGenerator implements RequestHandler<NviInstitutionReportRequest, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(NviInstitutionReportGenerator.class);
     private static final String ACCEPT = "Accept";
@@ -42,21 +43,14 @@ public class NviInstitutionReportGenerator extends ApiGatewayHandler<Void, Strin
     }
 
     public NviInstitutionReportGenerator(QueryService queryService) {
-        super(Void.class);
         this.queryService = queryService;
     }
 
     @Override
-    protected List<MediaType> listSupportedMediaTypes() {
-        return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL, OOXML_SHEET);
+    public String handleRequest(NviInstitutionReportRequest request, Context context) {
+        return null;
     }
 
-    @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) {
-        //This handler is in lambda subnet in vpc, and only triggered via SQS via FetchDataReportPresigner
-    }
-
-    @Override
     protected String processInput(Void unused, RequestInfo requestInfo, Context context) throws BadRequestException {
         var reportingYear = requestInfo.getQueryParameter(QUERY_PARAM_REPORTING_YEAR);
         var topLevelOrganization =
@@ -64,13 +58,7 @@ public class NviInstitutionReportGenerator extends ApiGatewayHandler<Void, Strin
         logRequest(topLevelOrganization, reportingYear);
         var reportFormat = ReportFormat.fromMediaType(requestInfo.getHeader(ACCEPT));
         var result = getResult(reportingYear, topLevelOrganization, reportFormat);
-        setIsBase64EncodedIfReportFormatExcel(reportFormat);
         return result;
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(Void unused, String o) {
-        return 200;
     }
 
     private static void logRequest(String topLevelOrganization, String reportingYear) {
@@ -92,9 +80,4 @@ public class NviInstitutionReportGenerator extends ApiGatewayHandler<Void, Strin
         return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings, getFormatter(reportFormat));
     }
 
-    private void setIsBase64EncodedIfReportFormatExcel(ReportFormat reportFormat) {
-        if (EXCEL.equals(reportFormat)) {
-            setIsBase64Encoded(true);
-        }
-    }
 }
