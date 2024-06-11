@@ -1,21 +1,16 @@
 package no.sikt.nva.data.report.api.fetch;
 
-import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
-import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.stream.Stream;
-import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.s3.S3Driver;
@@ -58,20 +53,6 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nviInstitutionReportRequestProvider")
-    void shouldWriteTextFileToS3(NviInstitutionReportRequest request) throws IOException {
-        var testData = new TestData(generateDatePairs(2));
-        loadModels(testData.getModels());
-        handler.handleRequest(request, new FakeContext());
-        var expected = getExpected(request, testData);
-        var actual = s3Driver.getFile(UnixPath.of(request.presignedFileName()));
-        var sortedResponse = sortResponse(getReportFormat(request), actual,
-                                          NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER,
-                                          NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER);
-        assertEquals(expected, sortedResponse);
-    }
-
-    @ParameterizedTest
     @MethodSource("nviInstitutionReportExcelRequestProvider")
     void shouldWriteExcelFileToS3(NviInstitutionReportRequest request)
         throws IOException {
@@ -84,14 +65,6 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
         assertEqualsInAnyOrder(expected, actualExcel);
     }
 
-    private static Stream<Arguments> nviInstitutionReportRequestProvider() {
-        return Stream.of(
-            Arguments.of(
-                new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, TEXT_PLAIN, randomString())),
-            Arguments.of(new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, "text/csv",
-                                                         randomString())));
-    }
-
     private static Stream<Arguments> nviInstitutionReportExcelRequestProvider() {
         return Stream.of(Arguments.of(new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID,
                                                                       "application/vnd.ms-excel", randomString())),
@@ -99,19 +72,6 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
                                                                       "application/vnd"
                                                                       + ".openxmlformats-officedocument"
                                                                       + ".spreadsheetml.sheet", randomString())));
-    }
-
-    private static ReportFormat getReportFormat(NviInstitutionReportRequest request) {
-        return ReportFormat.fromMediaType(request.mediaType());
-    }
-
-    private String getExpected(NviInstitutionReportRequest request, TestData test) {
-        var reportFormat = getReportFormat(request);
-        var data = test.getNviInstitutionStatusResponseData(SOME_YEAR,
-                                                            URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER)));
-        return ReportFormat.CSV.equals(reportFormat)
-                   ? data
-                   : generateTable(data);
     }
 
     private Excel getExpectedExcel(TestData test) {

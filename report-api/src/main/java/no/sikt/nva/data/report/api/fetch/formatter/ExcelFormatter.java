@@ -3,8 +3,6 @@ package no.sikt.nva.data.report.api.fetch.formatter;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import commons.formatter.ResponseFormatter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Encoder;
@@ -18,19 +16,10 @@ public class ExcelFormatter implements ResponseFormatter {
 
     @Override
     public String format(ResultSet resultSet) {
-        var byteArrayOutputStream = new ByteArrayOutputStream();
         var headers = extractHeaders(resultSet);
         var data = extractData(headers, resultSet);
         var excel = Excel.fromJava(headers, data);
-        try {
-            excel.write(byteArrayOutputStream);
-        } catch (IOException e) {
-            //TODO: Handle exception
-            //TODO: Test this
-            throw new RuntimeException(e);
-        }
-        var bytes = byteArrayOutputStream.toByteArray();
-        return ENCODER.encodeToString(bytes);
+        return ENCODER.encodeToString(excel.toBytes());
     }
 
     private List<List<String>> extractData(List<String> headers, ResultSet resultSet) {
