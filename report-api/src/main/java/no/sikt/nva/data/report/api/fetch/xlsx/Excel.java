@@ -4,40 +4,24 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class Excel {
-
-    private final Workbook workbook;
-    private final Sheet sheet;
-
-    public Excel(Workbook workbook) {
-        this.workbook = workbook;
-        this.sheet = workbook.getSheetAt(0);
-    }
+public record Excel(Workbook workbook) {
 
     public static Excel fromJava(List<String> headers, List<List<String>> data) {
-        var workbook = createWorkbookWithOneSheet();
-        var excel = new Excel(workbook);
+        var excel = new Excel(createWorkbookWithOneSheet());
         excel.addHeaders(headers);
         excel.addData(data);
         return excel;
     }
 
-    public Workbook getWorkbook() {
-        return workbook;
-    }
-
     public void addData(List<List<String>> data) {
-        for (var counter = sheet.getLastRowNum(); counter < data.size(); counter++) {
-            var currentRow = sheet.createRow(counter + 1);
-            var rowData = data.get(counter);
-            for (var subCounter = 0; subCounter < rowData.size(); subCounter++) {
-                var currentCell = currentRow.createCell(subCounter);
-                currentCell.setCellValue(rowData.get(subCounter));
-            }
+        var sheet = workbook.getSheetAt(0);
+        for (List<String> cells : data) {
+            var nextRow = sheet.getLastRowNum() + 1;
+            addCells(sheet.createRow(nextRow), cells);
         }
     }
 
@@ -49,6 +33,13 @@ public class Excel {
             throw new RuntimeException(e);
         }
         return byteArrayOutputStream.toByteArray();
+    }
+
+    private static void addCells(Row row, List<String> cells) {
+        for (var subCounter = 0; subCounter < cells.size(); subCounter++) {
+            var currentCell = row.createCell(subCounter);
+            currentCell.setCellValue(cells.get(subCounter));
+        }
     }
 
     private static XSSFWorkbook createWorkbookWithOneSheet() {
@@ -63,10 +54,8 @@ public class Excel {
     }
 
     private void addHeaders(List<String> headers) {
-        var header = sheet.createRow(0);
-        for (var headerCounter = 0; headerCounter < headers.size(); headerCounter++) {
-            var headerCell = header.createCell(headerCounter);
-            headerCell.setCellValue(headers.get(headerCounter));
-        }
+        var sheet = workbook.getSheetAt(0);
+        var headerRow = sheet.createRow(0);
+        addCells(headerRow, headers);
     }
 }

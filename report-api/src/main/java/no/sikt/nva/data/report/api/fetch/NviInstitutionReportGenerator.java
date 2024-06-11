@@ -1,18 +1,11 @@
 package no.sikt.nva.data.report.api.fetch;
 
-import static java.util.Objects.nonNull;
-import static nva.commons.core.StringUtils.EMPTY_STRING;
+import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.extractData;
+import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.isNotEmpty;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import commons.db.GraphStoreProtocolConnection;
-import commons.formatter.ResponseFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
-import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
-import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
-import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.s3.S3Driver;
@@ -27,6 +20,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class NviInstitutionReportGenerator implements RequestHandler<NviInstitutionReportRequest, String> {
 
+    public static final int PAGINATION_STARTING_OFFSET = 0;
     private static final Logger logger = LoggerFactory.getLogger(NviInstitutionReportGenerator.class);
     private static final String GRAPH_DATABASE_PAGE_SIZE = "GRAPH_DATABASE_PAGE_SIZE";
     private static final String BUCKET = "NVI_REPORTS_BUCKET";
@@ -55,32 +49,18 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
     @Override
     public String handleRequest(NviInstitutionReportRequest request, Context context) {
         logRequest(request);
-        var offset = 0;
+        var offset = PAGINATION_STARTING_OFFSET;
         var reportingYear = request.reportingYear();
         var organization = String.valueOf(request.nviOrganization());
         var result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
-        var excel = Excel.fromJava(result.getResultVars(), extractData(result));
+        var report = Excel.fromJava(result.getResultVars(), extractData(result));
         while (isNotEmpty(result)) {
             offset += Integer.parseInt(pageSize);
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
-            excel.addData(extractData(result));
+            report.addData(extractData(result));
         }
-        persistReportInS3(request, excel.toBytes());
+        persistReportInS3(request, report.toBytes());
         return null;
-    }
-
-    private static List<List<String>> extractData(ResultSet resultSet) {
-        var data = new ArrayList<List<String>>();
-        while (resultSet.hasNext()) {
-            var row = resultSet.next();
-            var rowData = new ArrayList<String>();
-            for (String header : resultSet.getResultVars()) {
-                var cell = row.get(header);
-                rowData.add(nonNull(cell) ? cell.toString() : EMPTY_STRING);
-            }
-            data.add(rowData);
-        }
-        return data;
     }
 
     @JacocoGenerated
@@ -93,18 +73,6 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
                     request.nviOrganization(), request.reportingYear());
     }
 
-    private static ResponseFormatter getFormatter(ReportFormat reportFormat) {
-        return switch (reportFormat) {
-            case CSV -> new CsvFormatter();
-            case EXCEL -> new ExcelFormatter();
-            case TEXT -> new PlainTextFormatter();
-        };
-    }
-
-    private boolean isNotEmpty(ResultSet result) {
-        return result.getRowNumber() > 0;
-    }
-
     private void persistReportInS3(NviInstitutionReportRequest request, byte[] bytes) {
         s3Client.putObject(buildRequest(request), RequestBody.fromBytes(bytes));
     }
@@ -112,6 +80,7 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
     private PutObjectRequest buildRequest(NviInstitutionReportRequest request) {
         return PutObjectRequest.builder()
                    .bucket(reportingBucketName)
+                   .contentType(request.mediaType())
                    .key(request.presignedFileName())
                    .build();
     }

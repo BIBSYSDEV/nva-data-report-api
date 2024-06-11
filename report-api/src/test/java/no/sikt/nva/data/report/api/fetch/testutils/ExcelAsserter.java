@@ -14,7 +14,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 public final class ExcelAsserter {
 
     public static void assertEqualsInAnyOrder(Excel expected, Excel actual) {
-        try (var expectedWorkbook = expected.getWorkbook(); var actualWorkbook = actual.getWorkbook()) {
+        try (var expectedWorkbook = expected.workbook(); var actualWorkbook = actual.workbook()) {
             assertSameNumberOfSheets(expectedWorkbook, actualWorkbook);
             IntStream.range(0, expectedWorkbook.getNumberOfSheets()).forEach(i -> {
                 var expectedSheet = expectedWorkbook.getSheetAt(i);
