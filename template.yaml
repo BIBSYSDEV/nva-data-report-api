@@ -358,6 +358,7 @@ Resources:
       Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportPresigner::handleRequest
       Policies:
         - !GetAtt SecretsManagerPolicy.PolicyArn
+        - !GetAtt SqsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
