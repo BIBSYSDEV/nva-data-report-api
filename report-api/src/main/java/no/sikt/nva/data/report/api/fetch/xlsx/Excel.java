@@ -17,6 +17,12 @@ public record Excel(Workbook workbook) {
         return excel;
     }
 
+    public static Excel errorReport() {
+        var excel = new Excel(createWorkbookWithOneSheet());
+        excel.addData(List.of(List.of("Unexpected error occurred. Please contact support.")));
+        return excel;
+    }
+
     public Excel addData(List<List<String>> data) {
         var sheet = workbook.getSheetAt(0);
         for (List<String> cells : data) {

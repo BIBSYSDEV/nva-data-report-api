@@ -26,10 +26,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
 
@@ -71,17 +69,25 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     }
 
     @Test
-    void shouldWriteExcelFileWithErrorMessageIfAnyErrorOccurs() throws IOException {
-        s3Client = Mockito.mock(S3Client.class);
-        Mockito.when(s3Client.putObject(Mockito.any(PutObjectRequest.class), Mockito.any(RequestBody.class)))
+    void shouldWriteExcelFileWithErrorMessageIfGenerationFails() throws IOException {
+        var queryService = Mockito.mock(QueryService.class);
+        Mockito.when(queryService.getResult(Mockito.any(), Mockito.anyMap()))
             .thenThrow(new RuntimeException("Some error"));
-        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection), s3Client, new Environment());
+        handler = new NviInstitutionReportGenerator(queryService, s3Client, new Environment());
         var request = new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, EXCEL, randomString());
         handler.handleRequest(sqsEventWithOneMessage(request), new FakeContext());
-        var expected = new Excel(new XSSFWorkbook()).addData(
-            List.of(List.of("Unexpected error occurred. Please contact support.")));
+        var expected = expectedErrorReport();
         var actual = getActualPersistedExcel(request);
         assertEqualsInAnyOrder(expected, actual);
+    }
+
+    private static Excel expectedErrorReport() {
+        var workbook = new XSSFWorkbook();
+        workbook.createSheet()
+            .createRow(0)
+            .createCell(0)
+            .setCellValue("Unexpected error occurred. Please contact support.");
+        return new Excel(workbook);
     }
 
     private static Stream<Arguments> nviInstitutionReportExcelRequestProvider() {

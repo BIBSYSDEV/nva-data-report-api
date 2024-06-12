@@ -54,7 +54,7 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
     public String handleRequest(SQSEvent event, Context context) {
         var request = extractFirstRequest(event);
         logRequest(request);
-        var report = generateReport(request);
+        var report = attempt(() -> generateReport(request)).toOptional().orElse(Excel.errorReport());
         persistReportInS3(request, report.toBytes());
         return null;
     }
