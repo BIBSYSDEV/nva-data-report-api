@@ -6,9 +6,11 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.or
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
@@ -45,7 +47,9 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     void shouldLogRequest() {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var fileName = randomString();
-        var request = new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, TEXT_PLAIN, fileName);
+        var request = sqsEventWithOneMessage(new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID,
+                                                                             TEXT_PLAIN,
+                                                                             fileName));
         var context = new FakeContext();
         handler.handleRequest(request, context);
         assertTrue(logAppender.getMessages().contains("for organization: " + HARDCODED_INSTITUTION_ID));
@@ -57,7 +61,7 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     void shouldWriteExcelFileToS3(NviInstitutionReportRequest request) throws IOException {
         var testData = new TestData(generateDatePairs(10));
         loadModels(testData.getModels());
-        handler.handleRequest(request, new FakeContext());
+        handler.handleRequest(sqsEventWithOneMessage(request), new FakeContext());
         var expected = getExpectedExcel(testData);
         var actual = getActualPersistedExcel(request);
         assertEqualsInAnyOrder(expected, actual);
@@ -70,6 +74,14 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
                                                                       "application/vnd"
                                                                       + ".openxmlformats-officedocument"
                                                                       + ".spreadsheetml.sheet", randomString())));
+    }
+
+    private SQSEvent sqsEventWithOneMessage(NviInstitutionReportRequest nviInstitutionReportRequest) {
+        var event = new SQSEvent();
+        var message = new SQSEvent.SQSMessage();
+        message.setBody(nviInstitutionReportRequest.toJsonString());
+        event.setRecords(List.of(message));
+        return event;
     }
 
     private Excel getActualPersistedExcel(NviInstitutionReportRequest request) throws IOException {

@@ -2,8 +2,11 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.extractData;
 import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.isNotEmpty;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import commons.db.GraphStoreProtocolConnection;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
@@ -18,7 +21,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-public class NviInstitutionReportGenerator implements RequestHandler<NviInstitutionReportRequest, String> {
+public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, String> {
 
     public static final int PAGINATION_STARTING_OFFSET = 0;
     public static final String FETCH_DATA_MESSAGE = "Fetching data with offset: {} and page size: {}";
@@ -48,7 +51,8 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
     }
 
     @Override
-    public String handleRequest(NviInstitutionReportRequest request, Context context) {
+    public String handleRequest(SQSEvent event, Context context) {
+        var request = extractFirstRequest(event);
         logRequest(request);
         var offset = PAGINATION_STARTING_OFFSET;
         var reportingYear = request.reportingYear();
@@ -74,6 +78,14 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
     private static void logRequest(NviInstitutionReportRequest request) {
         logger.info("NVI institution status report requested for organization: {}, reporting year: {}",
                     request.nviOrganization(), request.reportingYear());
+    }
+
+    private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {
+        return attempt(() -> NviInstitutionReportRequest.from(extractFirstMessage(input).getBody())).orElseThrow();
+    }
+
+    private SQSMessage extractFirstMessage(SQSEvent input) {
+        return input.getRecords().stream().findFirst().orElseThrow();
     }
 
     private void persistReportInS3(NviInstitutionReportRequest request, byte[] bytes) {
