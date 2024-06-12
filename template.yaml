@@ -96,7 +96,7 @@ Resources:
   GenerateNviInstitutionReportQueue:
     Type: AWS::SQS::Queue
     Properties:
-      VisibilityTimeout: 300
+      VisibilityTimeout: 600
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt GenerateNviInstitutionReportDLQ.Arn
         maxReceiveCount: 5
