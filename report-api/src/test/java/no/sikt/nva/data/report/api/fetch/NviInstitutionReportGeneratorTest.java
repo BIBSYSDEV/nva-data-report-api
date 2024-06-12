@@ -25,14 +25,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
 
     public static final String SOME_YEAR = "2023";
-    public static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
-    public static final String TEXT_PLAIN = "text/plain";
+    private static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
+    private static final String EXCEL = "application/vnd.ms-excel";
     private final String bucketName = new Environment().readEnv("NVI_REPORTS_BUCKET");
     private NviInstitutionReportGenerator handler;
     private S3Client s3Client;
@@ -48,7 +51,7 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var fileName = randomString();
         var request = sqsEventWithOneMessage(new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID,
-                                                                             TEXT_PLAIN,
+                                                                             EXCEL,
                                                                              fileName));
         var context = new FakeContext();
         handler.handleRequest(request, context);
@@ -63,6 +66,20 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
         loadModels(testData.getModels());
         handler.handleRequest(sqsEventWithOneMessage(request), new FakeContext());
         var expected = getExpectedExcel(testData);
+        var actual = getActualPersistedExcel(request);
+        assertEqualsInAnyOrder(expected, actual);
+    }
+
+    @Test
+    void shouldWriteExcelFileWithErrorMessageIfAnyErrorOccurs() throws IOException {
+        s3Client = Mockito.mock(S3Client.class);
+        Mockito.when(s3Client.putObject(Mockito.any(PutObjectRequest.class), Mockito.any(RequestBody.class)))
+            .thenThrow(new RuntimeException("Some error"));
+        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection), s3Client, new Environment());
+        var request = new NviInstitutionReportRequest(SOME_YEAR, HARDCODED_INSTITUTION_ID, EXCEL, randomString());
+        handler.handleRequest(sqsEventWithOneMessage(request), new FakeContext());
+        var expected = new Excel(new XSSFWorkbook()).addData(
+            List.of(List.of("Unexpected error occurred. Please contact support.")));
         var actual = getActualPersistedExcel(request);
         assertEqualsInAnyOrder(expected, actual);
     }
