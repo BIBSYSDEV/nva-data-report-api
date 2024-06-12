@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class NviInstitutionReportGenerator implements RequestHandler<NviInstitutionReportRequest, String> {
 
     public static final int PAGINATION_STARTING_OFFSET = 0;
+    public static final String FETCH_DATA_MESSAGE = "Fetching data with offset: {} and page size: {}";
     private static final Logger logger = LoggerFactory.getLogger(NviInstitutionReportGenerator.class);
     private static final String GRAPH_DATABASE_PAGE_SIZE = "GRAPH_DATABASE_PAGE_SIZE";
     private static final String BUCKET = "NVI_REPORTS_BUCKET";
@@ -52,9 +53,11 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
         var offset = PAGINATION_STARTING_OFFSET;
         var reportingYear = request.reportingYear();
         var organization = String.valueOf(request.nviOrganization());
+        logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
         var result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
         var report = Excel.fromJava(result.getResultVars(), extractData(result));
         while (isNotEmpty(result)) {
+            logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
             offset += Integer.parseInt(pageSize);
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
             report.addData(extractData(result));
@@ -74,6 +77,8 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
     }
 
     private void persistReportInS3(NviInstitutionReportRequest request, byte[] bytes) {
+        logger.info("Persisting report for organization: {} and reporting year: {} in S3 bucket",
+                    request.nviOrganization(), request.reportingYear());
         s3Client.putObject(buildRequest(request), RequestBody.fromBytes(bytes));
     }
 
