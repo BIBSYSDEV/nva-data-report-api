@@ -168,6 +168,18 @@ Resources:
               - events:*
             Resource: '*'
 
+  S3NviReportsManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:Get*
+              - s3:List*
+            Resource: !Sub '${NviReportsBucket.Arn}/*'
+
   NeptuneManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -366,6 +378,7 @@ Resources:
       Policies:
         - !GetAtt SecretsManagerPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
+        - !GetAtt S3NviReportsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
