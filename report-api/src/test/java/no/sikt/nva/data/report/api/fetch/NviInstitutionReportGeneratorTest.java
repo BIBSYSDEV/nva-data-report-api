@@ -34,14 +34,16 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     public static final String SOME_YEAR = "2023";
     private static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
     private static final String EXCEL = "application/vnd.ms-excel";
-    private final String bucketName = new Environment().readEnv("NVI_REPORTS_BUCKET");
+    private static final Environment ENVIRONMENT = new Environment();
+    private static final String bucketName = ENVIRONMENT.readEnv("NVI_REPORTS_BUCKET");
+    private static final String pageSize = ENVIRONMENT.readEnv("GRAPH_DATABASE_PAGE_SIZE");
     private NviInstitutionReportGenerator handler;
     private S3Client s3Client;
 
     @BeforeEach
     void setUp() {
         s3Client = new FakeS3Client();
-        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection), s3Client, new Environment());
+        handler = new NviInstitutionReportGenerator(new QueryService(databaseConnection), s3Client, ENVIRONMENT);
     }
 
     @Test
@@ -60,7 +62,8 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     @ParameterizedTest
     @MethodSource("nviInstitutionReportExcelRequestProvider")
     void shouldWriteExcelFileToS3(NviInstitutionReportRequest request) throws IOException {
-        var testData = new TestData(generateDatePairs(10));
+        var numberGreaterThanPageSize = Integer.parseInt(pageSize) + 1;
+        var testData = new TestData(generateDatePairs(numberGreaterThanPageSize));
         loadModels(testData.getModels());
         handler.handleRequest(sqsEventWithOneMessage(request), new FakeContext());
         var expected = getExpectedExcel(testData);
