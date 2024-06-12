@@ -1,7 +1,8 @@
 package no.sikt.nva.data.report.api.fetch;
 
-import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.extractData;
-import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.isNotEmpty;
+import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTrace;
+import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
+import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.isNotEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -14,6 +15,7 @@ import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.attempt.Failure;
 import org.apache.jena.query.ResultSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +56,14 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
     public String handleRequest(SQSEvent event, Context context) {
         var request = extractFirstRequest(event);
         logRequest(request);
-        var report = attempt(() -> generateReport(request)).toOptional().orElse(Excel.errorReport());
+        var report = attempt(() -> generateReport(request)).orElse(NviInstitutionReportGenerator::getFailureReport);
         persistReportInS3(request, report.toBytes());
         return null;
+    }
+
+    private static Excel getFailureReport(Failure<Excel> failure) {
+        logger.error("Failure while generating report. Error: {}", getStackTrace(failure.getException()));
+        return Excel.errorReport();
     }
 
     @JacocoGenerated

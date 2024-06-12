@@ -4,6 +4,7 @@ import static com.google.common.net.HttpHeaders.ACCEPT;
 import static java.util.Objects.nonNull;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import no.sikt.nva.data.report.api.fetch.utils.InstantUtil;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.BadRequestException;
 

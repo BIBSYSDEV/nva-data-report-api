@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.model;
+package no.sikt.nva.data.report.api.fetch.utils;
 
 import java.time.Instant;
 import java.time.LocalDate;
