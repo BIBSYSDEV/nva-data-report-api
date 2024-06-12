@@ -1,7 +1,7 @@
 package no.sikt.nva.data.report.api.fetch.formatter;
 
-import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.extractData;
-import static no.sikt.nva.data.report.api.fetch.model.ResultUtil.extractHeaders;
+import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
+import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractHeaders;
 import commons.formatter.ResponseFormatter;
 import java.util.Base64;
 import java.util.Base64.Encoder;

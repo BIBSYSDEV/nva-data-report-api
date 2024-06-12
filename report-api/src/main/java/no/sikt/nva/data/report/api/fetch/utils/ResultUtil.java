@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.model;
+package no.sikt.nva.data.report.api.fetch.utils;
 
 import static java.util.Objects.nonNull;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
