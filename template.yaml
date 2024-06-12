@@ -178,6 +178,7 @@ Resources:
             Action:
               - s3:Get*
               - s3:List*
+              - s3:PutObject
             Resource: !Sub '${NviReportsBucket.Arn}/*'
 
   NeptuneManagedPolicy:
@@ -347,7 +348,7 @@ Resources:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
-        - !GetAtt S3ManagedPolicy.PolicyArn
+        - !GetAtt S3NviReportsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
