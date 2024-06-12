@@ -57,8 +57,8 @@ public class NviInstitutionReportGenerator implements RequestHandler<NviInstitut
         var result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
         var report = Excel.fromJava(result.getResultVars(), extractData(result));
         while (isNotEmpty(result)) {
-            logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
             offset += Integer.parseInt(pageSize);
+            logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
             report.addData(extractData(result));
         }
