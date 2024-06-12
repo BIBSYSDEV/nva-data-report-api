@@ -95,7 +95,7 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
+    @ValueSource(strings = {OPEN_XML, EXCEL})
     void shouldReturnPreSignedUrl(String contentType) throws IOException {
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);

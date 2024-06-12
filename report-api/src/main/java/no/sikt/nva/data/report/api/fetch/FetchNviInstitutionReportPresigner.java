@@ -47,7 +47,7 @@ public class FetchNviInstitutionReportPresigner extends ApiS3PresignerGatewayHan
 
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
-        return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL, OOXML_SHEET);
+        return List.of(MICROSOFT_EXCEL, OOXML_SHEET);
     }
 
     @Override
