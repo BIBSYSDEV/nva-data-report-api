@@ -92,6 +92,7 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
         logger.info("Persisting report for organization: {} and reporting year: {} in S3 bucket",
                     request.nviOrganization(), request.reportingYear());
         s3Client.putObject(buildRequest(request), RequestBody.fromBytes(bytes));
+        logger.info("Report persisted in S3 bucket");
     }
 
     private PutObjectRequest buildRequest(NviInstitutionReportRequest request) {
