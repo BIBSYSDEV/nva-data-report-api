@@ -23,13 +23,12 @@ public record Excel(Workbook workbook) {
         return excel;
     }
 
-    public Excel addData(List<List<String>> data) {
+    public void addData(List<List<String>> data) {
         var sheet = workbook.getSheetAt(0);
         for (List<String> cells : data) {
             var nextRow = sheet.getLastRowNum() + 1;
             addCells(sheet.createRow(nextRow), cells);
         }
-        return this;
     }
 
     public byte[] toBytes() {
