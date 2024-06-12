@@ -1,6 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
-import static no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportTest.SOME_YEAR;
+import static no.sikt.nva.data.report.api.fetch.NviInstitutionReportGeneratorTest.SOME_YEAR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviHeaders.AUTHOR_SHARE_COUNT;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviHeaders.GLOBAL_APPROVAL_STATUS;

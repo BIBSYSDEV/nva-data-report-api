@@ -8,6 +8,7 @@ import no.sikt.nva.data.report.api.fetch.model.ReportRequest;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
 
 public class QueryService {
 
@@ -28,10 +29,9 @@ public class QueryService {
         return databaseConnection.getResult(query, formatter);
     }
 
-    public String getResult(String sparqlTemplate, Map<String, String> replacementStrings,
-                            ResponseFormatter formatter) {
+    public ResultSet getResult(String sparqlTemplate, Map<String, String> replacementStrings) {
         var query = getQuery(sparqlTemplate, replacementStrings);
-        return databaseConnection.getResult(query, formatter);
+        return databaseConnection.getResult(query);
     }
 
     private static Path constructPath(String sparqlTemplate) {

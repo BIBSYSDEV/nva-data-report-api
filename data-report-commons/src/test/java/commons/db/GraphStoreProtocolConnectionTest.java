@@ -53,6 +53,18 @@ class GraphStoreProtocolConnectionTest {
     }
 
     @Test
+    void shouldGetResultSet() {
+        var triple = "<https://example.org/a> <https://example.org/b> <https://example.org/c> .";
+        dbConnection.write(GRAPH, triple, Lang.NTRIPLES);
+        var query = QueryFactory.create("SELECT ?s ?p ?o WHERE { GRAPH ?g { ?s ?p ?o } }");
+        var result = dbConnection.getResult(query);
+        var next = result.next();
+        assertEquals("https://example.org/a", next.get("s").toString());
+        assertEquals("https://example.org/b", next.get("p").toString());
+        assertEquals("https://example.org/c", next.get("o").toString());
+    }
+
+    @Test
     void shouldWrite() {
         var random = new Random().nextInt();
         var triple = "<https://example.org/a> <https://example.org/b> <https://example.org/c" + random + "> .";

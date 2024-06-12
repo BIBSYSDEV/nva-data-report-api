@@ -24,7 +24,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 public class FetchNviInstitutionReportPresigner extends ApiS3PresignerGatewayHandler<Void> {
 
-    private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReport.class);
+    private static final Logger logger = LoggerFactory.getLogger(FetchNviInstitutionReportPresigner.class);
     private static final String SIGN_DURATION = "SIGN_DURATION_IN_MINUTES";
     private static final String REGION = "AWS_REGION";
     private static final String QUEUE_URL = "REPORT_QUEUE_URL";
@@ -47,7 +47,7 @@ public class FetchNviInstitutionReportPresigner extends ApiS3PresignerGatewayHan
 
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
-        return List.of(TEXT_CSV, TEXT_PLAIN, MICROSOFT_EXCEL, OOXML_SHEET);
+        return List.of(MICROSOFT_EXCEL, OOXML_SHEET);
     }
 
     @Override

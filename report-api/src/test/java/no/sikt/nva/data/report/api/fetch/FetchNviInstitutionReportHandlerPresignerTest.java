@@ -39,8 +39,6 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 
 public class FetchNviInstitutionReportHandlerPresignerTest {
 
-    private static final String TEXT_PLAIN = "text/plain";
-    private static final String TEXT_CSV = "text/csv";
     private static final String OPEN_XML = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     private static final String EXCEL = "application/vnd.ms-excel";
     private static final String SOME_YEAR = "2023";
@@ -59,7 +57,7 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
 
     @Test
     void shouldReturn401WhenUserDoesNotHaveManageNviAccessRight() throws IOException {
-        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN);
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, EXCEL);
         var unAuthorizedRequest = generateHandlerRequest(request, SOME_ACCESS_RIGHT_THAT_IS_NOT_MANAGE_NVI,
                                                          randomUri());
         var output = new ByteArrayOutputStream();
@@ -75,7 +73,7 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
     void shouldLogRequestingUsersTopLevelOrganization() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
         var institutionId = randomUri();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN),
+        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, EXCEL),
                                              institutionId);
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
@@ -86,7 +84,7 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
     @Test
     void shouldExtractAndLogPathParameterReportingYear() throws IOException {
         var logAppender = LogUtils.getTestingAppenderForRootLogger();
-        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_PLAIN),
+        var request = generateHandlerRequest(new FetchNviInstitutionReportProxyRequest(SOME_YEAR, EXCEL),
                                              randomUri());
         var output = new ByteArrayOutputStream();
         var context = new FakeContext();
@@ -95,7 +93,7 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {TEXT_CSV, TEXT_PLAIN, OPEN_XML, EXCEL})
+    @ValueSource(strings = {OPEN_XML, EXCEL})
     void shouldReturnPreSignedUrl(String contentType) throws IOException {
         var output = new ByteArrayOutputStream();
         var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, contentType);
@@ -112,11 +110,11 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
     @Test
     void shouldSendMessageWithGenerateNviReportRequest() throws IOException {
         var output = new ByteArrayOutputStream();
-        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, TEXT_CSV);
+        var request = new FetchNviInstitutionReportProxyRequest(SOME_YEAR, EXCEL);
         var context = new FakeContext();
         var topLevelCristinOrgId = randomUri();
         handler.handleRequest(generateHandlerRequest(request, topLevelCristinOrgId), output, context);
-        var expectedSentRequest = new NviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId, TEXT_CSV,
+        var expectedSentRequest = new NviInstitutionReportRequest(SOME_YEAR, topLevelCristinOrgId, EXCEL,
                                                                   context.getAwsRequestId());
         var actualSentRequest = dtoObjectMapper.readValue(queueClient.getSentMessages().getFirst().messageBody(),
                                                           NviInstitutionReportRequest.class);

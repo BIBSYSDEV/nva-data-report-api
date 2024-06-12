@@ -96,7 +96,7 @@ Resources:
   GenerateNviInstitutionReportQueue:
     Type: AWS::SQS::Queue
     Properties:
-      VisibilityTimeout: 300
+      VisibilityTimeout: 600
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt GenerateNviInstitutionReportDLQ.Arn
         maxReceiveCount: 5
@@ -167,6 +167,19 @@ Resources:
               - s3:PutObject
               - events:*
             Resource: '*'
+
+  S3NviReportsManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:Get*
+              - s3:List*
+              - s3:PutObject
+            Resource: !Sub '${NviReportsBucket.Arn}/*'
 
   NeptuneManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -320,10 +333,10 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
-  FetchNviInstitutionReportHandler:
+  NviInstitutionReportGenerator:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReport::handleRequest
+      Handler: no.sikt.nva.data.report.api.fetch.NviInstitutionReportGenerator::handleRequest
       CodeUri: report-api
       VpcConfig:
         SecurityGroupIds:
@@ -334,19 +347,29 @@ Resources:
       Policies:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
+        - !GetAtt SqsManagedPolicy.PolicyArn
+        - !GetAtt S3NviReportsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+          NVI_REPORTS_BUCKET: !Ref NviReportsBucket
+          GRAPH_DATABASE_PAGE_SIZE: 500
       Events:
-        ApiEvent:
-          Type: Api
+        SqsEvent:
+          Type: SQS
           Properties:
-            Path: /institution/nvi-approval
-            Method: get
-            RestApiId: !Ref DataReportApi
+            Queue: !GetAtt GenerateNviInstitutionReportQueue.Arn
+            BatchSize: 1
+            #Note: NviInstitutionReportGenerator is implemented to handle only batch size 1.
+            #Don't change the batch size value, unless you change the implementation.
+      EventInvokeConfig:
+        DestinationConfig:
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt GenerateNviInstitutionReportDLQ.Arn
 
   FetchNviInstitutionReportPresignerHandler:
     Type: AWS::Serverless::Function
@@ -356,6 +379,7 @@ Resources:
       Policies:
         - !GetAtt SecretsManagerPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
+        - !GetAtt S3NviReportsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
