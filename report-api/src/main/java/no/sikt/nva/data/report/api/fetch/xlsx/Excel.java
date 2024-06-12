@@ -35,10 +35,10 @@ public record Excel(Workbook workbook) {
         var byteArrayOutputStream = new ByteArrayOutputStream();
         try {
             this.write(byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return byteArrayOutputStream.toByteArray();
     }
 
     private static void addCells(Row row, List<String> cells) {
