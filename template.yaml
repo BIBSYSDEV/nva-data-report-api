@@ -334,6 +334,7 @@ Resources:
       Policies:
         - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt DeployToVpnPolicy.PolicyArn
+        - !GetAtt SqsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
