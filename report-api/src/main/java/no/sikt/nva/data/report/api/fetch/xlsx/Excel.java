@@ -4,11 +4,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public record Excel(Workbook workbook) {
+
+    public static final int HEADER_ROW = 0;
+    public static final int FIRST_DATA_ROW = 1;
 
     public static Excel fromJava(List<String> headers, List<List<String>> data) {
         var excel = new Excel(createWorkbookWithOneSheet());
@@ -41,6 +45,20 @@ public record Excel(Workbook workbook) {
         }
     }
 
+    public Excel postProcess(List<PostProcessFunction> processFunctions) {
+        processFunctions.forEach(value -> {
+            var sheet = workbook.getSheetAt(0);
+            var headerRow = sheet.getRow(HEADER_ROW);
+            var headerIndex = findHeaderIndex(headerRow, value.getHeader());
+            for (var counter = FIRST_DATA_ROW; counter <= sheet.getLastRowNum(); counter++) {
+                var currentRow = sheet.getRow(counter);
+                var currentCell = currentRow.getCell(headerIndex);
+                currentCell.setCellValue(value.getPostProcessor().apply(currentCell.getStringCellValue()));
+            }
+        });
+        return this;
+    }
+
     private static void addCells(Row row, List<String> cells) {
         for (var subCounter = 0; subCounter < cells.size(); subCounter++) {
             var currentCell = row.createCell(subCounter);
@@ -52,6 +70,15 @@ public record Excel(Workbook workbook) {
         var workbook = new XSSFWorkbook();
         workbook.createSheet();
         return workbook;
+    }
+
+    private int findHeaderIndex(Row headerRow, String header) {
+        for (var counter = 0; counter < headerRow.getLastCellNum(); counter++) {
+            if (headerRow.getCell(counter).getStringCellValue().equals(header)) {
+                return counter;
+            }
+        }
+        throw new IllegalArgumentException("Header not found: " + header);
     }
 
     private void write(OutputStream outputStream) throws IOException {

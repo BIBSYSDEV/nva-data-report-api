@@ -62,7 +62,7 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     @ParameterizedTest
     @MethodSource("nviInstitutionReportExcelRequestProvider")
     void shouldWriteExcelFileToS3(NviInstitutionReportRequest request) throws IOException {
-        var numberGreaterThanPageSize = Integer.parseInt(pageSize) + 1;
+        var numberGreaterThanPageSize =  1;
         var testData = new TestData(generateDatePairs(numberGreaterThanPageSize));
         loadModels(testData.getModels());
         handler.handleRequest(sqsEventWithOneMessage(request), new FakeContext());
