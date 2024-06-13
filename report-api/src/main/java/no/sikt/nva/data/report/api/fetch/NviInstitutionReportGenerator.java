@@ -11,6 +11,7 @@ import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INSTIT
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_IDENTIFIER_FUNCTION;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.SCIENTIFIC_LEVEL_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.isNotEmpty;
 import static nva.commons.core.attempt.Try.attempt;
@@ -110,7 +111,8 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
                     INSTITUTION_IDENTIFIER_FUNCTION,
                     FACULTY_IDENTIFIER_FUNCTION,
                     DEPARTMENT_IDENTIFIER_FUNCTION,
-                    GROUP_IDENTIFIER_FUNCTION));
+                    GROUP_IDENTIFIER_FUNCTION,
+                    SCIENTIFIC_LEVEL_FUNCTION));
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {

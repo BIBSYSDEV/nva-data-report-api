@@ -8,6 +8,7 @@ import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeader
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INSTITUTION_APPROVAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INSTITUTION_ID;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
@@ -29,11 +30,12 @@ public enum PostProcessFunction {
     GROUP_IDENTIFIER_FUNCTION(GROUP_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
                                                                                 Constants.GROUP_ID_INDEX)),
     DEPARTMENT_IDENTIFIER_FUNCTION(DEPARTMENT_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
-                                                                                          Constants.DEPARTMENT_ID_INDEX));
+                                                                                          Constants.DEPARTMENT_ID_INDEX)),
+    SCIENTIFIC_LEVEL_FUNCTION(PUBLICATION_CHANNEL_LEVEL, PostProcessFunction::postProcessScientificValue),
+    ;
 
     private final String header;
     private final Function<String, String> postProcessor;
-
     PostProcessFunction(String header, Function<String, String> postProcessor) {
         this.header = header;
         this.postProcessor = postProcessor;
@@ -45,6 +47,14 @@ public enum PostProcessFunction {
 
     public Function<String, String> getPostProcessor() {
         return postProcessor;
+    }
+
+    private static String postProcessScientificValue(String scientificValue) {
+        return switch (scientificValue) {
+            case "LevelOne" -> "1";
+            case "LevelTwo" -> "2";
+            default -> scientificValue;
+        };
     }
 
     private static String getIdentifierAtIndex(String organizationUri, int i) {
