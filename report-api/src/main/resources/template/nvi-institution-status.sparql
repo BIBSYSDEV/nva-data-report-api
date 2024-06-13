@@ -39,7 +39,7 @@ SELECT DISTINCT
        FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
        BIND(STR(?reportingYear) AS ?ARSTALL)
 
-       BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
+       BIND(STR(?publicationUri) AS ?VARBEIDLOPENR)
 
        ?publicationUri :contributor ?contributorId .
              ?contributorId a :NviContributor .

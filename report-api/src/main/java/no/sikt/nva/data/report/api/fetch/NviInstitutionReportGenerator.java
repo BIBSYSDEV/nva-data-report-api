@@ -4,6 +4,7 @@ import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTra
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GLOBAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_LEVEL_POINTS;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.isNotEmpty;
 import static nva.commons.core.attempt.Try.attempt;
@@ -94,7 +95,10 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
             report.addData(extractData(result));
         }
         return report.postProcess(
-            List.of(GLOBAL_STATUS, INTERNATIONAL_COLLABORATION_FACTOR, PUBLICATION_CHANNEL_LEVEL_POINTS));
+            List.of(GLOBAL_STATUS,
+                    INTERNATIONAL_COLLABORATION_FACTOR,
+                    PUBLICATION_CHANNEL_LEVEL_POINTS,
+                    PUBLICATION_IDENTIFIER));
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {
