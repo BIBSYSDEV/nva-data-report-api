@@ -1,19 +1,6 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTrace;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.APPROVAL_STATUS_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.CONTRIBUTOR_IDENTIFIER_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.DEPARTMENT_IDENTIFIER_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.FACULTY_IDENTIFIER_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GLOBAL_STATUS_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GROUP_IDENTIFIER_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INSTITUTION_IDENTIFIER_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_TYPE_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_IDENTIFIER_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_INSTANCE_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.SCIENTIFIC_LEVEL_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.isNotEmpty;
 import static nva.commons.core.attempt.Try.attempt;
@@ -22,9 +9,9 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import commons.db.GraphStoreProtocolConnection;
-import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
+import no.sikt.nva.data.report.api.fetch.utils.PostProcessor;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
@@ -103,20 +90,7 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
             report.addData(extractData(result));
         }
-        return report.postProcess(
-            List.of(GLOBAL_STATUS_FUNCTION,
-                    INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION,
-                    PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION,
-                    PUBLICATION_IDENTIFIER_FUNCTION,
-                    CONTRIBUTOR_IDENTIFIER_FUNCTION,
-                    APPROVAL_STATUS_FUNCTION,
-                    INSTITUTION_IDENTIFIER_FUNCTION,
-                    FACULTY_IDENTIFIER_FUNCTION,
-                    DEPARTMENT_IDENTIFIER_FUNCTION,
-                    GROUP_IDENTIFIER_FUNCTION,
-                    SCIENTIFIC_LEVEL_FUNCTION,
-                    PUBLICATION_CHANNEL_TYPE_FUNCTION,
-                    PUBLICATION_INSTANCE_FUNCTION));
+        return PostProcessor.postProcess(report);
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {
