@@ -1,8 +1,12 @@
 package no.sikt.nva.data.report.api.fetch.utils;
 
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.DEPARTMENT_ID;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.FACULTY_ID;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.GLOBAL_STATUS;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.GROUP_ID;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INSTITUTION_APPROVAL_STATUS;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INSTITUTION_ID;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
@@ -17,7 +21,15 @@ public enum PostProcessFunction {
     PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION(PUBLICATION_CHANNEL_LEVEL_POINTS, PostProcessFunction::getDecimalValue),
     PUBLICATION_IDENTIFIER_FUNCTION(PUBLICATION_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
     CONTRIBUTOR_IDENTIFIER_FUNCTION(CONTRIBUTOR_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
-    APPROVAL_STATUS_FUNCTION(INSTITUTION_APPROVAL_STATUS, PostProcessFunction::postProcessApprovalStatus);
+    APPROVAL_STATUS_FUNCTION(INSTITUTION_APPROVAL_STATUS, PostProcessFunction::postProcessApprovalStatus),
+    INSTITUTION_IDENTIFIER_FUNCTION(INSTITUTION_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
+                                                                                            Constants.INSTITUTION_ID_INDEX)),
+    FACULTY_IDENTIFIER_FUNCTION(FACULTY_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
+                                                                                    Constants.FACULTY_ID_INDEX)),
+    GROUP_IDENTIFIER_FUNCTION(GROUP_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
+                                                                                Constants.GROUP_ID_INDEX)),
+    DEPARTMENT_IDENTIFIER_FUNCTION(DEPARTMENT_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
+                                                                                          Constants.DEPARTMENT_ID_INDEX));
 
     private final String header;
     private final Function<String, String> postProcessor;
@@ -33,6 +45,10 @@ public enum PostProcessFunction {
 
     public Function<String, String> getPostProcessor() {
         return postProcessor;
+    }
+
+    private static String getIdentifierAtIndex(String organizationUri, int i) {
+        return getIdentifierFromUri(organizationUri).split("\\.")[i];
     }
 
     private static String postProcessApprovalStatus(String rawValue) {
@@ -61,5 +77,13 @@ public enum PostProcessFunction {
             case "Rejected" -> "N";
             default -> rawValue;
         };
+    }
+
+    private static class Constants {
+
+        public static final int INSTITUTION_ID_INDEX = 0;
+        public static final int FACULTY_ID_INDEX = 1;
+        public static final int DEPARTMENT_ID_INDEX = 2;
+        public static final int GROUP_ID_INDEX = 3;
     }
 }

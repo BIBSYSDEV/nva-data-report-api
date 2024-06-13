@@ -3,7 +3,11 @@ package no.sikt.nva.data.report.api.fetch;
 import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTrace;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.APPROVAL_STATUS_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.CONTRIBUTOR_IDENTIFIER_FUNCTION;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.DEPARTMENT_IDENTIFIER_FUNCTION;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.FACULTY_IDENTIFIER_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GLOBAL_STATUS_FUNCTION;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GROUP_IDENTIFIER_FUNCTION;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INSTITUTION_IDENTIFIER_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_IDENTIFIER_FUNCTION;
@@ -102,7 +106,11 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
                     PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION,
                     PUBLICATION_IDENTIFIER_FUNCTION,
                     CONTRIBUTOR_IDENTIFIER_FUNCTION,
-                    APPROVAL_STATUS_FUNCTION));
+                    APPROVAL_STATUS_FUNCTION,
+                    INSTITUTION_IDENTIFIER_FUNCTION,
+                    FACULTY_IDENTIFIER_FUNCTION,
+                    DEPARTMENT_IDENTIFIER_FUNCTION,
+                    GROUP_IDENTIFIER_FUNCTION));
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {

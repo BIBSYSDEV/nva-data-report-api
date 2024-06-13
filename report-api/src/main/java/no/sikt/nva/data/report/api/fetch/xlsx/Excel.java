@@ -11,6 +11,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public record Excel(Workbook workbook) {
 
+    public static final int HEADER_ROW = 0;
+    public static final int FIRST_DATA_ROW = 1;
+
     public static Excel fromJava(List<String> headers, List<List<String>> data) {
         var excel = new Excel(createWorkbookWithOneSheet());
         excel.addHeaders(headers);
@@ -45,9 +48,10 @@ public record Excel(Workbook workbook) {
     public Excel postProcess(List<PostProcessFunction> processFunctions) {
         processFunctions.forEach(value -> {
             var sheet = workbook.getSheetAt(0);
-            var headerRow = sheet.getRow(0);
+            var headerRow = sheet.getRow(HEADER_ROW);
             var headerIndex = findHeaderIndex(headerRow, value.getHeader());
-            for (Row currentRow : sheet) {
+            for (var counter = FIRST_DATA_ROW; counter <= sheet.getLastRowNum(); counter++) {
+                var currentRow = sheet.getRow(counter);
                 var currentCell = currentRow.getCell(headerIndex);
                 currentCell.setCellValue(value.getPostProcessor().apply(currentCell.getStringCellValue()));
             }

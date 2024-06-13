@@ -66,13 +66,10 @@ SELECT DISTINCT
          :affiliationId ?affiliationId ;
          :points ?FORFATTERVEKT .
 
-       BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?identifier)
-       BIND(STRAFTER(str(?identifier), ".") AS ?temp1)
-       BIND(STRAFTER(str(?temp1), ".") AS ?temp2)
-       BIND(STRAFTER(str(?temp2), ".") AS ?GRUPPENR)
-       BIND(STRBEFORE(str(?identifier), ".") AS ?INSTITUSJONSNR)
-       BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
-       BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
+       BIND(STR(?affiliationUri) AS ?INSTITUSJONSNR)
+       BIND(STR(?affiliationUri) AS ?AVDNR)
+       BIND(STR(?affiliationUri) AS ?UNDAVDNR)
+       BIND(STR(?affiliationUri) AS ?GRUPPENR)
 
      }
      GRAPH ?nva {
