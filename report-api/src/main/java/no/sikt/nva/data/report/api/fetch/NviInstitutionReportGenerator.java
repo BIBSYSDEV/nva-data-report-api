@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTrace;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GLOBAL_STATUS;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.isNotEmpty;
 import static nva.commons.core.attempt.Try.attempt;
@@ -91,7 +92,7 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
             report.addData(extractData(result));
         }
-        return report.postProcess(List.of(GLOBAL_STATUS));
+        return report.postProcess(List.of(GLOBAL_STATUS, INTERNATIONAL_COLLABORATION_FACTOR));
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {
