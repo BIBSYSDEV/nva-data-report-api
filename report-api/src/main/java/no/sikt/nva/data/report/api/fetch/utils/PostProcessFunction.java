@@ -14,6 +14,7 @@ import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeader
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
+import java.net.URI;
 import java.util.function.Function;
 import nva.commons.core.paths.UriWrapper;
 
@@ -56,8 +57,7 @@ public enum PostProcessFunction {
     }
 
     private static String getType(String uri) {
-        var split = uri.split("#");
-        return split[split.length - 1];
+        return URI.create(uri).getFragment();
     }
 
     private static String postProcessScientificValue(String scientificValue) {
