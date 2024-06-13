@@ -89,9 +89,7 @@ SELECT DISTINCT
         ?publicationDate :year ?publicationYear .
         BIND(STR(?publicationYear) AS ?ARSTALL_REG)
 
-        BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
-        BIND(STR(?channelTypeId) AS ?channelType)
-        BIND(REPLACE(STR(?channelType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLISERINGSKANALTYPE)
+        BIND(STR(?channelTypeId) AS ?PUBLISERINGSKANALTYPE)
         ?reference :publicationInstance ?instance .
         ?instance a ?instanceType .
         BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLIKASJONSFORM)

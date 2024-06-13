@@ -10,6 +10,7 @@ import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeader
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_TYPE;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.util.function.Function;
@@ -32,10 +33,14 @@ public enum PostProcessFunction {
     DEPARTMENT_IDENTIFIER_FUNCTION(DEPARTMENT_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
                                                                                           Constants.DEPARTMENT_ID_INDEX)),
     SCIENTIFIC_LEVEL_FUNCTION(PUBLICATION_CHANNEL_LEVEL, PostProcessFunction::postProcessScientificValue),
+    PUBLICATION_CHANNEL_TYPE_FUNCTION(PUBLICATION_CHANNEL_TYPE, PostProcessFunction::getType),
     ;
 
     private final String header;
+
+    ;
     private final Function<String, String> postProcessor;
+
     PostProcessFunction(String header, Function<String, String> postProcessor) {
         this.header = header;
         this.postProcessor = postProcessor;
@@ -47,6 +52,11 @@ public enum PostProcessFunction {
 
     public Function<String, String> getPostProcessor() {
         return postProcessor;
+    }
+
+    private static String getType(String uri) {
+        var split = uri.split("#");
+        return split[split.length - 1];
     }
 
     private static String postProcessScientificValue(String scientificValue) {
