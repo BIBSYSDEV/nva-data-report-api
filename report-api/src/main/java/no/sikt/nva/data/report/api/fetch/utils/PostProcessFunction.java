@@ -7,22 +7,16 @@ import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeader
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.GROUP_ID;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INSTITUTION_APPROVAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INSTITUTION_ID;
-import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL;
-import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_TYPE;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
-import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.net.URI;
 import java.util.function.Function;
 import nva.commons.core.paths.UriWrapper;
 
 public enum PostProcessFunction {
     GLOBAL_STATUS_FUNCTION(GLOBAL_STATUS, PostProcessFunction::postProcessGlobalApprovalStatus),
-    INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION(INTERNATIONAL_COLLABORATION_FACTOR,
-                                                PostProcessFunction::getDecimalValue),
-    PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION(PUBLICATION_CHANNEL_LEVEL_POINTS, PostProcessFunction::getDecimalValue),
     PUBLICATION_IDENTIFIER_FUNCTION(PUBLICATION_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
     CONTRIBUTOR_IDENTIFIER_FUNCTION(CONTRIBUTOR_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
     APPROVAL_STATUS_FUNCTION(INSTITUTION_APPROVAL_STATUS, PostProcessFunction::postProcessApprovalStatus),
@@ -83,11 +77,6 @@ public enum PostProcessFunction {
 
     private static String getIdentifierFromUri(String uri) {
         return UriWrapper.fromUri(uri).getLastPathElement();
-    }
-
-    private static String getDecimalValue(String decimalValue) {
-        var parts = decimalValue.split("\\^\\^");
-        return parts[0].replace("\"", EMPTY_STRING);
     }
 
     private static String postProcessGlobalApprovalStatus(String rawValue) {

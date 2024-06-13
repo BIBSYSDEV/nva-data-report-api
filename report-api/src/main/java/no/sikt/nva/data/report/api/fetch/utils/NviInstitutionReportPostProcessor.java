@@ -7,8 +7,6 @@ import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.FACULT
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GLOBAL_STATUS_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GROUP_IDENTIFIER_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INSTITUTION_IDENTIFIER_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION;
-import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_TYPE_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_IDENTIFIER_FUNCTION;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_INSTANCE_FUNCTION;
@@ -24,8 +22,6 @@ public final class NviInstitutionReportPostProcessor {
     public static Excel postProcess(Excel excel) {
         return excel.postProcess(
             List.of(GLOBAL_STATUS_FUNCTION,
-                    INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION,
-                    PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION,
                     PUBLICATION_IDENTIFIER_FUNCTION,
                     CONTRIBUTOR_IDENTIFIER_FUNCTION,
                     APPROVAL_STATUS_FUNCTION,

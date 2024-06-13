@@ -29,10 +29,13 @@ SELECT DISTINCT
        ?candidate a :NviCandidate ;
                :publicationDetails ?publicationUri ;
                :isApplicable true ;
-               :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
+               :internationalCollaborationFactor ?internationalCollaborationFactor ;
                :globalApprovalStatus ?RAPPORTSTATUS ;
-               :publicationTypeChannelLevelPoints ?VEKTINGSTALL ;
+               :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
                :reportingPeriod ?reportingPeriod .
+
+       BIND(STR(?internationalCollaborationFactor) AS ?FAKTORTALL_SAMARBEID) .
+       BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .
