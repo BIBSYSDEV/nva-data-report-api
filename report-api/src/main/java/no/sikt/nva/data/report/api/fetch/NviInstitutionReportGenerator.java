@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTrace;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GLOBAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.PUBLICATION_CHANNEL_LEVEL_POINTS;
@@ -98,7 +99,8 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
             List.of(GLOBAL_STATUS,
                     INTERNATIONAL_COLLABORATION_FACTOR,
                     PUBLICATION_CHANNEL_LEVEL_POINTS,
-                    PUBLICATION_IDENTIFIER));
+                    PUBLICATION_IDENTIFIER,
+                    CONTRIBUTOR_IDENTIFIER));
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {

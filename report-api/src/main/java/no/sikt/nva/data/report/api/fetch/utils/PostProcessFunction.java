@@ -13,7 +13,8 @@ public enum PostProcessFunction {
                                      PostProcessFunction::getDecimalValue),
     PUBLICATION_IDENTIFIER(NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER,
                            PostProcessFunction::getIdentifierFromUri),
-    ;
+    CONTRIBUTOR_IDENTIFIER(NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER,
+                           PostProcessFunction::getIdentifierFromUri);
 
     private final String header;
     private final Function<String, String> postProcessor;

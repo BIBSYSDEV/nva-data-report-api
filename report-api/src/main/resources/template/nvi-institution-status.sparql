@@ -43,7 +43,7 @@ SELECT DISTINCT
 
        ?publicationUri :contributor ?contributorId .
              ?contributorId a :NviContributor .
-       BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?PERSONLOPENR)
+       BIND(STR(?contributorId) AS ?PERSONLOPENR)
 
        ?contributorId :affiliation ?affiliationUri .
              ?affiliationUri a ?NviOrganization .
