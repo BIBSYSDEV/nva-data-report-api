@@ -57,6 +57,9 @@ Parameters:
     Type: 'String'
     Default: "nvi-reports"
     Description: Name of bucket for nvi reports
+  SlackSnsArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/NVA/Monitoring/SlackSnsArn'
 
 Mappings:
   SubnetConfig:
@@ -809,6 +812,25 @@ Resources:
                   - !GetAtt LoaderBucket.Arn
                   - !Sub '${LoaderBucket.Arn}/*'
 
+
+  #============================= Alarms =========================================================
+
+  NviInstitutionReportDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: report-api-nvi-institution-report-dlq-alarm
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Statistic: Sum
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt GenerateNviInstitutionReportDLQ.QueueName
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref SlackSnsArn
 
 #### OUTPUTS ####
 Outputs:
