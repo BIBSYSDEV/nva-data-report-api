@@ -14,15 +14,15 @@ public final class NviInstitutionStatusHeaders {
     public static final String PUBLICATION_CHANNEL_LEVEL_POINTS = "VEKTINGSTALL";
     public static final String INTERNATIONAL_COLLABORATION_FACTOR = "FAKTORTALL_SAMARBEID";
     public static final String POINTS_FOR_AFFILIATION = "FORFATTERVEKT";
-    public static String PUBLICATION_IDENTIFIER = "VARBEIDLOPENR";
-    public static String REPORTING_YEAR = "ARSTALL";
-    public static String PUBLISHED_YEAR = "ARSTALL_REG";
-    public static String INSTITUTION_APPROVAL_STATUS = "STATUS_KONTROLLERT";
-    public static String PUBLICATION_INSTANCE = "PUBLIKASJONSFORM";
-    public static String PUBLICATION_CHANNEL_TYPE = "PUBLISERINGSKANALTYPE";
-    public static String ISSN = "ISSN";
-    public static String PUBLICATION_CHANNEL_LEVEL = "KVALITETSNIVAKODE";
-    public static String CONTRIBUTOR_IDENTIFIER = "PERSONLOPENR";
+    public static final String PUBLICATION_IDENTIFIER = "VARBEIDLOPENR";
+    public static final String REPORTING_YEAR = "ARSTALL";
+    public static final String PUBLISHED_YEAR = "ARSTALL_REG";
+    public static final String INSTITUTION_APPROVAL_STATUS = "STATUS_KONTROLLERT";
+    public static final String PUBLICATION_INSTANCE = "PUBLIKASJONSFORM";
+    public static final String PUBLICATION_CHANNEL_TYPE = "PUBLISERINGSKANALTYPE";
+    public static final String ISSN = "ISSN";
+    public static final String PUBLICATION_CHANNEL_LEVEL = "KVALITETSNIVAKODE";
+    public static final String CONTRIBUTOR_IDENTIFIER = "PERSONLOPENR";
 
     private NviInstitutionStatusHeaders() {
     }
