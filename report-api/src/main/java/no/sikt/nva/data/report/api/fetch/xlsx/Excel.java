@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -41,6 +42,19 @@ public record Excel(Workbook workbook) {
         }
     }
 
+    public Excel postProcess(List<PostProcessFunction> processFunctions) {
+        processFunctions.forEach(value -> {
+            var sheet = workbook.getSheetAt(0);
+            var headerRow = sheet.getRow(0);
+            var headerIndex = findHeaderIndex(headerRow, value.getHeader());
+            for (Row currentRow : sheet) {
+                var currentCell = currentRow.getCell(headerIndex);
+                currentCell.setCellValue(value.getPostProcessor().apply(currentCell.getStringCellValue()));
+            }
+        });
+        return this;
+    }
+
     private static void addCells(Row row, List<String> cells) {
         for (var subCounter = 0; subCounter < cells.size(); subCounter++) {
             var currentCell = row.createCell(subCounter);
@@ -52,6 +66,15 @@ public record Excel(Workbook workbook) {
         var workbook = new XSSFWorkbook();
         workbook.createSheet();
         return workbook;
+    }
+
+    private int findHeaderIndex(Row headerRow, String header) {
+        for (var counter = 0; counter < headerRow.getLastCellNum(); counter++) {
+            if (headerRow.getCell(counter).getStringCellValue().equals(header)) {
+                return counter;
+            }
+        }
+        throw new IllegalArgumentException("Header not found: " + header);
     }
 
     private void write(OutputStream outputStream) throws IOException {

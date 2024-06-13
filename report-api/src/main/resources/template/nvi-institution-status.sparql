@@ -30,7 +30,7 @@ SELECT DISTINCT
                :publicationDetails ?publicationUri ;
                :isApplicable true ;
                :internationalCollaborationFactor ?internationalCollaborationFactor ;
-               :globalApprovalStatus ?globalApprovalStatus ;
+               :globalApprovalStatus ?RAPPORTSTATUS ;
                :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
                :reportingPeriod ?reportingPeriod .
 
@@ -41,15 +41,6 @@ SELECT DISTINCT
 
        BIND(STR(?internationalCollaborationFactor) AS ?FAKTORTALL_SAMARBEID) .
        BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
-
-       BIND(
-          COALESCE (
-              IF(?globalApprovalStatus = "Pending", "?", ?ignored),
-              IF(?globalApprovalStatus = "Approved", "J", ?ignored),
-              IF(?globalApprovalStatus = "Dispute", "T", ?ignored),
-              IF(?globalApprovalStatus = "Rejected", "N", ?ignored)
-          ) AS ?RAPPORTSTATUS
-       )
 
        BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
 

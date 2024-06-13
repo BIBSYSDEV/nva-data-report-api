@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTrace;
+import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.GLOBAL_STATUS;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.isNotEmpty;
 import static nva.commons.core.attempt.Try.attempt;
@@ -9,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import commons.db.GraphStoreProtocolConnection;
+import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
@@ -89,7 +91,7 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
             report.addData(extractData(result));
         }
-        return report;
+        return report.postProcess(List.of(GLOBAL_STATUS));
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {

@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.testutils.generator;
+package no.sikt.nva.data.report.api.fetch.model;
 
 public final class NviInstitutionStatusHeaders {
 
