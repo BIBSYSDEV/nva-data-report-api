@@ -92,7 +92,7 @@ SELECT DISTINCT
         BIND(STR(?channelTypeId) AS ?PUBLISERINGSKANALTYPE)
         ?reference :publicationInstance ?instance .
         ?instance a ?instanceType .
-        BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?PUBLIKASJONSFORM)
+        BIND(STR(?instanceType) AS ?PUBLIKASJONSFORM)
 
         OPTIONAL {
             ?publicationContext :printIssn ?ISSN

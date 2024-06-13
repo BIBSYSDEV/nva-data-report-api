@@ -12,8 +12,10 @@ import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeader
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_TYPE;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.util.function.Function;
+import no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders;
 import nva.commons.core.paths.UriWrapper;
 
 public enum PostProcessFunction {
@@ -34,6 +36,7 @@ public enum PostProcessFunction {
                                                                                           Constants.DEPARTMENT_ID_INDEX)),
     SCIENTIFIC_LEVEL_FUNCTION(PUBLICATION_CHANNEL_LEVEL, PostProcessFunction::postProcessScientificValue),
     PUBLICATION_CHANNEL_TYPE_FUNCTION(PUBLICATION_CHANNEL_TYPE, PostProcessFunction::getType),
+    PUBLICATION_INSTANCE_FUNCTION(PUBLICATION_INSTANCE, PostProcessFunction::getType);
     ;
 
     private final String header;
