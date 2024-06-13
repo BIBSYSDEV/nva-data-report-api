@@ -15,7 +15,6 @@ import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeader
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.util.function.Function;
-import no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders;
 import nva.commons.core.paths.UriWrapper;
 
 public enum PostProcessFunction {
@@ -26,22 +25,21 @@ public enum PostProcessFunction {
     PUBLICATION_IDENTIFIER_FUNCTION(PUBLICATION_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
     CONTRIBUTOR_IDENTIFIER_FUNCTION(CONTRIBUTOR_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
     APPROVAL_STATUS_FUNCTION(INSTITUTION_APPROVAL_STATUS, PostProcessFunction::postProcessApprovalStatus),
-    INSTITUTION_IDENTIFIER_FUNCTION(INSTITUTION_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
-                                                                                            Constants.INSTITUTION_ID_INDEX)),
+    INSTITUTION_IDENTIFIER_FUNCTION(INSTITUTION_ID,
+                                    organizationUri -> getIdentifierAtIndex(organizationUri,
+                                                                            Constants.INSTITUTION_ID_INDEX)),
     FACULTY_IDENTIFIER_FUNCTION(FACULTY_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
                                                                                     Constants.FACULTY_ID_INDEX)),
     GROUP_IDENTIFIER_FUNCTION(GROUP_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
                                                                                 Constants.GROUP_ID_INDEX)),
-    DEPARTMENT_IDENTIFIER_FUNCTION(DEPARTMENT_ID, organizationUri -> getIdentifierAtIndex(organizationUri,
-                                                                                          Constants.DEPARTMENT_ID_INDEX)),
+    DEPARTMENT_IDENTIFIER_FUNCTION(DEPARTMENT_ID,
+                                   organizationUri -> getIdentifierAtIndex(organizationUri,
+                                                                           Constants.DEPARTMENT_ID_INDEX)),
     SCIENTIFIC_LEVEL_FUNCTION(PUBLICATION_CHANNEL_LEVEL, PostProcessFunction::postProcessScientificValue),
     PUBLICATION_CHANNEL_TYPE_FUNCTION(PUBLICATION_CHANNEL_TYPE, PostProcessFunction::getType),
     PUBLICATION_INSTANCE_FUNCTION(PUBLICATION_INSTANCE, PostProcessFunction::getType);
-    ;
 
     private final String header;
-
-    ;
     private final Function<String, String> postProcessor;
 
     PostProcessFunction(String header, Function<String, String> postProcessor) {
