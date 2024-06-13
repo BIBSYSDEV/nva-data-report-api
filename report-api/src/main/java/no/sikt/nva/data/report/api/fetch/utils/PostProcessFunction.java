@@ -1,20 +1,23 @@
 package no.sikt.nva.data.report.api.fetch.utils;
 
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.GLOBAL_STATUS;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INSTITUTION_APPROVAL_STATUS;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
+import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.util.function.Function;
-import no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders;
 import nva.commons.core.paths.UriWrapper;
 
 public enum PostProcessFunction {
-    GLOBAL_STATUS(NviInstitutionStatusHeaders.GLOBAL_STATUS, PostProcessFunction::postProcessGlobalApprovalStatus),
-    INTERNATIONAL_COLLABORATION_FACTOR(NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR,
-                                       PostProcessFunction::getDecimalValue),
-    PUBLICATION_CHANNEL_LEVEL_POINTS(NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS,
-                                     PostProcessFunction::getDecimalValue),
-    PUBLICATION_IDENTIFIER(NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER,
-                           PostProcessFunction::getIdentifierFromUri),
-    CONTRIBUTOR_IDENTIFIER(NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER,
-                           PostProcessFunction::getIdentifierFromUri);
+    GLOBAL_STATUS_FUNCTION(GLOBAL_STATUS, PostProcessFunction::postProcessGlobalApprovalStatus),
+    INTERNATIONAL_COLLABORATION_FACTOR_FUNCTION(INTERNATIONAL_COLLABORATION_FACTOR,
+                                                PostProcessFunction::getDecimalValue),
+    PUBLICATION_CHANNEL_LEVEL_POINTS_FUNCTION(PUBLICATION_CHANNEL_LEVEL_POINTS, PostProcessFunction::getDecimalValue),
+    PUBLICATION_IDENTIFIER_FUNCTION(PUBLICATION_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
+    CONTRIBUTOR_IDENTIFIER_FUNCTION(CONTRIBUTOR_IDENTIFIER, PostProcessFunction::getIdentifierFromUri),
+    APPROVAL_STATUS_FUNCTION(INSTITUTION_APPROVAL_STATUS, PostProcessFunction::postProcessApprovalStatus);
 
     private final String header;
     private final Function<String, String> postProcessor;
@@ -30,6 +33,15 @@ public enum PostProcessFunction {
 
     public Function<String, String> getPostProcessor() {
         return postProcessor;
+    }
+
+    private static String postProcessApprovalStatus(String rawValue) {
+        return switch (rawValue) {
+            case "Pending" -> "?";
+            case "Approved" -> "J";
+            case "Rejected" -> "N";
+            default -> rawValue;
+        };
     }
 
     private static String getIdentifierFromUri(String uri) {

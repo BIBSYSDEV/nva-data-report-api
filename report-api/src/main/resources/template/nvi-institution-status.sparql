@@ -53,7 +53,7 @@ SELECT DISTINCT
 
        ?candidate :approval ?approval .
        ?approval a :Approval ;
-         :approvalStatus ?approvalStatus ;
+         :approvalStatus ?STATUS_KONTROLLERT ;
          :points ?institutionPoints ;
          :institutionId ?organizationUri ;
          :involvedOrganization ?affiliationUriString .
@@ -65,12 +65,6 @@ SELECT DISTINCT
          :nviCreator ?contributorIdString ;
          :affiliationId ?affiliationId ;
          :points ?FORFATTERVEKT .
-
-       BIND(
-          IF(?approvalStatus = "Pending", "?",
-          IF(?approvalStatus = "Approved", "J",
-          IF(?approvalStatus = "Rejected", "N", xsd:string(?approvalStatus)))) AS ?STATUS_KONTROLLERT
-       )
 
        BIND(REPLACE(STR(?affiliationUri), "^.*/([^/]*)$", "$1") AS ?identifier)
        BIND(STRAFTER(str(?identifier), ".") AS ?temp1)
