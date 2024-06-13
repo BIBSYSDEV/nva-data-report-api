@@ -8,6 +8,8 @@ public enum PostProcessFunction {
     GLOBAL_STATUS(NviInstitutionStatusHeaders.GLOBAL_STATUS, PostProcessFunction::postProcessGlobalApprovalStatus),
     INTERNATIONAL_COLLABORATION_FACTOR(NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR,
                                        PostProcessFunction::processDecimalValue),
+    PUBLICATION_CHANNEL_LEVEL_POINTS(NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS,
+                                     PostProcessFunction::processDecimalValue)
     ;
 
     private final String header;

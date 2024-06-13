@@ -31,15 +31,13 @@ SELECT DISTINCT
                :isApplicable true ;
                :internationalCollaborationFactor ?FAKTORTALL_SAMARBEID ;
                :globalApprovalStatus ?RAPPORTSTATUS ;
-               :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
+               :publicationTypeChannelLevelPoints ?VEKTINGSTALL ;
                :reportingPeriod ?reportingPeriod .
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .
        FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
        BIND(STR(?reportingYear) AS ?ARSTALL)
-
-       BIND(STR(?publicationTypeChannelLevelPoints) AS ?VEKTINGSTALL) .
 
        BIND(REPLACE(STR(?publicationUri), "^.*/([^/]*)$", "$1") AS ?VARBEIDLOPENR)
 
