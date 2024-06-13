@@ -11,7 +11,7 @@ import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import commons.db.GraphStoreProtocolConnection;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
-import no.sikt.nva.data.report.api.fetch.utils.PostProcessor;
+import no.sikt.nva.data.report.api.fetch.utils.NviInstitutionReportPostProcessor;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
@@ -90,7 +90,7 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
             report.addData(extractData(result));
         }
-        return PostProcessor.postProcess(report);
+        return NviInstitutionReportPostProcessor.postProcess(report);
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {

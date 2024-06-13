@@ -16,9 +16,9 @@ import static no.sikt.nva.data.report.api.fetch.utils.PostProcessFunction.SCIENT
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 
-public final class PostProcessor {
+public final class NviInstitutionReportPostProcessor {
 
-    private PostProcessor() {
+    private NviInstitutionReportPostProcessor() {
     }
 
     public static Excel postProcess(Excel excel) {
