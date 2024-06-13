@@ -1,8 +1,5 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator;
 
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.AUTHOR_COUNT;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.AUTHOR_INT;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.AUTHOR_SHARE_COUNT;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.DEPARTMENT_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.FACULTY_ID;
@@ -13,22 +10,17 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstituti
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.INSTITUTION_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.ISSN;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.LANGUAGE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.LAST_NAME;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PAGE_COUNT;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PAGE_FROM;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PAGE_TO;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.POINTS_FOR_AFFILIATION;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_NAME;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_TYPE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_TITLE;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.PUBLISHED_YEAR;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.REPORTING_YEAR;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.NviInstitutionStatusHeaders.TOTAL_POINTS;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.util.List;
@@ -60,21 +52,13 @@ public final class NviInstitutionStatusTestData {
                                                                               FACULTY_ID,
                                                                               DEPARTMENT_ID,
                                                                               GROUP_ID,
-                                                                              AUTHOR_COUNT,
-                                                                              AUTHOR_INT,
-                                                                              PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
                                                                               LAST_NAME,
                                                                               FIRST_NAME,
                                                                               PUBLICATION_CHANNEL_NAME,
-                                                                              PAGE_FROM,
-                                                                              PAGE_TO,
-                                                                              PAGE_COUNT,
                                                                               PUBLICATION_TITLE,
-                                                                              LANGUAGE,
                                                                               GLOBAL_STATUS,
-                                                                              TOTAL_POINTS,
+                                                                              PUBLICATION_CHANNEL_LEVEL_POINTS,
                                                                               INTERNATIONAL_COLLABORATION_FACTOR,
-                                                                              AUTHOR_SHARE_COUNT,
                                                                               POINTS_FOR_AFFILIATION);
 
     public static String generateExpectedNviInstitutionResponse(TestNviContributor contributor,
@@ -108,21 +92,13 @@ public final class NviInstitutionStatusTestData {
             .append(affiliation.getSubUnitOneNumber()).append(DELIMITER)
             .append(affiliation.getSubUnitTwoNumber()).append(DELIMITER)
             .append(affiliation.getSubUnitThreeNumber()).append(DELIMITER)
-            .append(AUTHOR_COUNT).append(DELIMITER)//TODO: Implement
-            .append(AUTHOR_INT).append(DELIMITER)//TODO: Implement
-            .append(POINTS_FOR_AFFILIATION).append(DELIMITER) //TODO: Implement
             .append(identity.name()).append(DELIMITER)
             .append(identity.name()).append(DELIMITER)
             .append(publication.getChannel().getName()).append(DELIMITER)
-            .append(PAGE_FROM).append(DELIMITER)//TODO: Implement
-            .append(PAGE_TO).append(DELIMITER)//TODO: Implement
-            .append(PAGE_COUNT).append(DELIMITER)//TODO: Implement
             .append(publication.getMainTitle()).append(DELIMITER)
-            .append(LANGUAGE).append(DELIMITER)//TODO: Implement
             .append(getExpectedApprovalStatusValue(candidate.globalApprovalStatus())).append(DELIMITER)
             .append(candidate.publicationTypeChannelLevelPoints()).append(DELIMITER)
             .append(candidate.internationalCollaborationFactor()).append(DELIMITER)
-            .append(AUTHOR_SHARE_COUNT).append(DELIMITER)//TODO: Implement
             .append(NviTestUtils.getExpectedPointsForAffiliation(affiliation, contributor, approval))
             .append(CRLF.getString());
     }

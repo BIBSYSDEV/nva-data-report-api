@@ -2,7 +2,6 @@ PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-
 SELECT DISTINCT
   ?ARSTALL
   ?VARBEIDLOPENR
@@ -17,33 +16,23 @@ SELECT DISTINCT
   ?AVDNR
   ?UNDAVDNR
   ?GRUPPENR
-  ?FORFATTERE_TOTALT
-  ?FORFATTERE_INT
-  ?VEKTET
   ?ETTERNAVN
   ?FORNAVN
   ?PUBLISERINGSKANALNAVN
-  ?SIDE_FRA
-  ?SIDE_TIL
-  ?SIDEANTALL
   ?VA_TITTEL
-  ?SPRAK
   ?RAPPORTSTATUS
   ?VEKTINGSTALL
   ?FAKTORTALL_SAMARBEID
-  ?FORFATTERDEL
   ?FORFATTERVEKT
   WHERE {
    GRAPH ?nvi {
        ?candidate a :NviCandidate ;
                :publicationDetails ?publicationUri ;
-               :isApplicable ?isApplicable ;
+               :isApplicable true ;
                :internationalCollaborationFactor ?internationalCollaborationFactor ;
                :globalApprovalStatus ?globalApprovalStatus ;
                :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
                :reportingPeriod ?reportingPeriod .
-
-       FILTER (?isApplicable = true)
 
        ?reportingPeriod a :ReportingPeriod ;
                         :year ?reportingYear .
@@ -71,14 +60,15 @@ SELECT DISTINCT
        ?contributorId :affiliation ?affiliationUri .
              ?affiliationUri a ?NviOrganization .
 
+      BIND(URI("__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__") AS ?organizationUri)
+      BIND(STR(?affiliationUri) AS ?affiliationUriString)
+
        ?candidate :approval ?approval .
        ?approval a :Approval ;
          :approvalStatus ?approvalStatus ;
          :points ?institutionPoints ;
-         :institutionId ?organizationUri .
-
-       FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
-       FILTER (STR(?organizationUri) = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__")
+         :institutionId ?organizationUri ;
+         :involvedOrganization ?affiliationUriString .
 
        ?institutionPoints a :InstitutionPoints ;
          :creatorAffiliationPoints ?creatorAffiliationPoints .
@@ -102,15 +92,6 @@ SELECT DISTINCT
        BIND(STRBEFORE(str(?temp1), ".") AS ?AVDNR)
        BIND(STRBEFORE(str(?temp2), ".") AS ?UNDAVDNR)
 
-       #These are todos
-       BIND("FORFATTERE_TOTALT" AS ?FORFATTERE_TOTALT)
-       BIND("FORFATTERE_INT" AS ?FORFATTERE_INT)
-       BIND("SIDE_FRA" AS ?SIDE_FRA)
-       BIND("SIDE_TIL" AS ?SIDE_TIL)
-       BIND("SIDEANTALL" AS ?SIDEANTALL)
-       BIND("SPRAK" AS ?SPRAK)
-       BIND("FORFATTERDEL" AS ?FORFATTERDEL)
-       BIND("FORFATTERVEKT" AS ?VEKTET)
      }
      GRAPH ?nva {
         ?publicationUri a :Publication ;
@@ -151,5 +132,3 @@ SELECT DISTINCT
         BIND(?contributorName AS ?FORNAVN)
      }
     } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
-
-

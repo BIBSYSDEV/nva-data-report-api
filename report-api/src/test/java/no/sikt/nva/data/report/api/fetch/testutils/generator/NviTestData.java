@@ -26,8 +26,10 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestApprovalStatus;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.nvi.TestCreatorAffiliationPoints;
@@ -188,11 +190,22 @@ public final class NviTestData {
     private static TestApproval generateApproval(String topLevelOrganization,
                                                  TestPublicationDetails publicationDetails) {
         var nviContributors = publicationDetails.filterContributorsWithTopLevelOrg(topLevelOrganization);
+        var involvedOrgs = getAffiliations(topLevelOrganization, nviContributors);
+        involvedOrgs.add(topLevelOrganization);
         return TestApproval.builder()
                    .withInstitutionId(URI.create(topLevelOrganization))
                    .withApprovalStatus(randomElement(TestApprovalStatus.values()))
                    .withPoints(generateInstitutionPoints(topLevelOrganization, nviContributors))
+                   .withInvolvedOrganizations(involvedOrgs)
                    .build();
+    }
+
+    private static HashSet<String> getAffiliations(String topLevelOrganization,
+                                                   List<TestNviContributor> nviContributors) {
+        return nviContributors.stream()
+                   .flatMap(contributor -> contributor.filterAffiliationsWithTopLevelOrg(topLevelOrganization).stream())
+                   .map(TestNviOrganization::id)
+                   .collect(Collectors.toCollection(HashSet::new));
     }
 
     private static TestInstitutionPoints generateInstitutionPoints(String topLevelOrganization,
