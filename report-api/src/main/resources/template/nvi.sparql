@@ -70,7 +70,9 @@ WHERE {
       ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
         :nviCreator ?contributorIdString ;
         :affiliationId ?affiliationId ;
-        :points ?pointsForAffiliation .
+        :points ?pointsForAffiliationDouble .
+
+      BIND(STR(?pointsForAffiliationDouble) AS ?pointsForAffiliation)
     }
     UNION
     {

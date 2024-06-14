@@ -67,7 +67,9 @@ SELECT DISTINCT
        ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
          :nviCreator ?contributorIdString ;
          :affiliationId ?affiliationId ;
-         :points ?FORFATTERVEKT .
+         :points ?pointsForAffiliation .
+
+       BIND(STR(?pointsForAffiliation) AS ?FORFATTERVEKT)
 
        BIND(STR(?affiliationUri) AS ?INSTITUSJONSNR)
        BIND(STR(?affiliationUri) AS ?AVDNR)

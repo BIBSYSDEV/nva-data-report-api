@@ -90,7 +90,7 @@ public record TestNviCandidate(String identifier,
                 new CreatorAffiliationPointsGenerator()
                     .withAffiliationId(creatorAffiliationPoints.affiliationId().toString())
                     .withCreatorId(creatorAffiliationPoints.nviCreator().toString())
-                    .withPoints(creatorAffiliationPoints.points().toString())
+                    .withPoints(creatorAffiliationPoints.points())
             ));
     }
 
