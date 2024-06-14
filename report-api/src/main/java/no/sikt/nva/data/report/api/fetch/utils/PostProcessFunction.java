@@ -68,7 +68,7 @@ public enum PostProcessFunction {
 
     private static String postProcessApprovalStatus(String rawValue) {
         return switch (rawValue) {
-            case "Pending" -> "?";
+            case "New", "Pending" -> "?";
             case "Approved" -> "J";
             case "Rejected" -> "N";
             default -> rawValue;

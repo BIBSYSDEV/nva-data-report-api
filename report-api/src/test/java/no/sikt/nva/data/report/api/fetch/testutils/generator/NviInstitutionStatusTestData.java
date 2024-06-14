@@ -123,9 +123,9 @@ public final class NviInstitutionStatusTestData {
 
     private static String getExpectedApprovalStatusValue(TestApprovalStatus approvalStatus) {
         return switch (approvalStatus) {
+            case NEW, PENDING -> "?";
             case APPROVED -> "J";
             case REJECTED -> "N";
-            case PENDING -> "?";
         };
     }
 
