@@ -152,7 +152,8 @@ components:
     CsvResponse:
       type: string
     BinaryResponse:
-      type: binary
+      type: string
+      format: binary
     Problem:
       type: object
       description: NVA error reporting object
