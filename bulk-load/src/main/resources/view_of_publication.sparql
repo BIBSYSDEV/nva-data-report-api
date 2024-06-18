@@ -1,0 +1,141 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+
+CONSTRUCT {
+  ?uri a ?instanceType .
+  ?uri :identifier ?publicationIdentifier .
+  ?uri :status ?status .
+  ?uri :modifiedDate ?modifiedDate .
+  ?uri :mainTitle ?mainTitle.
+  ?uri :year ?year .
+  ?uri :publicationDate ?publicationDateIso.
+  ?uri :publicationContext ?publicationContext .
+  ?uri :funding ?funding .
+  ?uri :contributor ?contributor .
+  ?publicationContext a ?channelType .
+  ?publicationContext :identifier ?channelIdentifier .
+  ?publicationContext :name ?channelName .
+  ?publicationContext :onlineIssn ?onlineIssn .
+  ?publicationContext :printIssn ?printIssn .
+  ?publicationContext :scientificValue ?scientificValue .
+
+  ?funding :fundingSource ?fundingSourceIdentifier .
+  ?funding :identifier ?fundingId .
+  ?funding :fundingName ?fundingName .
+
+  ?contributor :name ?contributorName .
+  ?contributor :identity ?identity .
+  ?contributor :sequence ?sequence .
+  ?contributor :role ?role .
+  ?contributor :affiliation ?affiliation .
+
+  ?affiliation :label ?affiliationLabel .
+  ?affiliation :institution ?institutionUri .
+  ?affiliation :faculty ?facultyUri .
+  ?affiliation :department ?departmentUri .
+  ?affiliation :group ?groupUri .
+
+} WHERE {
+
+  ?uri :identifier ?publicationIdentifier .
+  ?uri :status ?statusUri .
+  ?uri :modifiedDate ?modifiedDate .
+  ?uri :entityDescription ?entityDescription .
+
+  OPTIONAL {
+    ?uri :funding ?funding .
+    ?funding :identifier ?fundingId .
+    ?funding :source ?fundingSource .
+    ?fundingSource :identifier ?fundingSourceIdentifier .
+    ?fundingSource :label ?fundingName .
+  }
+
+  VALUES (?statusUri ?status) {
+    ( :PUBLISHED "PUBLISHED" )
+    ( :DELETED "DELETED" )
+    ( :UNPUBLISHED "UNPUBLISHED" )
+  }
+
+  ?entityDescription :mainTitle ?mainTitle .
+  ?entityDescription :publicationDate ?publicationDate .
+  ?entityDescription :reference ?reference .
+
+  ?publicationDate :year ?year .
+
+  OPTIONAL {
+    ?publicationDate :month ?month .
+  }
+
+  OPTIONAL {
+    ?publicationDate :day ?day .
+  }
+
+
+  BIND(IF(BOUND(?month), CONCAT("-", ?month), "") AS ?monthIso)
+  BIND(IF(BOUND(?day) && BOUND(?month), CONCAT("-", ?day), "") AS ?dayIso)
+  BIND(CONCAT(?year, CONCAT(?monthIso, ?dayIso)) AS ?publicationDateIso)
+
+  ?reference :publicationInstance ?publicationInstance .
+  ?reference :publicationContext ?publicationContext .
+
+  ?publicationInstance a ?instanceType .
+
+  OPTIONAL {
+    ?publicationContext a ?channelType .
+    BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
+    ?publicationContext :name ?channelName .
+    OPTIONAL {
+      ?publicationContext :onlineIssn ?onlineIssn .
+    }
+    OPTIONAL {
+      ?publicationContext :printIssn ?printIssn .
+    }
+    ?publicationContext :scientificValue ?scientificValue .
+  }
+
+  {
+    SELECT ?contributor
+           ?identity
+           ?sequence
+           ?contributorName
+           ?role
+           ?affiliation
+           ?affiliationLabel
+           ?institutionUri
+           ?facultyUri
+           ?departmentUri
+           ?groupUri
+    WHERE {
+      OPTIONAL {
+        ?entityDescription :contributor ?contributor .
+        ?contributor :identity ?identity .
+        ?contributor :sequence ?sequence .
+        ?contributor :affiliation ?affiliation .
+        ?identity :name ?contributorName .
+        ?contributor :role ?roleNode .
+        ?roleNode a ?role .
+        ?affiliation :label ?affiliationLabel .
+        OPTIONAL {
+            ?institutionUri a :Organization ;
+                           :hasPart+ ?affiliation .
+            OPTIONAL {
+               ?somewhere :hasPart ?institutionUri
+            }
+            FILTER(!BOUND(?somewhere))
+            OPTIONAL {
+                ?institutionUri :hasPart ?facultyUri .
+                ?facultyUri :hasPart+ ?affiliationUri .
+                OPTIONAL {
+                    ?facultyUri :hasPart ?departmentUri .
+                    ?departmentUri :hasPart+ ?affiliationUri .
+                    OPTIONAL {
+                        ?departmentUri :hasPart ?groupUri .
+                        ?groupUri :hasPart+ ?affiliationUri .
+                    }
+                }
+            }
+        }
+      }
+      FILTER(!ISBLANK(?identity))
+    }
+  }
+}
