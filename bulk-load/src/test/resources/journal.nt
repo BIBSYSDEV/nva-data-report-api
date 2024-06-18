@@ -15,13 +15,13 @@
 <https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b> <https://nva.sikt.no/ontology/publication#funding> _:b0 .
 _:b0 <https://nva.sikt.no/ontology/publication#fundingSource> "FINANSMARKEDFOND" .
 _:b0 <https://nva.sikt.no/ontology/publication#identifier> "2019/34/H/ST1/00636" .
-_:b0 <https://nva.sikt.no/ontology/publication#fundingName> "The Finance Market Fund"@en  .
-_:b0 <https://nva.sikt.no/ontology/publication#fundingName> "Finansmarkedfondet"@nb .
+_:b0 <https://nva.sikt.no/ontology/publication#label> "The Finance Market Fund"@en  .
+_:b0 <https://nva.sikt.no/ontology/publication#label> "Finansmarkedfondet"@nb .
 <https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b> <https://nva.sikt.no/ontology/publication#funding> <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> .
 <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#fundingSource> "NFR" .
 <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#identifier> "237906" .
-<https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#fundingName> "Research Council of Norway (RCN)"@en  .
-<https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#fundingName> "Norges forskningsråd"@nb .
+<https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#label> "Research Council of Norway (RCN)"@en  .
+<https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#label> "Norges forskningsråd"@nb .
 <https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b> <https://nva.sikt.no/ontology/publication#contributor> _:b1 .
 _:b1 <https://nva.sikt.no/ontology/publication#identity> <https://api.dev.nva.aws.unit.no/cristin/person/208070> .
 _:b1 <https://nva.sikt.no/ontology/publication#name> "Leiv Storesletten" .
