@@ -85,8 +85,7 @@ paths:
                 | ------------- | ------------- | ---------------- |
             text/csv:
               schema:
-                type: string
-                format: string
+                $ref: "#/components/schemas/CsvResponse"
               example: |
                 columnHeader1,columnHeader2,columnHeaders...
                 "row1 value1","row1 value2","row1 value3"
@@ -132,10 +131,10 @@ paths:
           content:
             application/vnd.ms-excel:
               schema:
-                format: binary
+                $ref: "#/components/schemas/BinaryResponse"
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema:
-                format: binary
+                $ref: "#/components/schemas/BinaryResponse"
         '401':
           description: "Unauthorized"
           content:
@@ -150,6 +149,10 @@ paths:
                 $ref: "#/components/schemas/Problem"
 components:
   schemas:
+    CsvResponse:
+      type: string
+    BinaryResponse:
+      type: binary
     Problem:
       type: object
       description: NVA error reporting object
