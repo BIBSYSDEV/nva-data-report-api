@@ -73,8 +73,7 @@ paths:
           content:
             text/plain:
               schema:
-                type: string
-                format: string
+                type: object
               example: |
                 | ------------- | ------------- | ---------------- | 
                 | columnHeader1 | columnHeader2 | columnHeaders... |
