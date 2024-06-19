@@ -1,6 +1,5 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 
-import java.util.UUID;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
 import org.apache.jena.rdf.model.Model;
@@ -20,7 +19,7 @@ public class InstitutionPointsGenerator extends TripleBasedBuilder {
 
     public InstitutionPointsGenerator() {
         this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource("someBlankNode" + UUID.randomUUID());
+        this.subject = BlankNodeUtil.createRandom(model);
         model.add(subject, TYPE, INSTITUTION_POINTS);
     }
 
