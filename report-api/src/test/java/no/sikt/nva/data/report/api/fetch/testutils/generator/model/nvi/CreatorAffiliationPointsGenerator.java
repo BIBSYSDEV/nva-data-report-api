@@ -1,7 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.Constants;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.TripleBasedBuilder;
 import org.apache.jena.datatypes.xsd.impl.XSDDouble;
@@ -23,7 +22,7 @@ public class CreatorAffiliationPointsGenerator extends TripleBasedBuilder {
 
     public CreatorAffiliationPointsGenerator() {
         this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource("someBlankNode" + UUID.randomUUID());
+        this.subject = BlankNodeUtil.createRandom(model);
         model.add(subject, TYPE, CREATOR_AFFILIATION_POINTS);
     }
 
