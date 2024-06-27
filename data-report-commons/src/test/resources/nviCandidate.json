@@ -78,7 +78,20 @@
             "partOfIdentifiers": []
           }
         ]
+      },
+      {
+        "type": "Contributor",
+        "id": "https://api.test.nva.aws.unit.no/cristin/person/123",
+        "name": "Some non nvi contributor",
+        "role": "Creator",
+        "affiliations": [
+          {
+            "type": "Organization",
+            "id": "https://api.test.nva.aws.unit.no/cristin/organization/5991.0.0.0"
+          }
+        ]
       }
+
     ]
   },
   "approvals": [
