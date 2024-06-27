@@ -22,13 +22,13 @@ _:b0 <https://nva.sikt.no/ontology/publication#label> "Finansmarkedfondet"@nb .
 <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#identifier> "237906" .
 <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#label> "Research Council of Norway (RCN)"@en  .
 <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> <https://nva.sikt.no/ontology/publication#label> "Norges forskningsråd"@nb .
-<https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b> <https://nva.sikt.no/ontology/publication#contributor> _:b1 .
-_:b1 <https://nva.sikt.no/ontology/publication#identity> <https://api.dev.nva.aws.unit.no/cristin/person/208070> .
-_:b1 <https://nva.sikt.no/ontology/publication#name> "Leiv Storesletten" .
-_:b1 <https://nva.sikt.no/ontology/publication#sequence> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
-_:b1 <https://nva.sikt.no/ontology/publication#role> <https://nva.sikt.no/ontology/publication#Creator> .
-_:b1 <https://nva.sikt.no/ontology/publication#affiliation> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> .
+<https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b> <https://nva.sikt.no/ontology/publication#contributor> <https://api.dev.nva.aws.unit.no/cristin/person/208070> .
+<https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#name> "Leiv Storesletten" .
+<https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#sequence> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#role> <https://nva.sikt.no/ontology/publication#Creator> .
+<https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#affiliation> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> .
 <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#label> "Institutt for matematiske fag"@nb .
 <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#label> "Department of Mathematical Sciences"@en .
 <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#institution> <https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0> .
 <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#faculty> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.0.0> .
+<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#department> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> .
