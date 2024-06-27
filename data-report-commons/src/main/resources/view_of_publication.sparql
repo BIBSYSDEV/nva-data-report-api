@@ -18,6 +18,9 @@
 #     {
 #       "affiliation": {
 #         "id": "https://example.org/organization/201.15.1.0",
+#         "department": {
+#           "id": "https://example.org/organization/201.15.1.0"
+#         },
 #         "faculty": {
 #           "id": "https://example.org/organization/201.15.0.0"
 #         },
@@ -29,13 +32,9 @@
 #           "en": "Department of something"
 #         }
 #       },
-#       "identity": {
-#         "id": "https://example.org/person/1"
-#       },
+#       "id": "https://example.org/person/1",
 #       "name": "Marc Tveien",
-#       "role": {
-#         "id": "https://nva.sikt.no/ontology/publication#Creator"
-#       },
+#       "role": https://nva.sikt.no/ontology/publication#Creator",
 #       "sequence": "3"
 #     }
 #   ],
@@ -196,6 +195,7 @@ CONSTRUCT {
       OPTIONAL {
         ?entityDescription :contributor ?contributor .
         ?contributor :identity ?identity .
+        FILTER(!ISBLANK(?identity))
         ?contributor :sequence ?sequence .
         ?contributor :affiliation ?affiliation .
         ?identity :name ?contributorName .
@@ -223,7 +223,6 @@ CONSTRUCT {
           }
         }
       }
-      FILTER(!ISBLANK(?identity))
     }
   }
 }

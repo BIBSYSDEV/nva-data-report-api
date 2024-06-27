@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.etl.transformer;
+package commons;
 
 import java.io.InputStream;
 import java.nio.file.Path;
