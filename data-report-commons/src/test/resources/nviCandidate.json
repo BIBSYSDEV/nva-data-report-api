@@ -29,33 +29,8 @@
           },
           {
             "type": "NviOrganization",
-            "id": "https://api.test.nva.aws.unit.no/cristin/organization/7401.0.0.0",
-            "identifier": "7401.0.0.0",
-            "partOf": [],
-            "partOfIdentifiers": []
-          },
-          {
-            "type": "NviOrganization",
             "id": "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0",
             "identifier": "20754.0.0.0",
-            "partOf": [],
-            "partOfIdentifiers": []
-          },
-          {
-            "type": "NviOrganization",
-            "id": "https://api.test.nva.aws.unit.no/cristin/organization/223.1.0.0",
-            "identifier": "223.1.0.0",
-            "partOf": [
-              "https://api.test.nva.aws.unit.no/cristin/organization/223.0.0.0"
-            ],
-            "partOfIdentifiers": [
-              "223.0.0.0"
-            ]
-          },
-          {
-            "type": "NviOrganization",
-            "id": "https://api.test.nva.aws.unit.no/cristin/organization/223.0.0.0",
-            "identifier": "223.0.0.0",
             "partOf": [],
             "partOfIdentifiers": []
           },
@@ -95,33 +70,6 @@
     ]
   },
   "approvals": [
-    {
-      "type": "Approval",
-      "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/7401.0.0.0",
-      "labels": {
-        "nn": "SINTEF AS",
-        "nb": "SINTEF AS",
-        "en": "SINTEF"
-      },
-      "approvalStatus": "New",
-      "points": {
-        "type": "InstitutionPoints",
-        "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/7401.0.0.0",
-        "institutionPoints": 1.2247,
-        "creatorAffiliationPoints": [
-          {
-            "type": "CreatorAffiliationPoints",
-            "nviCreator": "https://api.test.nva.aws.unit.no/cristin/person/43419",
-            "affiliationId": "https://api.test.nva.aws.unit.no/cristin/organization/7401.0.0.0",
-            "points": 1.2247
-          }
-        ]
-      },
-      "involvedOrganizations": [
-        "https://api.test.nva.aws.unit.no/cristin/organization/7401.0.0.0"
-      ],
-      "globalApprovalStatus": "Dispute"
-    },
     {
       "type": "Approval",
       "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0",
@@ -181,40 +129,6 @@
         "https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0"
       ],
       "assignee": "7278@185.90.0.0",
-      "globalApprovalStatus": "Dispute"
-    },
-    {
-      "type": "Approval",
-      "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/223.0.0.0",
-      "labels": {
-        "nn": "Høgskulen i Volda",
-        "nb": "Høgskulen i Volda",
-        "en": "Volda University College"
-      },
-      "approvalStatus": "New",
-      "points": {
-        "type": "InstitutionPoints",
-        "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/223.0.0.0",
-        "institutionPoints": 1.2247,
-        "creatorAffiliationPoints": [
-          {
-            "type": "CreatorAffiliationPoints",
-            "nviCreator": "https://api.test.nva.aws.unit.no/cristin/person/43419",
-            "affiliationId": "https://api.test.nva.aws.unit.no/cristin/organization/223.1.0.0",
-            "points": 0.6124
-          },
-          {
-            "type": "CreatorAffiliationPoints",
-            "nviCreator": "https://api.test.nva.aws.unit.no/cristin/person/43419",
-            "affiliationId": "https://api.test.nva.aws.unit.no/cristin/organization/223.0.0.0",
-            "points": 0.6124
-          }
-        ]
-      },
-      "involvedOrganizations": [
-        "https://api.test.nva.aws.unit.no/cristin/organization/223.1.0.0",
-        "https://api.test.nva.aws.unit.no/cristin/organization/223.0.0.0"
-      ],
       "globalApprovalStatus": "Dispute"
     }
   ],
