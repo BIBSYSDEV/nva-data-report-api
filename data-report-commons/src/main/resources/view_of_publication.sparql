@@ -1,0 +1,231 @@
+# This query constructs a view of the data where the graph has a minimum of edges and vertices.
+# The representation has a couple of trade-offs: firstly, we assert that the URI is the same as
+# the publication URI, and secondly because we assert a modifiedDate on an ?instanceType in a way
+# that is not semantically coherent (we assert that the thing itself, e.g. an AcademicArticle,
+# was modified, not the metadata about the AcademicArticle). Additionally, we simplify some data
+# (mapping to strings), and denormalize e.g. publicationDate to year AND publicationDate since
+# these are required, but tedious to extract.
+#
+# If we were to use JSON to represent the data, it might look like, e.g.
+#
+# {
+#   "@context": {
+#    ...
+#   },
+#   "id": "https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b",
+#   "type": "AcademicArticle",
+#   "contributors": [
+#     {
+#       "affiliation": {
+#         "id": "https://example.org/organization/201.15.1.0",
+#         "department": {
+#           "id": "https://example.org/organization/201.15.1.0"
+#         },
+#         "faculty": {
+#           "id": "https://example.org/organization/201.15.0.0"
+#         },
+#         "institution": {
+#           "id": "https://example.org/organization/201.0.0.0"
+#         },
+#         "labels": {
+#           "nb": "Institutt et fag",
+#           "en": "Department of something"
+#         }
+#       },
+#       "id": "https://example.org/person/1",
+#       "name": "Marc Tveien",
+#       "role": https://nva.sikt.no/ontology/publication#Creator",
+#       "sequence": "3"
+#     }
+#   ],
+#   "fundings": [
+#     {
+#       "id": "https://example.org/funding/nfr/1",
+#       "fundingSource": "NFR",
+#       "identifier": "1",
+#       "labels": {
+#         "nb": "Norges forskningsråd",
+#         "en": "Research Council of Norway (RCN)"
+#       }
+#     }
+#   ],
+#   "identifier": "018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b",
+#   "mainTitle": "Some title",
+#   "modifiedDate": "2024-04-30T14:41:00.952643953Z",
+#   "publicationContext": {
+#     "id": "https:/example.org/journal/22612958-B6AA-4869-B398-71CFF4DFD23F/2013",
+#     "type": "Journal",
+#     "identifier": "22612958-B6AA-4869-B398-71CFF4DFD23F",
+#     "name": "Journal name",
+#     "onlineIssn": "1573-1634",
+#     "printIssn": "0169-3913",
+#     "scientificValue": "LevelTwo"
+#   },
+#   "publicationDate": "2013-10-01",
+#   "status": "PUBLISHED",
+#   "year": "2013"
+# }
+
+
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+
+CONSTRUCT {
+  ?uri a ?instanceType .
+  ?uri :identifier ?publicationIdentifier .
+  ?uri :status ?status .
+  ?uri :modifiedDate ?modifiedDate .
+  ?uri :mainTitle ?mainTitle.
+  ?uri :year ?year .
+  ?uri :publicationDate ?publicationDateIso.
+  ?uri :publicationContext ?publicationContext .
+  ?uri :funding ?funding .
+  ?uri :contributor ?identity .
+
+  ?publicationContext a ?channelType .
+  ?publicationContext :identifier ?channelIdentifier .
+  ?publicationContext :name ?channelName .
+  ?publicationContext :onlineIssn ?onlineIssn .
+  ?publicationContext :printIssn ?printIssn .
+  ?publicationContext :scientificValue ?scientificValue .
+
+  ?funding :fundingSource ?fundingSourceIdentifier .
+  ?funding :identifier ?fundingId .
+  ?funding :label ?fundingName .
+
+  ?identity :name ?contributorName .
+  ?identity :sequence ?sequence .
+  ?identity :role ?role .
+  ?identity :affiliation ?affiliation .
+
+  ?affiliation :label ?affiliationLabel .
+  ?affiliation :institution ?institutionUri .
+  ?affiliation :faculty ?facultyUri .
+  ?affiliation :department ?departmentUri .
+  ?affiliation :group ?groupUri .
+
+} WHERE {
+
+  ?uri :identifier ?publicationIdentifier .
+  ?uri :status ?statusUri .
+  ?uri :modifiedDate ?modifiedDate .
+  ?uri :entityDescription ?entityDescription .
+
+  ?entityDescription :mainTitle ?mainTitle .
+  ?entityDescription :publicationDate ?publicationDate .
+  ?entityDescription :reference ?reference .
+
+  ?reference :publicationInstance ?publicationInstance .
+  ?reference :publicationContext ?publicationContext .
+
+  ?publicationInstance a ?instanceType .
+
+  OPTIONAL {
+    ?uri :funding ?funding .
+    ?funding :identifier ?fundingId .
+    ?funding :source ?fundingSource .
+    ?fundingSource :identifier ?fundingSourceIdentifier .
+    ?fundingSource :label ?fundingName .
+  }
+
+# This code binds the status by mapping from URI to string
+
+  VALUES (?statusUri ?status) {
+    ( :PUBLISHED "PUBLISHED" )
+    ( :DELETED "DELETED" )
+    ( :UNPUBLISHED "UNPUBLISHED" )
+  }
+
+# The following code extracts the parts of the publication date and binds the year and the parts
+# of the date (as hyphen-separated values) as two variables.
+
+  ?publicationDate :year ?year .
+
+  OPTIONAL {
+    ?publicationDate :month ?month .
+  }
+
+  OPTIONAL {
+    ?publicationDate :day ?day .
+  }
+
+  BIND(IF(BOUND(?month), CONCAT("-", ?month), "") AS ?monthIso)
+  BIND(IF(BOUND(?day) && BOUND(?month), CONCAT("-", ?day), "") AS ?dayIso)
+  BIND(CONCAT(?year, CONCAT(?monthIso, ?dayIso)) AS ?publicationDateIso)
+
+
+# The following OPTIONAL extracts the publication context data, e.g. the journal, publisher, or
+# series in which the thing was published .
+
+  OPTIONAL {
+
+    ?publicationContext a ?channelType .
+
+    # The regex here simply extracts the publication channel identifier from the URI.
+    BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
+
+    ?publicationContext :name ?channelName .
+
+    OPTIONAL {
+      ?publicationContext :onlineIssn ?onlineIssn .
+    }
+    OPTIONAL {
+      ?publicationContext :printIssn ?printIssn .
+    }
+
+    ?publicationContext :scientificValue ?scientificValue .
+  }
+
+# The following sub-select collects data for verified contributions, the secret-sauce is
+# the filter at the end that excludes everything that does not have a bound value for ?identity.
+
+  {
+    SELECT ?contributor
+           ?identity
+           ?sequence
+           ?contributorName
+           ?role
+           ?affiliation
+           ?affiliationLabel
+           ?institutionUri
+           ?facultyUri
+           ?departmentUri
+           ?groupUri
+    WHERE {
+      OPTIONAL {
+        ?entityDescription :contributor ?contributor .
+        ?contributor :identity ?identity .
+        FILTER(!ISBLANK(?identity))
+        ?contributor :sequence ?sequence .
+        ?contributor :affiliation ?affiliation .
+        ?identity :name ?contributorName .
+        ?contributor :role ?roleNode .
+        ?roleNode a ?role .
+        ?affiliation :label ?affiliationLabel .
+        OPTIONAL {
+          ?institutionUriRaw a :Organization ;
+                          :hasPart+ ?affiliation .
+          OPTIONAL {
+            ?somewhere :hasPart ?institutionUriRaw
+          }
+          FILTER(!BOUND(?somewhere))
+          OPTIONAL {
+            ?institutionUriRaw :hasPart ?facultyUriRaw .
+            ?facultyUriRaw :hasPart+ ?affiliationUri .
+            OPTIONAL {
+              ?facultyUriRaw :hasPart ?departmentUriRaw .
+              ?departmentUriRaw :hasPart+ ?affiliationUri .
+              OPTIONAL {
+                ?departmentUriRaw :hasPart ?groupUriRaw .
+                ?groupUriRaw :hasPart+ ?affiliationUri .
+              }
+            }
+          }
+        }
+        BIND(IF(!BOUND(?institutionUriRaw), ?affiliation, ?institutionUriRaw) AS ?institutionUri)
+        BIND(IF(!BOUND(?facultyUriRaw) && BOUND(?institutionUriRaw), ?affiliation, ?facultyUriRaw) AS ?facultyUri)
+        BIND(IF(!BOUND(?departmentUriRaw) && BOUND(?facultyUriRaw), ?affiliation, ?departmentUriRaw) AS ?departmentUri)
+        BIND(IF(!BOUND(?groupUriRaw) && BOUND(?departmentUriRaw), ?affiliation, ?groupUriRaw) AS ?groupUri)
+      }
+    }
+  }
+}

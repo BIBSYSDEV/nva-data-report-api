@@ -1,0 +1,241 @@
+{
+  "type": "Publication",
+  "publicationContextUris": [
+    "https://api.dev.nva.aws.unit.no/publication-channels-v2/journal/22612958-B6AA-4869-B398-71CFF4DFD23F/2013"
+  ],
+  "@context": "https://api.dev.nva.aws.unit.no/publication/context",
+  "id": "https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b",
+  "additionalIdentifiers": [
+    {
+      "type": "AdditionalIdentifier",
+      "sourceName": "Cristin",
+      "value": "1060250"
+    },
+    {
+      "type": "AdditionalIdentifier",
+      "sourceName": "ISI",
+      "value": "000323508300005"
+    },
+    {
+      "type": "AdditionalIdentifier",
+      "sourceName": "Scopus",
+      "value": "2-s2.0-84882954379"
+    }
+  ],
+  "contributorOrganizations": [
+    "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0",
+    "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.0.0",
+    "https://api.dev.nva.aws.unit.no/cristin/organization/12300036.0.0.0",
+    "https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0"
+  ],
+  "createdDate": "2013-10-25T00:00:00Z",
+  "curatingInstitutions": [
+    "https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0"
+  ],
+  "entityDescription": {
+    "type": "EntityDescription",
+    "alternativeAbstracts": {},
+    "contributors": [
+      {
+        "type": "Contributor",
+        "affiliations": [
+          {
+            "id": "https://api.dev.nva.aws.unit.no/cristin/organization/12300036.0.0.0",
+            "type": "Organization",
+            "countryCode": "IT",
+            "labels": {
+              "nb": " Università degli Studi di Bologna",
+              "en": "University of Bologna"
+            }
+          }
+        ],
+        "correspondingAuthor": false,
+        "identity": {
+          "type": "Identity",
+          "name": "Antonio Barletta",
+          "verificationStatus": "NotVerified"
+        },
+        "role": {
+          "type": "Creator"
+        },
+        "sequence": 1
+      },
+      {
+        "type": "Contributor",
+        "affiliations": [
+          {
+            "id": "https://api.dev.nva.aws.unit.no/cristin/organization/12300036.0.0.0",
+            "type": "Organization",
+            "countryCode": "IT",
+            "labels": {
+              "nb": " Università degli Studi di Bologna",
+              "en": "University of Bologna"
+            }
+          }
+        ],
+        "correspondingAuthor": false,
+        "identity": {
+          "type": "Identity",
+          "name": "Eugenia Rossi di Schio",
+          "verificationStatus": "NotVerified"
+        },
+        "role": {
+          "type": "Creator"
+        },
+        "sequence": 2
+      },
+      {
+        "type": "Contributor",
+        "affiliations": [
+          {
+            "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0",
+            "type": "Organization",
+            "countryCode": "NO",
+            "labels": {
+              "nb": "Institutt for matematiske fag",
+              "en": "Department of Mathematical Sciences"
+            }
+          }
+        ],
+        "correspondingAuthor": false,
+        "identity": {
+          "id": "https://api.dev.nva.aws.unit.no/cristin/person/208070",
+          "type": "Identity",
+          "name": "Leiv Storesletten",
+          "verificationStatus": "Verified"
+        },
+        "role": {
+          "type": "Creator"
+        },
+        "sequence": 3
+      }
+    ],
+    "language": "http://lexvo.org/id/iso639-3/eng",
+    "mainTitle": "Convective Instability in a Horizontal Porous Channel with Permeable and Conducting Side Boundaries",
+    "publicationDate": {
+      "type": "PublicationDate",
+      "year": "2013",
+      "month": "10",
+      "day": "01"
+    },
+    "reference": {
+      "type": "Reference",
+      "doi": "https://doi.org/10.1007/s11242-013-0198-y",
+      "publicationContext": {
+        "id": "https://api.dev.nva.aws.unit.no/publication-channels-v2/journal/22612958-B6AA-4869-B398-71CFF4DFD23F/2013",
+        "type": "Journal",
+        "identifier": "22612958-B6AA-4869-B398-71CFF4DFD23F",
+        "name": "Transport in Porous Media",
+        "onlineIssn": "1573-1634",
+        "printIssn": "0169-3913",
+        "sameAs": "https://kanalregister.hkdir.no/publiseringskanaler/KanalTidsskriftInfo?pid=22612958-B6AA-4869-B398-71CFF4DFD23F",
+        "scientificValue": "LevelTwo"
+      },
+      "publicationInstance": {
+        "type": "AcademicArticle",
+        "issue": "3",
+        "pages": {
+          "type": "Range",
+          "begin": "515",
+          "end": "533"
+        },
+        "volume": "99"
+      }
+    }
+  },
+  "identifier": "018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b",
+  "modelVersion": "0.21.18",
+  "modifiedDate": "2024-04-30T14:41:00.952643953Z",
+  "publishedDate": "2013-10-25T00:00:00Z",
+  "publisher": {
+    "id": "https://api.dev.nva.aws.unit.no/customer/bb3d0c0c-5065-4623-9b98-5810983c2478",
+    "type": "Organization"
+  },
+  "resourceOwner": {
+    "owner": "uia@201.0.0.0",
+    "ownerAffiliation": "https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0"
+  },
+  "status": "PUBLISHED",
+  "topLevelOrganizations": [
+    {
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0",
+      "type": "Organization",
+      "countryCode": "NO",
+      "hasPart": {
+        "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.0.0",
+        "type": "Organization",
+        "countryCode": "NO",
+        "hasPart": {
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0",
+          "type": "Organization",
+          "countryCode": "NO",
+          "labels": {
+            "nb": "Institutt for matematiske fag",
+            "en": "Department of Mathematical Sciences"
+          },
+          "partOf": {
+            "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.0.0"
+          }
+        },
+        "labels": {
+          "nb": "Fakultet for teknologi og realfag",
+          "en": "Faculty of Engineering and Science"
+        },
+        "partOf": {
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0"
+        }
+      },
+      "labels": {
+        "nb": "Universitetet i Agder",
+        "en": "University of Agder"
+      }
+    },
+    {
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/12300036.0.0.0",
+      "type": "Organization",
+      "countryCode": "IT",
+      "labels": {
+        "nb": " Università degli Studi di Bologna",
+        "en": "University of Bologna"
+      }
+    }
+  ],
+  "filesStatus": "noFiles",
+  "fundings": [
+    {
+      "id": "https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906",
+      "type": "ConfirmedFunding",
+      "identifier": "237906",
+      "source": {
+        "id": "https://api.dev.nva.aws.unit.no/cristin/funding-sources/NFR",
+        "type": "FundingSource",
+        "identifier": "NFR",
+        "labels": {
+          "nb": "Norges forskningsråd",
+          "en": "Research Council of Norway (RCN)"
+        },
+        "name": {
+          "en": "Research Council of Norway (RCN)",
+          "nb": "Norges forskningsråd"
+        }
+      }
+    },
+    {
+      "type": "UnconfirmedFunding",
+      "identifier": "2019/34/H/ST1/00636",
+      "source": {
+        "id": "https://api.dev.nva.aws.unit.no/cristin/funding-sources/FINANSMARKEDFOND",
+        "type": "FundingSource",
+        "identifier": "FINANSMARKEDFOND",
+        "labels": {
+          "nb": "Finansmarkedfondet",
+          "en": "The Finance Market Fund"
+        },
+        "name": {
+          "en": "The Finance Market Fund",
+          "nb": "Finansmarkedfondet"
+        }
+      }
+    }
+  ]
+}
