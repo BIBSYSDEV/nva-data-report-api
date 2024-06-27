@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: NVA data report API
   version: 1.0.0
-  description: API for generating simple csv reports.
+  description: API for generating simple data reports.
 x-amazon-apigateway-request-validators:
   validate_body:
     validateRequestBody: true
