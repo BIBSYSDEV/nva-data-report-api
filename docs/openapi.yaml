@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: NVA data report API
   version: 1.0.0
-  description: API for generating simple reports for
+  description: API for generating simple data reports.
 x-amazon-apigateway-request-validators:
   validate_body:
     validateRequestBody: true
@@ -11,6 +11,8 @@ paths:
   /{type}:
     get:
       description: Get report for a given report type, supporting text/csv download according to <https://www.rfc-editor.org/rfc/rfc4180>
+      summary: Get report
+      operationId: getDataReport
       parameters:
         - in: path
           name: type
@@ -106,6 +108,8 @@ paths:
   /institution/nvi-approval/{reportingYear}:
     get:
       description: Get institution report for nvi for given reporting year. Supporting text/csv download according to <https://www.rfc-editor.org/rfc/rfc4180>, application/vnd.ms-excel and application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.
+      summary: Get nvi institution report
+      operationId: getReportNviInstitution
       security:
         - CognitoUserPool: [
           'https://api.nva.unit.no/scopes/backend',
