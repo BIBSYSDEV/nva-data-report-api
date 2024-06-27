@@ -3,65 +3,56 @@ PREFIX : <https://nva.sikt.no/ontology/publication#>
 CONSTRUCT {
   ?uri a :NviCandidate .
   ?uri :identifier ?identifier .
+  ?uri :isApplicable ?isApplicable .
+  ?uri :internationalCollaborationFactor ?internationalCollaborationFactor .
   ?uri :globalApprovalStatus ?globalApprovalStatus .
   ?uri :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
-  ?uri :modifiedDate ?modifiedDate .
+  ?uri :reportingYear ?reportingYear .
+  ?uri :reported ?reported .
+  ?uri :publicationId ?publicationId .
+  ?uri :nviContributor ?nviContributor .
+  ?uri :approval ?approval .
+
+  ?nviContributor :nviAffiliation ?nviAffiliation .
+
+  ?approval :institutionId ?institutionId .
+  ?approval :approvalStatus ?approvalStatus .
+  ?approval :institutionPoints ?institutionPoints .
+  ?approval :creatorAffiliationPoints ?creatorAffiliationPoints .
+
+  ?creatorAffiliationPoints :creator ?creator .
+  ?creatorAffiliationPoints :affiliation ?affiliation .
+  ?creatorAffiliationPoints :points ?points .
+
+} WHERE {
+  ?uri :identifier ?identifier .
+  ?uri :isApplicable ?isApplicable .
+  ?uri :internationalCollaborationFactor ?internationalCollaborationFactor .
+  ?uri :globalApprovalStatus ?globalApprovalStatus .
+  ?uri :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
   ?uri :reportingPeriod ?reportingPeriod .
   ?uri :reported ?reported .
+  ?uri :publicationDetails ?publicationId .
   ?uri :approval ?approval .
-  ?uri :creatorShareCount ?creatorShareCount .
-  ?uri :publicationDetails ?publicationDetails .
+
+  ?reportingPeriod :year ?reportingYear .
+
+  ?publicationId :contributor ?nviContributor .
+
+  ?nviContributor a :NviContributor .
+  ?nviContributor :affiliation ?nviAffiliation .
+  ?nviAffiliation a :NviOrganization .
 
   ?approval a :Approval .
-  ?approval :approvalStatus ?approvalStatus .
   ?approval :institutionId ?institutionId .
-  ?approval :involvedOrganization ?involvedOrganization .
+  ?approval :approvalStatus ?approvalStatus .
   ?approval :points ?points .
 
-  ?publicationDetails a :PublicationDetails .
-  ?publicationDetails :contributor ?contributor .
-
-  ?points a :InstitutionPoints .
   ?points :creatorAffiliationPoints ?creatorAffiliationPoints .
   ?points :institutionPoints ?institutionPoints .
 
-  ?creatorAffiliationPoints a :CreatorAffiliationPoints .
-  ?creatorAffiliationPoints :affiliationId ?affiliationId .
-  ?creatorAffiliationPoints :nviCreator ?nviCreator .
-  ?creatorAffiliationPoints :points ?points .
+  ?creatorAffiliationPoints :nviCreator ?creator .
+  ?creatorAffiliationPoints :affiliationId ?affiliation .
+  ?creatorAffiliationPoints :points ?creator .
 
-  ?reportingPeriod a :ReportingPeriod .
-  ?reportingPeriod :year ?year .
-
-} WHERE {
-  ?uri a :NviCandidate ;
-       :identifier ?identifier ;
-       :globalApprovalStatus ?globalApprovalStatus ;
-       :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
-       :points ?points ;
-       :internationalCollaborationFactor ?internationalCollaborationFactor ;
-       :isApplicable ?isApplicable ;
-       :modifiedDate ?modifiedDate ;
-       :reportingPeriod ?reportingPeriod ;
-       :reported ?reported ;
-       :approval ?approval ;
-       :creatorShareCount ?creatorShareCount ;
-       :publicationDetails ?publicationDetails .
-
-  ?approval a :Approval ;
-       :approvalStatus ?approvalStatus ;
-       :institutionId ?institutionId ;
-       :involvedOrganization ?involvedOrganization ;
-       :points ?points .
-
-  ?institutionPoints a :InstitutionPoints ;
-       :creatorAffiliationPoints ?creatorAffiliationPoints .
-
-  ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
-       :affiliationId ?affiliationId ;
-       :nviCreator ?nviCreator ;
-       :points ?points .
-
-  ?reportingPeriod a :ReportingPeriod ;
-       :year ?year .
 }
