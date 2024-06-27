@@ -7,11 +7,14 @@ CONSTRUCT {
   ?uri :internationalCollaborationFactor ?internationalCollaborationFactor .
   ?uri :globalApprovalStatus ?globalApprovalStatus .
   ?uri :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+  ?uri :creatorShareCount ?creatorShareCount .
+  ?uri :modifiedDate ?modifiedDate .
   ?uri :reportingYear ?reportingYear .
   ?uri :reported ?reported .
   ?uri :publicationId ?publicationId .
   ?uri :nviContributor ?nviContributor .
   ?uri :approval ?approval .
+  ?uri :totalPoints ?totalPoints .
 
   ?nviContributor :nviAffiliation ?nviAffiliation .
 
@@ -19,10 +22,11 @@ CONSTRUCT {
   ?approval :approvalStatus ?approvalStatus .
   ?approval :institutionPoints ?institutionPoints .
   ?approval :creatorAffiliationPoints ?creatorAffiliationPoints .
+  ?approval :involvedOrganization ?involvedOrganization .
 
-  ?creatorAffiliationPoints :creator ?creator .
-  ?creatorAffiliationPoints :affiliation ?affiliation .
+  ?creatorAffiliationPoints :nviCreator ?nviCreator .
   ?creatorAffiliationPoints :points ?points .
+  ?creatorAffiliationPoints :affiliation ?affiliation .
 
 } WHERE {
   ?uri :identifier ?identifier .
@@ -30,10 +34,14 @@ CONSTRUCT {
   ?uri :internationalCollaborationFactor ?internationalCollaborationFactor .
   ?uri :globalApprovalStatus ?globalApprovalStatus .
   ?uri :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+  ?uri :creatorShareCount ?creatorShareCount .
+  ?uri :modifiedDate ?modifiedDate .
+
   ?uri :reportingPeriod ?reportingPeriod .
   ?uri :reported ?reported .
   ?uri :publicationDetails ?publicationId .
   ?uri :approval ?approval .
+  ?uri :points ?totalPoints .
 
   ?reportingPeriod :year ?reportingYear .
 
@@ -46,13 +54,16 @@ CONSTRUCT {
   ?approval a :Approval .
   ?approval :institutionId ?institutionId .
   ?approval :approvalStatus ?approvalStatus .
-  ?approval :points ?points .
+  ?approval :points ?pointsDistribution .
+  ?approval :involvedOrganization ?involvedOrganization .
 
-  ?points :creatorAffiliationPoints ?creatorAffiliationPoints .
-  ?points :institutionPoints ?institutionPoints .
+  ?pointsDistribution :creatorAffiliationPoints ?creatorAffiliationPoints .
+  ?pointsDistribution :institutionPoints ?institutionPoints .
 
-  ?creatorAffiliationPoints :nviCreator ?creator .
+  ?creatorAffiliationPoints a :CreatorAffiliationPoints .
+  ?creatorAffiliationPoints :nviCreator ?nviCreator .
+  ?creatorAffiliationPoints :points ?points .
   ?creatorAffiliationPoints :affiliationId ?affiliation .
-  ?creatorAffiliationPoints :points ?creator .
+
 
 }
