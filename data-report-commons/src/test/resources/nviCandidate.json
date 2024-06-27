@@ -218,5 +218,40 @@
   "reported": false,
   "createdDate": "2024-06-18T09:32:40.777183516Z",
   "modifiedDate": "2024-06-18T09:32:40.777188857Z",
-  "@context": "https://api.test.nva.aws.unit.no/scientific-index/context"
+  "@context": {
+    "@vocab": "https://nva.sikt.no/ontology/publication#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "id": "@id",
+    "type": "@type",
+    "approvals": {
+      "@id": "approval",
+      "@container": "@set"
+    },
+    "notes": {
+      "@id": "note",
+      "@container": "@set"
+    },
+    "institutionId": {
+      "@type": "@id"
+    },
+    "contributors": {
+      "@id": "contributor",
+      "@container": "@set"
+    },
+    "affiliations": {
+      "@id": "affiliation",
+      "@container": "@set"
+    },
+    "labels": {
+      "@id": "label",
+      "@container": "@language"
+    },
+    "modifiedDate": {
+      "@type": "xsd:dateTime"
+    },
+    "involvedOrganizations": {
+      "@id": "involvedOrganization",
+      "@container": "@set"
+    }
+  }
 }

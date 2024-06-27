@@ -1,0 +1,67 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+
+CONSTRUCT {
+  ?uri a :NviCandidate .
+  ?uri :identifier ?identifier .
+  ?uri :globalApprovalStatus ?globalApprovalStatus .
+  ?uri :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+  ?uri :modifiedDate ?modifiedDate .
+  ?uri :reportingPeriod ?reportingPeriod .
+  ?uri :reported ?reported .
+  ?uri :approval ?approval .
+  ?uri :creatorShareCount ?creatorShareCount .
+  ?uri :publicationDetails ?publicationDetails .
+
+  ?approval a :Approval .
+  ?approval :approvalStatus ?approvalStatus .
+  ?approval :institutionId ?institutionId .
+  ?approval :involvedOrganization ?involvedOrganization .
+  ?approval :points ?points .
+
+  ?publicationDetails a :PublicationDetails .
+  ?publicationDetails :contributor ?contributor .
+
+  ?points a :InstitutionPoints .
+  ?points :creatorAffiliationPoints ?creatorAffiliationPoints .
+  ?points :institutionPoints ?institutionPoints .
+
+  ?creatorAffiliationPoints a :CreatorAffiliationPoints .
+  ?creatorAffiliationPoints :affiliationId ?affiliationId .
+  ?creatorAffiliationPoints :nviCreator ?nviCreator .
+  ?creatorAffiliationPoints :points ?points .
+
+  ?reportingPeriod a :ReportingPeriod .
+  ?reportingPeriod :year ?year .
+
+} WHERE {
+  ?uri a :NviCandidate ;
+       :identifier ?identifier ;
+       :globalApprovalStatus ?globalApprovalStatus ;
+       :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
+       :points ?points ;
+       :internationalCollaborationFactor ?internationalCollaborationFactor ;
+       :isApplicable ?isApplicable ;
+       :modifiedDate ?modifiedDate ;
+       :reportingPeriod ?reportingPeriod ;
+       :reported ?reported ;
+       :approval ?approval ;
+       :creatorShareCount ?creatorShareCount ;
+       :publicationDetails ?publicationDetails .
+
+  ?approval a :Approval ;
+       :approvalStatus ?approvalStatus ;
+       :institutionId ?institutionId ;
+       :involvedOrganization ?involvedOrganization ;
+       :points ?points .
+
+  ?institutionPoints a :InstitutionPoints ;
+       :creatorAffiliationPoints ?creatorAffiliationPoints .
+
+  ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
+       :affiliationId ?affiliationId ;
+       :nviCreator ?nviCreator ;
+       :points ?points .
+
+  ?reportingPeriod a :ReportingPeriod ;
+       :year ?year .
+}
