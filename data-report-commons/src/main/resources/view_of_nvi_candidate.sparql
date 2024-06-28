@@ -2,6 +2,8 @@ PREFIX : <https://nva.sikt.no/ontology/publication#>
 
 ##Flattening reportingPeriod.year -> reportingYear
 ##Flattening publicationDetails.contributor -> nviContributor
+##Flattening approval.points.creatorAffiliationPoints -> approval.creatorAffiliationPoints
+##Flattening approval.points.institutionPoints -> approval.institutionPoints
 
 CONSTRUCT {
   ?uri a :NviCandidate .
