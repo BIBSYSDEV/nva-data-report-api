@@ -12,6 +12,7 @@ import org.apache.jena.riot.RDFDataMgr;
 public class ViewCompiler {
 
     public static final Path NVA_QUERY = Path.of("view_of_publication.sparql");
+    public static final Path NVI_QUERY = Path.of("view_of_nvi_candidate.sparql");
 
     private final Model model;
 
@@ -20,8 +21,15 @@ public class ViewCompiler {
         RDFDataMgr.read(model, inputStream, Lang.JSONLD);
     }
 
-    public Model extractView() {
+    public Model extractPublicationView() {
         var query = IoUtils.stringFromResources(NVA_QUERY);
+        try (var queryExecution = QueryExecutionFactory.create(query, model)) {
+            return queryExecution.execConstruct();
+        }
+    }
+
+    public Model extractNviCandidateView() {
+        var query = IoUtils.stringFromResources(NVI_QUERY);
         try (var queryExecution = QueryExecutionFactory.create(query, model)) {
             return queryExecution.execConstruct();
         }

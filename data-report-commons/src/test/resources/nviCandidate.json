@@ -1,0 +1,184 @@
+{
+  "id": "https://api.test.nva.aws.unit.no/scientific-index/candidate/b98d295a-10c6-4e81-917a-bd087d78fdf8",
+  "isApplicable": true,
+  "type": "NviCandidate",
+  "identifier": "b98d295a-10c6-4e81-917a-bd087d78fdf8",
+  "publicationDetails": {
+    "id": "https://api.test.nva.aws.unit.no/publication/01902aafc1f7-8e364227-efc1-4a5f-a676-e8d3d7b3c656",
+    "type": "AcademicArticle",
+    "title": "Test NVI 55",
+    "publicationDate": {
+      "year": "2024",
+      "month": "6",
+      "day": "18"
+    },
+    "contributors": [
+      {
+        "type": "NviContributor",
+        "id": "https://api.test.nva.aws.unit.no/cristin/person/43419",
+        "name": "Eirik Nilsen",
+        "role": "Creator",
+        "affiliations": [
+          {
+            "type": "Organization",
+            "id": "https://api.test.nva.aws.unit.no/cristin/organization/5991.0.0.0"
+          },
+          {
+            "type": "Organization",
+            "id": "https://api.test.nva.aws.unit.no/cristin/organization/20202.0.0.0"
+          },
+          {
+            "type": "NviOrganization",
+            "id": "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0",
+            "identifier": "20754.0.0.0",
+            "partOf": [],
+            "partOfIdentifiers": []
+          },
+          {
+            "type": "NviOrganization",
+            "id": "https://api.test.nva.aws.unit.no/cristin/organization/20754.2.0.0",
+            "identifier": "20754.2.0.0",
+            "partOf": [
+              "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0"
+            ],
+            "partOfIdentifiers": [
+              "20754.0.0.0"
+            ]
+          },
+          {
+            "type": "NviOrganization",
+            "id": "https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0",
+            "identifier": "185.90.0.0",
+            "partOf": [],
+            "partOfIdentifiers": []
+          }
+        ]
+      },
+      {
+        "type": "Contributor",
+        "id": "https://api.test.nva.aws.unit.no/cristin/person/123",
+        "name": "Some non nvi contributor",
+        "role": "Creator",
+        "affiliations": [
+          {
+            "type": "Organization",
+            "id": "https://api.test.nva.aws.unit.no/cristin/organization/5991.0.0.0"
+          }
+        ]
+      }
+
+    ]
+  },
+  "approvals": [
+    {
+      "type": "Approval",
+      "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0",
+      "labels": {
+        "nb": "Sikt – Kunnskapssektorens tjenesteleverandør",
+        "en": "Sikt - Norwegian Agency for Shared Services in Education and Research"
+      },
+      "approvalStatus": "Approved",
+      "points": {
+        "type": "InstitutionPoints",
+        "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0",
+        "institutionPoints": 1.2247,
+        "creatorAffiliationPoints": [
+          {
+            "type": "CreatorAffiliationPoints",
+            "nviCreator": "https://api.test.nva.aws.unit.no/cristin/person/43419",
+            "affiliationId": "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0",
+            "points": 0.6124
+          },
+          {
+            "type": "CreatorAffiliationPoints",
+            "nviCreator": "https://api.test.nva.aws.unit.no/cristin/person/43419",
+            "affiliationId": "https://api.test.nva.aws.unit.no/cristin/organization/20754.2.0.0",
+            "points": 0.6124
+          }
+        ]
+      },
+      "involvedOrganizations": [
+        "https://api.test.nva.aws.unit.no/cristin/organization/20754.2.0.0",
+        "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0"
+      ],
+      "assignee": "7278@20754.0.0.0",
+      "globalApprovalStatus": "Dispute"
+    },
+    {
+      "type": "Approval",
+      "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0",
+      "labels": {
+        "nb": "Universitetet i Oslo",
+        "en": "University of Oslo"
+      },
+      "approvalStatus": "Rejected",
+      "points": {
+        "type": "InstitutionPoints",
+        "institutionId": "https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0",
+        "institutionPoints": 1.2247,
+        "creatorAffiliationPoints": [
+          {
+            "type": "CreatorAffiliationPoints",
+            "nviCreator": "https://api.test.nva.aws.unit.no/cristin/person/43419",
+            "affiliationId": "https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0",
+            "points": 1.2247
+          }
+        ]
+      },
+      "involvedOrganizations": [
+        "https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0"
+      ],
+      "assignee": "7278@185.90.0.0",
+      "globalApprovalStatus": "Dispute"
+    }
+  ],
+  "numberOfApprovals": 4,
+  "points": 4.8988,
+  "publicationTypeChannelLevelPoints": 3,
+  "globalApprovalStatus": "Dispute",
+  "creatorShareCount": 6,
+  "internationalCollaborationFactor": 1,
+  "reportingPeriod": {
+    "type": "ReportingPeriod",
+    "year": "2024"
+  },
+  "reported": false,
+  "createdDate": "2024-06-18T09:32:40.777183516Z",
+  "modifiedDate": "2024-06-18T09:32:40.777188857Z",
+  "@context": {
+    "@vocab": "https://nva.sikt.no/ontology/publication#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "id": "@id",
+    "type": "@type",
+    "approvals": {
+      "@id": "approval",
+      "@container": "@set"
+    },
+    "notes": {
+      "@id": "note",
+      "@container": "@set"
+    },
+    "institutionId": {
+      "@type": "@id"
+    },
+    "contributors": {
+      "@id": "contributor",
+      "@container": "@set"
+    },
+    "affiliations": {
+      "@id": "affiliation",
+      "@container": "@set"
+    },
+    "labels": {
+      "@id": "label",
+      "@container": "@language"
+    },
+    "modifiedDate": {
+      "@type": "xsd:dateTime"
+    },
+    "involvedOrganizations": {
+      "@id": "involvedOrganization",
+      "@container": "@set"
+    }
+  }
+}

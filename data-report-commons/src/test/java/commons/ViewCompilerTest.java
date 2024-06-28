@@ -12,16 +12,25 @@ class ViewCompilerTest {
 
     private static final String ACADEMIC_ARTICLE_JSON = "academicArticle.json";
     private static final String ACADEMIC_ARTICLE_NT = "academicArticle.nt";
+    private static final String NVI_CANDIDATE = "nviCandidate.json";
+    private static final String NVI_CANDIDATE_NT = "nviCandidate.nt";
 
     @Test
-    void shouldReduceTriplesToViewRequiredToProduceApiData() {
+    void shouldReduceTriplesToPublicationViewRequiredToProduceApiData() {
         var inputStream = IoUtils.inputStreamFromResources(ACADEMIC_ARTICLE_JSON);
-        var model = new ViewCompiler(inputStream).extractView();
-        Assertions.assertTrue(expected().isIsomorphicWith(model));
+        var model = new ViewCompiler(inputStream).extractPublicationView();
+        Assertions.assertTrue(expected(ACADEMIC_ARTICLE_NT).isIsomorphicWith(model));
     }
 
-    private static Model expected() {
-        var triples = IoUtils.inputStreamFromResources(ACADEMIC_ARTICLE_NT);
+    @Test
+    void shouldReduceTriplesToNviCandidateViewRequiredToProduceApiData() {
+        var inputStream = IoUtils.inputStreamFromResources(NVI_CANDIDATE);
+        var model = new ViewCompiler(inputStream).extractNviCandidateView();
+        Assertions.assertTrue(expected(NVI_CANDIDATE_NT).isIsomorphicWith(model));
+    }
+
+    private static Model expected(String tripleFile) {
+        var triples = IoUtils.inputStreamFromResources(tripleFile);
         var model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, triples, Lang.NTRIPLES);
         return model;
