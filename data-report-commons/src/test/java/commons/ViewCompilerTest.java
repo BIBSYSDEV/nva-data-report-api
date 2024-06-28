@@ -18,14 +18,14 @@ class ViewCompilerTest {
     @Test
     void shouldReduceTriplesToPublicationViewRequiredToProduceApiData() {
         var inputStream = IoUtils.inputStreamFromResources(ACADEMIC_ARTICLE_JSON);
-        var model = new ViewCompiler(inputStream).extractPublicationView();
+        var model = new ViewCompiler(inputStream).extractView();
         Assertions.assertTrue(expected(ACADEMIC_ARTICLE_NT).isIsomorphicWith(model));
     }
 
     @Test
     void shouldReduceTriplesToNviCandidateViewRequiredToProduceApiData() {
         var inputStream = IoUtils.inputStreamFromResources(NVI_CANDIDATE);
-        var model = new ViewCompiler(inputStream).extractNviCandidateView();
+        var model = new ViewCompiler(inputStream).extractView();
         Assertions.assertTrue(expected(NVI_CANDIDATE_NT).isIsomorphicWith(model));
     }
 
