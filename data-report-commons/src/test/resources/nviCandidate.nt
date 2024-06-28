@@ -25,10 +25,10 @@ _:b0 <https://nva.sikt.no/ontology/publication#creatorAffiliationPoints> _:b2 .
 _:b0 <https://nva.sikt.no/ontology/publication#creatorAffiliationPoints> _:b3 .
 _:b2 <https://nva.sikt.no/ontology/publication#affiliation> "https://api.test.nva.aws.unit.no/cristin/organization/20754.0.0.0" .
 _:b2 <https://nva.sikt.no/ontology/publication#nviCreator> "https://api.test.nva.aws.unit.no/cristin/person/43419" .
-_:b2 <https://nva.sikt.no/ontology/publication#points> "6.124000000000001E-1"^^<http://www.w3.org/2001/XMLSchema#double> .
+_:b2 <https://nva.sikt.no/ontology/publication#points> "6.124E-1"^^<http://www.w3.org/2001/XMLSchema#double> .
 _:b3 <https://nva.sikt.no/ontology/publication#affiliation> "https://api.test.nva.aws.unit.no/cristin/organization/20754.2.0.0" .
 _:b3 <https://nva.sikt.no/ontology/publication#nviCreator> "https://api.test.nva.aws.unit.no/cristin/person/43419" .
-_:b3 <https://nva.sikt.no/ontology/publication#points> "6.124000000000001E-1"^^<http://www.w3.org/2001/XMLSchema#double> .
+_:b3 <https://nva.sikt.no/ontology/publication#points> "6.124E-1"^^<http://www.w3.org/2001/XMLSchema#double> .
 _:b4 <https://nva.sikt.no/ontology/publication#approvalStatus> "Rejected" .
 _:b4 <https://nva.sikt.no/ontology/publication#institutionId> <https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0> .
 _:b4 <https://nva.sikt.no/ontology/publication#involvedOrganization> "https://api.test.nva.aws.unit.no/cristin/organization/185.90.0.0" .
