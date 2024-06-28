@@ -1,5 +1,8 @@
 PREFIX : <https://nva.sikt.no/ontology/publication#>
 
+##Flattening reportingPeriod.year -> reportingYear
+##Flattening publicationDetails.contributor -> nviContributor
+
 CONSTRUCT {
   ?uri a :NviCandidate .
   ?uri :identifier ?identifier .
