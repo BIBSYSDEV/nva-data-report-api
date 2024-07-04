@@ -5,7 +5,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 
-public class NTriples {
+public final class NTriples {
 
     private final Model model;
 
