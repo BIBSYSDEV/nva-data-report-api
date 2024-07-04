@@ -1,7 +1,7 @@
 package no.sikt.nva.data.report.api.etl;
 
-import static no.sikt.nva.data.report.testing.utils.ViewCompilerTestUtils.getNviCandidateJsonNode;
-import static no.sikt.nva.data.report.testing.utils.ViewCompilerTestUtils.getPublicationJsonNode;
+import static no.sikt.nva.data.report.testing.utils.StaticTestDataUtil.getNviCandidateJsonNode;
+import static no.sikt.nva.data.report.testing.utils.StaticTestDataUtil.getPublicationJsonNode;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

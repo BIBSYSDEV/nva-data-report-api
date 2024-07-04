@@ -5,7 +5,7 @@ import static nva.commons.core.ioutils.IoUtils.stringFromResources;
 import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import java.net.URI;
 import java.nio.file.Path;
-import no.sikt.nva.data.report.testing.utils.ViewCompilerTestUtils;
+import no.sikt.nva.data.report.testing.utils.StaticTestDataUtil;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -21,7 +21,7 @@ class ViewCompilerTest {
     @Test
     void shouldReduceTriplesToPublicationViewRequiredToProduceApiData() {
         var uri = randomUri();
-        var inputStream = ViewCompilerTestUtils.getPublication(uri);
+        var inputStream = StaticTestDataUtil.getPublication(uri);
         var model = new ViewCompiler(inputStream).extractView();
         Assertions.assertTrue(expected(ACADEMIC_ARTICLE_NT, uri).isIsomorphicWith(model));
     }
@@ -29,7 +29,7 @@ class ViewCompilerTest {
     @Test
     void shouldReduceTriplesToNviCandidateViewRequiredToProduceApiData() {
         var uri = randomUri();
-        var inputStream = ViewCompilerTestUtils.getNviCandidate(uri);
+        var inputStream = StaticTestDataUtil.getNviCandidate(uri);
         var model = new ViewCompiler(inputStream).extractView();
         Assertions.assertTrue(expected(NVI_CANDIDATE_NT, uri).isIsomorphicWith(model));
     }
