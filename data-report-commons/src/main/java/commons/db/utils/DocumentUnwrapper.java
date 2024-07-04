@@ -32,6 +32,9 @@ public final class DocumentUnwrapper {
 
     private JsonNode getReplacementContext(JsonNode jsonld) throws JsonProcessingException {
         var originalContext = jsonld.at(JSON_PTR_CONTEXT).asText();
+        if (originalContext.isBlank()) {
+            return jsonld;
+        }
         var contextFile = originalContext.contains(SCIENTIFIC_INDEX)
                               ? NVI_CONTEXT_JSONLD
                               : NVA_CONTEXT_JSONLD;

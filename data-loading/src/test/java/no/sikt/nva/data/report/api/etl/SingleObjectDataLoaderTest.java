@@ -1,8 +1,8 @@
 package no.sikt.nva.data.report.api.etl;
 
 import static no.sikt.nva.data.report.testing.utils.ViewCompilerTestUtils.getNviCandidateJsonNode;
+import static no.sikt.nva.data.report.testing.utils.ViewCompilerTestUtils.getPublicationJsonNode;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -35,6 +35,8 @@ import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -103,9 +105,11 @@ class SingleObjectDataLoaderTest {
         s3Driver.insertFile(objectKey, indexDocument.toJsonString());
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
-        var expectedTriple = toTriples(new ViewCompiler(IoUtils.stringToStream(documentBody.toString())).extractView());
+        var expected = new ViewCompiler(IoUtils.stringToStream(documentBody.toString())).extractView();
         var result = dbConnection.fetch(expectedNamedGraph);
-        assertTrue(result.contains(expectedTriple));
+        var actualModel = ModelFactory.createDefaultModel();
+        RDFDataMgr.read(actualModel, IoUtils.stringToStream(result), Lang.NTRIPLES);
+        assertTrue(expected.isIsomorphicWith(actualModel));
     }
 
     @ParameterizedTest
@@ -116,36 +120,21 @@ class SingleObjectDataLoaderTest {
     })
     void shouldReplaceContextWhenJsonLdIsConsumed(String contextUri) throws IOException {
         var identifier = UUID.randomUUID();
-        var objectKey = UnixPath.of(NVI_PATH,
-                                    constructFileIdentifier(identifier));
+        var objectKey = UnixPath.of(RESOURCES_PATH, constructFileIdentifier(identifier));
         var uri = URI.create("https://example.org/"
                              + objectKey.toString().replace(".gz", ""));
-        var json = String.format("""
-                                     { "body": {
-                                         "@context": "%s",
-                                         "id": "%s",
-                                         "type": "ExampleData",
-                                         "labels": { "en": "Example data" }
-                                       }
-                                     }
-                                     """, contextUri, uri);
-
         var graphUri = registerGraphForPostTestDeletion(uri);
+        var json = getDocumentWithRemoteContext(contextUri, uri, identifier);
         s3Driver.insertFile(objectKey, json);
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
         var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
         var result = dbConnection.getResult(query, new TestFormatter());
         var expected = "<" + uri + "> "
-                       + "<https://nva.sikt.no/ontology/publication#label> "
-                       + "\"Example data\"@en "
-                       + "<" + graphUri + "> ."
-                       + System.lineSeparator()
-                       + "<" + uri + "> "
                        + "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
-                       + "<https://nva.sikt.no/ontology/publication#ExampleData> "
+                       + "<https://nva.sikt.no/ontology/publication#AcademicArticle> "
                        + "<" + graphUri + "> .";
-        assertEquals(expected, result);
+        assertTrue(result.contains(expected));
     }
 
     @Test
@@ -161,10 +150,11 @@ class SingleObjectDataLoaderTest {
         var objectKey = constructObjectKey(updatedIndexDocument);
         s3Driver.insertFile(objectKey, updatedIndexDocument.toJsonString());
         handler.handleRequest(createUpsertEvent(objectKey), context);
-        var expectedUpdatedTriples = toTriples(
-            new ViewCompiler(IoUtils.stringToStream(documentBody.toString())).extractView());
+        var expected = new ViewCompiler(IoUtils.stringToStream(updatedDocument.toString())).extractView();
         var result = dbConnection.fetch(expectedNamedGraph);
-        assertTrue(result.contains(expectedUpdatedTriples));
+        var actualModel = ModelFactory.createDefaultModel();
+        RDFDataMgr.read(actualModel, IoUtils.stringToStream(result), Lang.NTRIPLES);
+        assertTrue(expected.isIsomorphicWith(actualModel));
     }
 
     @Test
@@ -219,6 +209,12 @@ class SingleObjectDataLoaderTest {
         var key = UnixPath.of(RESOURCES_PATH, randomString()).toString();
         var event = new PersistedResourceEvent(BUCKET_NAME, key, eventType);
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
+    }
+
+    private static String getDocumentWithRemoteContext(String contextUri, URI uri, UUID identifier) {
+        var jsonWithRemoteContext = (ObjectNode) getPublicationJsonNode(uri);
+        jsonWithRemoteContext.put("@context", contextUri);
+        return IndexDocumentWithConsumptionAttributes.from(jsonWithRemoteContext, identifier).toJsonString();
     }
 
     private static URI getUri(UUID identifier) {

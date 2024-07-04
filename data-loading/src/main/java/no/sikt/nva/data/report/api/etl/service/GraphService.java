@@ -3,6 +3,7 @@ package no.sikt.nva.data.report.api.etl.service;
 import commons.db.DatabaseConnection;
 import java.net.URI;
 import no.sikt.nva.data.report.api.etl.NTriples;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 
 public class GraphService {
@@ -13,8 +14,8 @@ public class GraphService {
         this.databaseConnection = databaseConnection;
     }
 
-    public void persist(URI graph, String resource) {
-        var triples = NTriples.transform(resource).toString();
+    public void persist(URI graph, Model model) {
+        var triples = NTriples.transform(model).toString();
         databaseConnection.delete(graph);
         databaseConnection.write(graph, triples, Lang.NTRIPLES);
     }
