@@ -4,8 +4,10 @@ import static java.util.Objects.nonNull;
 import static no.sikt.nva.data.report.api.etl.transformer.util.GzipUtil.compress;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import static nva.commons.core.attempt.Try.attempt;
+import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
+import commons.ViewCompiler;
 import commons.db.utils.DocumentUnwrapper;
 import java.net.URI;
 import java.time.Instant;
@@ -21,6 +23,7 @@ import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
+import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -125,13 +128,13 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
     }
 
-    private static URI extractGraphName(JsonNode content) {
+    private static URI getId(JsonNode content) {
         var id = content.at(ID_POINTER);
         if (id.isMissingNode()) {
             logger.error(MISSING_ID_NODE_IN_CONTENT_ERROR, content);
             throw new MissingIdException();
         }
-        return URI.create(id.textValue() + NT_EXTENSION);
+        return URI.create(id.textValue());
     }
 
     // Necessary to avoid issues with Neptune downstream
@@ -165,7 +168,13 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     }
 
     private String mapToNquads(JsonNode content) {
-        return Nquads.transform(content.toString(), extractGraphName(content)).toString();
+        var id = getId(content);
+        var model = applyView(content, id);
+        return Nquads.transform(URI.create(id + NT_EXTENSION), model).toString();
+    }
+
+    private Model applyView(JsonNode content, URI id) {
+        return new ViewCompiler(stringToStream(content.toString())).extractView(id);
     }
 
     private String extractContent(String key) {

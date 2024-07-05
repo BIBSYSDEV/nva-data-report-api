@@ -18,8 +18,7 @@ public final class Nquads {
         this.graph = graph;
     }
 
-    public static Nquads transform(String data, URI graphName) {
-        var model = loadModel(data);
+    public static Nquads transform(URI graphName, Model model) {
         var node = model.createResource(graphName.toString()).asNode();
         var graph = DatasetGraphFactory.createTxnMem();
         graph.addGraph(node, model.getGraph());
@@ -33,9 +32,5 @@ public final class Nquads {
         return stringWriter.toString();
     }
 
-    private static Model loadModel(String data) {
-        var model = ModelFactory.createDefaultModel();
-        RDFDataMgr.read(model, IoUtils.stringToStream(data), Lang.JSONLD11);
-        return model;
-    }
+
 }
