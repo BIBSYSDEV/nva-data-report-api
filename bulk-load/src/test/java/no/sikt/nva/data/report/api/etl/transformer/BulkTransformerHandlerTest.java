@@ -39,6 +39,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -90,8 +91,7 @@ class BulkTransformerHandlerTest {
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var contentString = getActualPersistedFile();
         var expectedModel = getExpectedModelWithAppliedView(expectedDocuments);
-        var actualModel = ModelFactory.createDefaultModel();
-        RDFDataMgr.read(actualModel, IoUtils.stringToStream(contentString), Lang.NQUADS);
+        var actualModel = getActualModel(contentString);
         assertTrue(expectedModel.isIsomorphicWith(actualModel));
     }
 
@@ -223,12 +223,25 @@ class BulkTransformerHandlerTest {
         assertTrue(loggerAppender.getMessages().contains("Missing id-node in content"));
     }
 
+    private static Model getActualModel(String nqauds) {
+        var actualGraph = DatasetGraphFactory.createTxnMem();
+        RDFDataMgr.read(actualGraph, IoUtils.stringToStream(nqauds), Lang.NQUADS);
+        var actualModel = ModelFactory.createDefaultModel();
+        actualGraph.stream()
+            .map(Quad::getGraph)
+            .map(actualGraph::getGraph)
+            .map(ModelFactory::createModelForGraph)
+            .forEach(actualModel::add);
+
+        return actualModel;
+    }
+
     private static Model getExpectedModelWithAppliedView(List<IndexDocument> expectedDocuments) {
         var expectedModel = ModelFactory.createDefaultModel();
         expectedDocuments.forEach(document -> {
             var model =
-                new ViewCompiler(IoUtils.stringToStream(document.getResource().toString())).extractView(
-                    document.getResourceId());
+                new ViewCompiler(IoUtils.stringToStream(document.getResource().toString()))
+                    .extractView(document.getResourceId());
             expectedModel.add(model);
         });
         return expectedModel;
