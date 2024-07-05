@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.StorageReader;
+import commons.ViewCompiler;
 import commons.db.GraphStoreProtocolConnection;
 import commons.db.utils.DocumentUnwrapper;
 import java.net.URI;
@@ -15,7 +16,9 @@ import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
+import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,9 +65,14 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     private void storeObject(UnixPath objectKey) {
         var blob = storageReader.read(objectKey);
         var resource = toJsonNode(blob);
-        var graph = URI.create(resource.at("/id").textValue() + ".nt");
-        graphService.persist(graph, resource.toString());
+        var id = URI.create(resource.at("/id").textValue());
+        var graph = URI.create(id + ".nt");
+        graphService.persist(graph, applyView(resource, id));
         LOGGER.info("Persisted object with key: {} in graph: {}", objectKey, graph);
+    }
+
+    private Model applyView(JsonNode resource, URI id) {
+        return new ViewCompiler(IoUtils.stringToStream(resource.toString())).extractView(id);
     }
 
     private void logInput(PersistedResourceEvent input) {

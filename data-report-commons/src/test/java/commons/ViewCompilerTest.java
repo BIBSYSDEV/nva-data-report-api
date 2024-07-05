@@ -1,6 +1,11 @@
 package commons;
 
-import nva.commons.core.ioutils.IoUtils;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.core.ioutils.IoUtils.stringFromResources;
+import static nva.commons.core.ioutils.IoUtils.stringToStream;
+import java.net.URI;
+import java.nio.file.Path;
+import no.sikt.nva.data.report.testing.utils.StaticTestDataUtil;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -10,27 +15,28 @@ import org.junit.jupiter.api.Test;
 
 class ViewCompilerTest {
 
-    private static final String ACADEMIC_ARTICLE_JSON = "academicArticle.json";
-    private static final String ACADEMIC_ARTICLE_NT = "academicArticle.nt";
-    private static final String NVI_CANDIDATE = "nviCandidate.json";
-    private static final String NVI_CANDIDATE_NT = "nviCandidate.nt";
+    private static final Path ACADEMIC_ARTICLE_NT = Path.of("academicArticle.nt");
+    private static final Path NVI_CANDIDATE_NT = Path.of("nviCandidate.nt");
 
     @Test
     void shouldReduceTriplesToPublicationViewRequiredToProduceApiData() {
-        var inputStream = IoUtils.inputStreamFromResources(ACADEMIC_ARTICLE_JSON);
-        var model = new ViewCompiler(inputStream).extractPublicationView();
-        Assertions.assertTrue(expected(ACADEMIC_ARTICLE_NT).isIsomorphicWith(model));
+        var uri = randomUri();
+        var inputStream = StaticTestDataUtil.getPublication(uri);
+        var model = new ViewCompiler(inputStream).extractView(uri);
+        Assertions.assertTrue(expected(ACADEMIC_ARTICLE_NT, uri).isIsomorphicWith(model));
     }
 
     @Test
     void shouldReduceTriplesToNviCandidateViewRequiredToProduceApiData() {
-        var inputStream = IoUtils.inputStreamFromResources(NVI_CANDIDATE);
-        var model = new ViewCompiler(inputStream).extractNviCandidateView();
-        Assertions.assertTrue(expected(NVI_CANDIDATE_NT).isIsomorphicWith(model));
+        var uri = randomUri();
+        var inputStream = StaticTestDataUtil.getNviCandidate(uri);
+        var model = new ViewCompiler(inputStream).extractView(uri);
+        Assertions.assertTrue(expected(NVI_CANDIDATE_NT, uri).isIsomorphicWith(model));
     }
 
-    private static Model expected(String tripleFile) {
-        var triples = IoUtils.inputStreamFromResources(tripleFile);
+    private static Model expected(Path tripleFile, URI uri) {
+        var triples = stringToStream(stringFromResources(tripleFile)
+                                         .replace("__REPLACE_ID__", uri.toString()));
         var model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, triples, Lang.NTRIPLES);
         return model;

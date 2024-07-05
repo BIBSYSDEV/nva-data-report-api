@@ -1,5 +1,5 @@
 {
-  "id": "https://api.test.nva.aws.unit.no/scientific-index/candidate/b98d295a-10c6-4e81-917a-bd087d78fdf8",
+  "id": "__REPLACE_ID__",
   "isApplicable": true,
   "type": "NviCandidate",
   "identifier": "b98d295a-10c6-4e81-917a-bd087d78fdf8",

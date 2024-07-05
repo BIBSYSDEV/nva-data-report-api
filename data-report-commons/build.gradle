@@ -12,6 +12,9 @@ dependencies {
     implementation libs.jena.rdfconnection
     testImplementation(project(':testing-utils'))
     testImplementation libs.jena.fuseki
+    testImplementation(libs.nva.testutils) {
+        exclude group: 'org.wiremock', module: 'wiremock'
+    }
 }
 
 repositories {

@@ -4,7 +4,7 @@
     "https://api.dev.nva.aws.unit.no/publication-channels-v2/journal/22612958-B6AA-4869-B398-71CFF4DFD23F/2013"
   ],
   "@context": "https://api.dev.nva.aws.unit.no/publication/context",
-  "id": "https://api.dev.nva.aws.unit.no/publication/018ef6b6d373-a0dac535-b0f4-4116-bef1-6bc153a6ba0b",
+  "id": "__REPLACE_ID__",
   "additionalIdentifiers": [
     {
       "type": "AdditionalIdentifier",

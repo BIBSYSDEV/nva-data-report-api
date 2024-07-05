@@ -5,13 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.net.URI;
 import java.util.UUID;
+import no.unit.nva.commons.json.JsonSerializable;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonSerialize
 public record IndexDocument(@JsonProperty(CONTEXT) String context,
                             URI id,
                             UUID identifier,
-                            String someProperty) {
+                            String someProperty) implements JsonSerializable {
 
     private static final String CONTEXT = "@context";
 
