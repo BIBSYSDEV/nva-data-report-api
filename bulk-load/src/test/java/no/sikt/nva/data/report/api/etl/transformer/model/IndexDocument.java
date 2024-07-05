@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
 import java.util.Optional;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.commons.json.JsonUtils;
@@ -39,10 +40,14 @@ public class IndexDocument implements JsonSerializable {
         return resource;
     }
 
+    public URI getResourceId() {
+        return URI.create(resource.at("/id").asText());
+    }
+
     @JsonIgnore
     public String getDocumentIdentifier() {
         return Optional.ofNullable(consumptionAttributes.getDocumentIdentifier())
-            .map(SortableIdentifier::toString)
-            .orElseThrow(() -> new RuntimeException(MISSING_IDENTIFIER_IN_RESOURCE));
+                   .map(SortableIdentifier::toString)
+                   .orElseThrow(() -> new RuntimeException(MISSING_IDENTIFIER_IN_RESOURCE));
     }
 }

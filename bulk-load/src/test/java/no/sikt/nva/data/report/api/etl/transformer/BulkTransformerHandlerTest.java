@@ -1,8 +1,8 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
-import static java.util.UUID.randomUUID;
 import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,18 +12,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import commons.ViewCompiler;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.sikt.nva.data.report.api.etl.transformer.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.api.etl.transformer.model.IndexDocument;
+import no.sikt.nva.data.report.testing.utils.StaticTestDataUtil;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
@@ -34,9 +34,12 @@ import nva.commons.core.StringUtils;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -49,8 +52,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class BulkTransformerHandlerTest {
 
-    private static final String IDENTIFIER = "__IDENTIFIER__";
-    private static final String VALID_PUBLICATION = IoUtils.stringFromResources(Path.of("publication.json"));
     private static final String DEFAULT_LOCATION = "resources";
     private static final ObjectMapper objectMapperWithEmpty = JsonUtils.dtoObjectMapper;
     private ByteArrayOutputStream outputStream;
@@ -89,7 +90,9 @@ class BulkTransformerHandlerTest {
                                                  eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var contentString = getActualPersistedFile();
-        assertTrue(modelHasData(contentString));
+        var expectedModel = getExpectedModelWithAppliedView(expectedDocuments);
+        var actualModel = getActualModel(contentString);
+        assertTrue(expectedModel.isIsomorphicWith(actualModel));
     }
 
     @Test
@@ -220,6 +223,31 @@ class BulkTransformerHandlerTest {
         assertTrue(loggerAppender.getMessages().contains("Missing id-node in content"));
     }
 
+    private static Model getActualModel(String nqauds) {
+        var actualGraph = DatasetGraphFactory.createTxnMem();
+        RDFDataMgr.read(actualGraph, IoUtils.stringToStream(nqauds), Lang.NQUADS);
+        var actualModel = ModelFactory.createDefaultModel();
+        actualGraph.stream()
+            .map(Quad::getGraph)
+            .map(actualGraph::getGraph)
+            .map(ModelFactory::createModelForGraph)
+            .forEach(actualModel::add);
+
+        return actualModel;
+    }
+
+    private static Model getExpectedModelWithAppliedView(List<IndexDocument> expectedDocuments) {
+        var expectedModel = ModelFactory.createDefaultModel();
+        expectedDocuments.forEach(document -> applyView(document, expectedModel));
+        return expectedModel;
+    }
+
+    private static void applyView(IndexDocument document, Model expectedModel) {
+        var model = new ViewCompiler(IoUtils.stringToStream(document.getResource().toString()))
+                        .extractView(document.getResourceId());
+        expectedModel.add(model);
+    }
+
     private static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
     }
@@ -246,7 +274,7 @@ class BulkTransformerHandlerTest {
     private List<IndexDocument> createExpectedDocuments(int numberOfDocuments) {
         return IntStream.range(0, numberOfDocuments)
                    .mapToObj(i -> new IndexDocument(randomConsumptionAttribute(),
-                                                    randomValidNode()))
+                                                    StaticTestDataUtil.getPublicationJsonNode(randomUri())))
                    .map(this::insertResourceInPersistedResourcesBucket)
                    .toList();
     }
@@ -255,12 +283,6 @@ class BulkTransformerHandlerTest {
         attempt(() -> s3ResourcesDriver.insertFile(UnixPath.of(document.getDocumentIdentifier()),
                                                    document.toJsonString())).orElseThrow();
         return document;
-    }
-
-    private JsonNode randomValidNode() {
-        return attempt(
-            () -> objectMapperWithEmpty.readTree(
-                VALID_PUBLICATION.replace(IDENTIFIER, randomUUID().toString()))).orElseThrow();
     }
 
     private static class StubEventBridgeClient implements EventBridgeClient {
