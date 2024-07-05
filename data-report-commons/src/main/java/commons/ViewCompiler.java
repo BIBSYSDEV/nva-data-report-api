@@ -36,8 +36,8 @@ public class ViewCompiler {
     }
 
     private static boolean isNotObject(Model model, URI id) {
-        var publication = model.createResource(id.toString());
-        var statementsWithIdAsObject = model.listStatements(null, null, publication);
+        var resource = model.createResource(id.toString());
+        var statementsWithIdAsObject = model.listStatements(null, null, resource);
         return !statementsWithIdAsObject.hasNext();
     }
 
