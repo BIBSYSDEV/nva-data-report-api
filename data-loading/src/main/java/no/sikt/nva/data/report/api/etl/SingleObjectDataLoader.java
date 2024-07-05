@@ -65,13 +65,14 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     private void storeObject(UnixPath objectKey) {
         var blob = storageReader.read(objectKey);
         var resource = toJsonNode(blob);
-        var graph = URI.create(resource.at("/id").textValue() + ".nt");
-        graphService.persist(graph, applyView(resource));
+        var id = URI.create(resource.at("/id").textValue());
+        var graph = URI.create(id + ".nt");
+        graphService.persist(graph, applyView(resource, id));
         LOGGER.info("Persisted object with key: {} in graph: {}", objectKey, graph);
     }
 
-    private Model applyView(JsonNode resource) {
-        return new ViewCompiler(IoUtils.stringToStream(resource.toString())).extractView();
+    private Model applyView(JsonNode resource, URI id) {
+        return new ViewCompiler(IoUtils.stringToStream(resource.toString())).extractView(id);
     }
 
     private void logInput(PersistedResourceEvent input) {

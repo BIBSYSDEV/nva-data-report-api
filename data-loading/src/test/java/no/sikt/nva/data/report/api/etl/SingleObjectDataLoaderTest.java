@@ -105,7 +105,7 @@ class SingleObjectDataLoaderTest {
         s3Driver.insertFile(objectKey, indexDocument.toJsonString());
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
-        var expected = new ViewCompiler(IoUtils.stringToStream(documentBody.toString())).extractView();
+        var expected = new ViewCompiler(IoUtils.stringToStream(documentBody.toString())).extractView(id);
         var result = dbConnection.fetch(expectedNamedGraph);
         var actualModel = ModelFactory.createDefaultModel();
         RDFDataMgr.read(actualModel, IoUtils.stringToStream(result), Lang.NTRIPLES);
@@ -150,7 +150,7 @@ class SingleObjectDataLoaderTest {
         var objectKey = constructObjectKey(updatedIndexDocument);
         s3Driver.insertFile(objectKey, updatedIndexDocument.toJsonString());
         handler.handleRequest(createUpsertEvent(objectKey), context);
-        var expected = new ViewCompiler(IoUtils.stringToStream(updatedDocument.toString())).extractView();
+        var expected = new ViewCompiler(IoUtils.stringToStream(updatedDocument.toString())).extractView(id);
         var result = dbConnection.fetch(expectedNamedGraph);
         var actualModel = ModelFactory.createDefaultModel();
         RDFDataMgr.read(actualModel, IoUtils.stringToStream(result), Lang.NTRIPLES);
@@ -244,12 +244,6 @@ class SingleObjectDataLoaderTest {
         if (!(e instanceof HttpException)) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String toTriples(Model model) {
-        var stringWriter = new StringWriter();
-        RDFDataMgr.write(stringWriter, model, org.apache.jena.riot.Lang.NTRIPLES);
-        return stringWriter.toString();
     }
 
     private JsonNode updateProperty(JsonNode documentBody) {

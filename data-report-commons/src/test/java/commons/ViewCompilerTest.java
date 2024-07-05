@@ -22,7 +22,7 @@ class ViewCompilerTest {
     void shouldReduceTriplesToPublicationViewRequiredToProduceApiData() {
         var uri = randomUri();
         var inputStream = StaticTestDataUtil.getPublication(uri);
-        var model = new ViewCompiler(inputStream).extractView();
+        var model = new ViewCompiler(inputStream).extractView(uri);
         Assertions.assertTrue(expected(ACADEMIC_ARTICLE_NT, uri).isIsomorphicWith(model));
     }
 
@@ -30,7 +30,7 @@ class ViewCompilerTest {
     void shouldReduceTriplesToNviCandidateViewRequiredToProduceApiData() {
         var uri = randomUri();
         var inputStream = StaticTestDataUtil.getNviCandidate(uri);
-        var model = new ViewCompiler(inputStream).extractView();
+        var model = new ViewCompiler(inputStream).extractView(uri);
         Assertions.assertTrue(expected(NVI_CANDIDATE_NT, uri).isIsomorphicWith(model));
     }
 

@@ -1,6 +1,7 @@
 package commons;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Path;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -15,6 +16,7 @@ public class ViewCompiler {
     public static final Path NVA_QUERY = Path.of("view_of_publication.sparql");
     public static final Path NVI_QUERY = Path.of("view_of_nvi_candidate.sparql");
     public static final String PUBLICATION = "https://nva.sikt.no/ontology/publication#Publication";
+    public static final String NVI_CANDIDATE = "https://nva.sikt.no/ontology/publication#NviCandidate";
 
     private final Model model;
 
@@ -23,11 +25,13 @@ public class ViewCompiler {
         RDFDataMgr.read(model, inputStream, Lang.JSONLD);
     }
 
-    public Model extractView() {
-        if (isPublication(model)) {
+    public Model extractView(URI id) {
+        if (isPublication(model, id)) {
             return extractPublicationView();
-        } else {
+        } else if (isNviCandidate(model, id)) {
             return extractNviCandidateView();
+        } else {
+            return model;
         }
     }
 
@@ -45,8 +49,13 @@ public class ViewCompiler {
         }
     }
 
-    private boolean isPublication(Model model) {
+    private boolean isPublication(Model model, URI id) {
         var publicationType = model.createResource(PUBLICATION);
-        return model.listResourcesWithProperty(RDF.type, publicationType).hasNext();
+        return model.contains(model.createResource(id.toString()), RDF.type, publicationType);
+    }
+
+    private boolean isNviCandidate(Model model, URI id) {
+        var publicationType = model.createResource(NVI_CANDIDATE);
+        return model.contains(model.createResource(id.toString()), RDF.type, publicationType);
     }
 }
