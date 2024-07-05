@@ -25,6 +25,10 @@ public class ViewCompiler {
         RDFDataMgr.read(model, inputStream, Lang.JSONLD);
     }
 
+    public ViewCompiler(Model model) {
+        this.model = model;
+    }
+
     public Model extractView(URI id) {
         if (isPublication(model, id)) {
             return extractPublicationView();

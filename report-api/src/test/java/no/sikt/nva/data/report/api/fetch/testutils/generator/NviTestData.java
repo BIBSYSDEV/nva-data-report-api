@@ -245,9 +245,11 @@ public final class NviTestData {
     private static Builder getCandidateBuilder(boolean isApplicable, Instant modifiedDate,
                                                TestPublicationDetails publicationDetails,
                                                List<TestApproval> approvals, String reportingPeriod) {
+        var identifier = UUID.randomUUID();
         return TestNviCandidate.builder()
                    .withIsApplicable(isApplicable)
-                   .withIdentifier(UUID.randomUUID().toString())
+                   .withIdentifier(identifier.toString())
+                   .withCandidateUri(Constants.candidateUri(identifier))
                    .withModifiedDate(modifiedDate)
                    .withPublicationDetails(publicationDetails)
                    .withApprovals(approvals)

@@ -31,6 +31,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationH
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.STATUS;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
+import commons.ViewCompiler;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -226,6 +227,17 @@ public class TestData {
         return publication.getPublicationUri().equals(candidate.publicationDetails().id());
     }
 
+    private static Model getModelWithAppliedView(TestPublication publication) {
+        var id = URI.create(publication.getPublicationUri());
+        return new ViewCompiler(publication.generateModel()).extractView(id);
+    }
+
+    private static Model getModelWithAppliedView(TestNviCandidate candidate) {
+        var id = URI.create(candidate.candidateUri());
+        Model model = candidate.generateModel();
+        return new ViewCompiler(model).extractView(id);
+    }
+
     private void sortContributors(List<TestNviCandidate> expectedCandidates) {
         expectedCandidates.forEach(candidate -> candidate.publicationDetails()
                                                     .contributors()
@@ -259,13 +271,13 @@ public class TestData {
 
     private void addPublicationDataToModel(List<TestPublication> testData) {
         testData.stream()
-            .map(TestPublication::generateModel)
+            .map(TestData::getModelWithAppliedView)
             .forEach(models::add);
     }
 
     private void addNviDataToModel(List<TestNviCandidate> testData) {
         testData.stream()
-            .map(TestNviCandidate::generateModel)
+            .map(TestData::getModelWithAppliedView)
             .forEach(models::add);
     }
 

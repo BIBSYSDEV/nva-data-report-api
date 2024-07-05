@@ -43,6 +43,10 @@ public class Constants {
         return PUBLICATION_BASE_URI + localName;
     }
 
+    public static String candidateUri(UUID localName) {
+        return NVI_CANDIDATE_BASE_URI + localName;
+    }
+
     public static String ontologyUri(String localName) {
         return ONTOLOGY_BASE_URI + localName;
     }

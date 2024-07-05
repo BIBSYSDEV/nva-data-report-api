@@ -15,7 +15,8 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.O
 import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.rdf.model.Model;
 
-public record TestNviCandidate(String identifier,
+public record TestNviCandidate(String candidateUri,
+                               String identifier,
                                boolean isApplicable,
                                Instant modifiedDate,
                                TestPublicationDetails publicationDetails,
@@ -95,7 +96,7 @@ public record TestNviCandidate(String identifier,
     }
 
     private CandidateGenerator getCandidateGenerator(PublicationDetailsGenerator publicationDetails) {
-        return new CandidateGenerator(identifier, modifiedDate.toString())
+        return new CandidateGenerator(candidateUri, identifier, modifiedDate.toString())
                    .withIsApplicable(isApplicable)
                    .withPublicationDetails(publicationDetails)
                    .withPoints(totalPoints.toString())
@@ -147,6 +148,7 @@ public record TestNviCandidate(String identifier,
 
     public static final class Builder {
 
+        private String candidateUri;
         private String identifier;
         private boolean isApplicable;
         private Instant modifiedDate;
@@ -161,6 +163,11 @@ public record TestNviCandidate(String identifier,
         private TestGlobalApprovalStatus globalApprovalStatus;
 
         private Builder() {
+        }
+
+        public Builder withCandidateUri(String uri) {
+            this.candidateUri = uri;
+            return this;
         }
 
         public Builder withIdentifier(String identifier) {
@@ -224,7 +231,8 @@ public record TestNviCandidate(String identifier,
         }
 
         public TestNviCandidate build() {
-            return new TestNviCandidate(identifier, isApplicable, modifiedDate, publicationDetails, approvals,
+            return new TestNviCandidate(candidateUri, identifier, isApplicable, modifiedDate, publicationDetails,
+                                        approvals,
                                         totalPoints, publicationTypeChannelLevelPoints, creatorShareCount,
                                         internationalCollaborationFactor, reported, reportingPeriod,
                                         globalApprovalStatus);
