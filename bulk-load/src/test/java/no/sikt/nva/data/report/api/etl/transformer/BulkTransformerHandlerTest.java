@@ -238,13 +238,14 @@ class BulkTransformerHandlerTest {
 
     private static Model getExpectedModelWithAppliedView(List<IndexDocument> expectedDocuments) {
         var expectedModel = ModelFactory.createDefaultModel();
-        expectedDocuments.forEach(document -> {
-            var model =
-                new ViewCompiler(IoUtils.stringToStream(document.getResource().toString()))
-                    .extractView(document.getResourceId());
-            expectedModel.add(model);
-        });
+        expectedDocuments.forEach(document -> applyView(document, expectedModel));
         return expectedModel;
+    }
+
+    private static void applyView(IndexDocument document, Model expectedModel) {
+        var model = new ViewCompiler(IoUtils.stringToStream(document.getResource().toString()))
+                        .extractView(document.getResourceId());
+        expectedModel.add(model);
     }
 
     private static EventConsumptionAttributes randomConsumptionAttribute() {
