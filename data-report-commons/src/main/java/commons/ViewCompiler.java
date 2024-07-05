@@ -35,6 +35,12 @@ public class ViewCompiler {
         }
     }
 
+    private static boolean isNotObject(Model model, URI id) {
+        var publication = model.createResource(id.toString());
+        var statementsWithIdAsObject = model.listStatements(null, null, publication);
+        return !statementsWithIdAsObject.hasNext();
+    }
+
     private Model extractNviCandidateView() {
         var query = IoUtils.stringFromResources(NVI_QUERY);
         try (var queryExecution = QueryExecutionFactory.create(query, model)) {
@@ -51,11 +57,11 @@ public class ViewCompiler {
 
     private boolean isPublication(Model model, URI id) {
         var publicationType = model.createResource(PUBLICATION);
-        return model.contains(model.createResource(id.toString()), RDF.type, publicationType);
+        return model.contains(model.createResource(id.toString()), RDF.type, publicationType) && isNotObject(model, id);
     }
 
     private boolean isNviCandidate(Model model, URI id) {
         var publicationType = model.createResource(NVI_CANDIDATE);
-        return model.contains(model.createResource(id.toString()), RDF.type, publicationType);
+        return model.contains(model.createResource(id.toString()), RDF.type, publicationType) && isNotObject(model, id);
     }
 }
