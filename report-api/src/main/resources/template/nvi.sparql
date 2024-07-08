@@ -22,7 +22,7 @@ WHERE {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
         :publicationId ?publicationUri ;
-        :isApplicable ?isApplicableBoolean ;
+        :isApplicable true ;
         :totalPoints ?totalPoints ;
         :globalApprovalStatus ?globalApprovalStatus ;
         :internationalCollaborationFactor ?internationalCollaborationFactorDecimal ;
@@ -41,12 +41,12 @@ WHERE {
       BIND(STR(?internationalCollaborationFactorDecimal) AS ?internationalCollaborationFactor)
       BIND(STR(?publicationTypeChannelLevelPointsDecimal) AS ?publicationTypeChannelLevelPoints)
 
-      BIND(IF(?reported = true, ?reportedYear, "NotReported") AS ?reportedPeriod)
+      BIND(IF(?reported = true, ?reportingYear, "NotReported") AS ?reportedPeriod)
 
-      BIND(STR(?isApplicableBoolean) AS ?isApplicable)
+      BIND("true" AS ?isApplicable)
 
       BIND(STR(?nviContributor) AS ?contributorIdString)
-      BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
+      BIND(REPLACE(STR(?nviContributor), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
 
       ?nviContributor :nviAffiliation ?affiliationUri .
       BIND(STR(?affiliationUri) AS ?affiliationId)
@@ -60,7 +60,7 @@ WHERE {
       BIND(STR(?organizationUri) AS ?institutionId)
 
       ?creatorAffiliationPoints :nviCreator ?contributorIdString ;
-                                :affiliationId ?affiliationId ;
+                                :affiliation ?affiliationId ;
                                 :points ?pointsForAffiliationDouble .
 
       BIND(STR(?pointsForAffiliationDouble) AS ?pointsForAffiliation)
@@ -70,15 +70,13 @@ WHERE {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
         :publicationId ?publicationUri ;
-        :isApplicable ?isApplicableBoolean .
+        :isApplicable false .
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
       BIND(STR(?publicationUri) AS ?publicationId)
-      BIND(STR(?isApplicableBoolean) AS ?isApplicable)
-
-      FILTER(?isApplicableBoolean = false)
+      BIND("false" AS ?isApplicable)
 
     }
   }
