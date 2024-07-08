@@ -213,7 +213,7 @@ public final class NviTestData {
         return TestInstitutionPoints.builder()
                    .withCreatorAffiliationPoints(generateCreatorAffiliationPointsList(topLevelOrganization,
                                                                                       nviContributors))
-                   .withPoints(randomBigDecimal())
+                   .withInstitutionPoints(randomBigDecimal())
                    .build();
     }
 

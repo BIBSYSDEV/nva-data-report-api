@@ -229,12 +229,13 @@ public class TestData {
 
     private static Model getModelWithAppliedView(TestPublication publication) {
         var id = URI.create(publication.getPublicationUri());
-        return new ViewCompiler(publication.generateModel()).extractView(id);
+        var model = publication.generateModel();
+        return new ViewCompiler(model).extractView(id);
     }
 
     private static Model getModelWithAppliedView(TestNviCandidate candidate) {
         var id = URI.create(candidate.candidateUri());
-        Model model = candidate.generateModel();
+        var model = candidate.generateModel();
         return new ViewCompiler(model).extractView(id);
     }
 

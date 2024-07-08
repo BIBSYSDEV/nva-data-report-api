@@ -56,7 +56,7 @@ public record TestNviCandidate(String candidateUri,
 
     private ApprovalGenerator getApprovalGenerator(TestApproval testApproval) {
         var institutionPointsGenerator = new InstitutionPointsGenerator()
-                                             .withPoints(testApproval.points().points().toString());
+                                             .withPoints(testApproval.points().institutionPoints().toString());
         addCreatorAffiliationPoints(testApproval, institutionPointsGenerator);
         return new ApprovalGenerator()
                    .withApprovalStatus(testApproval.approvalStatus().getValue())
@@ -120,7 +120,7 @@ public record TestNviCandidate(String candidateUri,
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
             .append(approval.institutionId()).append(DELIMITER)
-            .append(approval.points().points()).append(DELIMITER)
+            .append(approval.points().institutionPoints()).append(DELIMITER)
             .append(getExpectedPointsForAffiliation(affiliation, contributor, approval)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus.getValue()).append(DELIMITER)

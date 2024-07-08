@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.InstitutionPointsGenerator;
 
-public record TestInstitutionPoints(BigDecimal points,
+public record TestInstitutionPoints(BigDecimal institutionPoints,
                                     List<TestCreatorAffiliationPoints> creatorAffiliationPoints) {
 
     public static Builder builder() {
@@ -23,7 +23,7 @@ public record TestInstitutionPoints(BigDecimal points,
         private Builder() {
         }
 
-        public Builder withPoints(BigDecimal points) {
+        public Builder withInstitutionPoints(BigDecimal points) {
             this.points = points;
             return this;
         }

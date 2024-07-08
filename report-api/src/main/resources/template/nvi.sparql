@@ -21,56 +21,47 @@ WHERE {
     {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
-        :publicationDetails ?publicationUri ;
+        :publicationId ?publicationUri ;
         :isApplicable ?isApplicableBoolean ;
-        :points ?totalPoints ;
+        :totalPoints ?totalPoints ;
         :globalApprovalStatus ?globalApprovalStatus ;
         :internationalCollaborationFactor ?internationalCollaborationFactorDecimal ;
         :creatorShareCount ?authorShareCount ;
-        :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPointsDecimal .
+        :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPointsDecimal ;
+        :reportingYear ?reportingYear ;
+        :reported ?reported ;
+        :nviContributor ?nviContributor ;
+        :approval ?approval .
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
-      BIND(STR(?internationalCollaborationFactorDecimal) AS ?internationalCollaborationFactor) .
-      BIND(STR(?publicationTypeChannelLevelPointsDecimal) AS ?publicationTypeChannelLevelPoints) .
-
-      OPTIONAL {
-        ?candidate :reported ?reported ;
-                   :reportingPeriod ?reportingPeriod .
-        ?reportingPeriod a :ReportingPeriod ;
-                         :year ?reportedYear .
-        BIND(IF(?reported = true, ?reportedYear, "NotReported") AS ?reportedPeriod)
-      }
-
       BIND(STR(?publicationUri) AS ?publicationId)
+
+      BIND(STR(?internationalCollaborationFactorDecimal) AS ?internationalCollaborationFactor)
+      BIND(STR(?publicationTypeChannelLevelPointsDecimal) AS ?publicationTypeChannelLevelPoints)
+
+      BIND(IF(?reported = true, ?reportedYear, "NotReported") AS ?reportedPeriod)
+
       BIND(STR(?isApplicableBoolean) AS ?isApplicable)
 
-      ?publicationUri :contributor ?contributorId .
-      ?contributorId a :NviContributor .
-      BIND(STR(?contributorId) AS ?contributorIdString)
+      BIND(STR(?nviContributor) AS ?contributorIdString)
       BIND(REPLACE(STR(?contributorId), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
 
-      ?contributorId :affiliation ?affiliationUri .
-      ?affiliationUri a ?NviOrganization .
+      ?nviContributor :nviAffiliation ?affiliationUri .
       BIND(STR(?affiliationUri) AS ?affiliationId)
 
-      ?candidate :approval ?approval .
-      ?approval a :Approval ;
-        :approvalStatus ?institutionApprovalStatus ;
-        :points ?institutionPointsNode ;
-        :institutionId ?organizationUri .
-      FILTER (?affiliationUri = ?organizationUri || EXISTS { ?affiliationUri :partOf ?organizationUri . })
+      ?approval :approvalStatus ?institutionApprovalStatus ;
+                :institutionPoints ?institutionPoints ;
+                :creatorAffiliationPoints ?creatorAffiliationPoints ;
+                :institutionId ?organizationUri ;
+                :involvedOrganization ?affiliationId .
+
       BIND(STR(?organizationUri) AS ?institutionId)
 
-      ?institutionPointsNode a :InstitutionPoints ;
-        :points ?institutionPoints ;
-        :creatorAffiliationPoints ?creatorAffiliationPoints .
-
-      ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
-        :nviCreator ?contributorIdString ;
-        :affiliationId ?affiliationId ;
-        :points ?pointsForAffiliationDouble .
+      ?creatorAffiliationPoints :nviCreator ?contributorIdString ;
+                                :affiliationId ?affiliationId ;
+                                :points ?pointsForAffiliationDouble .
 
       BIND(STR(?pointsForAffiliationDouble) AS ?pointsForAffiliation)
     }
@@ -78,7 +69,7 @@ WHERE {
     {
       ?candidate a :NviCandidate ;
         :modifiedDate ?modifiedDate ;
-        :publicationDetails ?publicationUri ;
+        :publicationId ?publicationUri ;
         :isApplicable ?isApplicableBoolean .
 
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
