@@ -13,6 +13,7 @@ public class StaticTestDataUtil {
 
     private static final Path ACADEMIC_ARTICLE_JSON = Path.of("academicArticle.json");
     private static final Path NVI_CANDIDATE = Path.of("nviCandidate.json");
+    private static final Path NOT_APPLICABLE_CANDIDATE = Path.of("nonApplicableNviCandidate.json");
 
     public static InputStream getPublication(URI id) {
         return stringToStream(fromResourcesReplacingId(ACADEMIC_ARTICLE_JSON, id));
@@ -28,6 +29,10 @@ public class StaticTestDataUtil {
 
     public static InputStream getNviCandidate(URI id) {
         return stringToStream(fromResourcesReplacingId(NVI_CANDIDATE, id));
+    }
+
+    public static InputStream getNonApplicableNviCandidate(URI id) {
+        return stringToStream(fromResourcesReplacingId(NOT_APPLICABLE_CANDIDATE, id));
     }
 
     private static String fromResourcesReplacingId(Path path, URI id) {

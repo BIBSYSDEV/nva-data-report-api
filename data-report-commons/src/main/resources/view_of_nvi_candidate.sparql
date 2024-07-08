@@ -36,39 +36,42 @@ CONSTRUCT {
 } WHERE {
   ?uri :identifier ?identifier .
   ?uri :isApplicable ?isApplicable .
-  ?uri :internationalCollaborationFactor ?internationalCollaborationFactor .
-  ?uri :globalApprovalStatus ?globalApprovalStatus .
-  ?uri :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
-  ?uri :creatorShareCount ?creatorShareCount .
   ?uri :modifiedDate ?modifiedDate .
-
-  ?uri :reportingPeriod ?reportingPeriod .
-  ?uri :reported ?reported .
   ?uri :publicationDetails ?publicationId .
-  ?uri :approval ?approval .
-  ?uri :points ?totalPoints .
 
-  ?reportingPeriod :year ?reportingYear .
 
-  ?publicationId :contributor ?nviContributor .
+  OPTIONAL {
+    ?uri :internationalCollaborationFactor ?internationalCollaborationFactor .
+    ?uri :globalApprovalStatus ?globalApprovalStatus .
+    ?uri :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+    ?uri :creatorShareCount ?creatorShareCount .
+    ?uri :points ?totalPoints .
+    ?uri :reportingPeriod ?reportingPeriod .
+    ?uri :reported ?reported .
+    ?uri :approval ?approval .
 
-  ?nviContributor a :NviContributor .
-  ?nviContributor :affiliation ?nviAffiliation .
-  ?nviAffiliation a :NviOrganization .
+    ?reportingPeriod :year ?reportingYear .
 
-  ?approval a :Approval .
-  ?approval :institutionId ?institutionId .
-  ?approval :approvalStatus ?approvalStatus .
-  ?approval :points ?pointsDistribution .
-  ?approval :involvedOrganization ?involvedOrganization .
+    ?publicationId :contributor ?nviContributor .
 
-  ?pointsDistribution :creatorAffiliationPoints ?creatorAffiliationPoints .
-  ?pointsDistribution :institutionPoints ?institutionPoints .
+    ?nviContributor a :NviContributor .
+    ?nviContributor :affiliation ?nviAffiliation .
+    ?nviAffiliation a :NviOrganization .
 
-  ?creatorAffiliationPoints a :CreatorAffiliationPoints .
-  ?creatorAffiliationPoints :nviCreator ?nviCreator .
-  ?creatorAffiliationPoints :points ?points .
-  ?creatorAffiliationPoints :affiliationId ?affiliation .
+    ?approval a :Approval .
+    ?approval :institutionId ?institutionId .
+    ?approval :approvalStatus ?approvalStatus .
+    ?approval :points ?pointsDistribution .
+    ?approval :involvedOrganization ?involvedOrganization .
 
+    ?pointsDistribution :creatorAffiliationPoints ?creatorAffiliationPoints .
+    ?pointsDistribution :institutionPoints ?institutionPoints .
+
+    ?creatorAffiliationPoints a :CreatorAffiliationPoints .
+    ?creatorAffiliationPoints :nviCreator ?nviCreator .
+    ?creatorAffiliationPoints :points ?points .
+    ?creatorAffiliationPoints :affiliationId ?affiliation .
+
+  }
 
 }

@@ -6,6 +6,7 @@ import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import java.net.URI;
 import java.nio.file.Path;
 import no.sikt.nva.data.report.testing.utils.StaticTestDataUtil;
+import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -17,6 +18,7 @@ class ViewCompilerTest {
 
     private static final Path ACADEMIC_ARTICLE_NT = Path.of("academicArticle.nt");
     private static final Path NVI_CANDIDATE_NT = Path.of("nviCandidate.nt");
+    private static final Path NON_APPLICABLE_NVI_CANDIDATE_NT = Path.of("nonApplicableNviCandidate.nt");
 
     @Test
     void shouldReduceTriplesToPublicationViewRequiredToProduceApiData() {
@@ -32,6 +34,15 @@ class ViewCompilerTest {
         var inputStream = StaticTestDataUtil.getNviCandidate(uri);
         var model = new ViewCompiler(inputStream).extractView(uri);
         Assertions.assertTrue(expected(NVI_CANDIDATE_NT, uri).isIsomorphicWith(model));
+    }
+
+    @Test
+    void shouldReduceTriplesToNviCandidateViewRequiredToProduceApiDataWhenCandidateIsNotApplicable() {
+        var uri = randomUri();
+        var inputStream = StaticTestDataUtil.getNonApplicableNviCandidate(uri);
+        var model = new ViewCompiler(inputStream).extractView(uri);
+        Model expected = expected(NON_APPLICABLE_NVI_CANDIDATE_NT, uri);
+        Assertions.assertTrue(expected.isIsomorphicWith(model));
     }
 
     private static Model expected(Path tripleFile, URI uri) {
