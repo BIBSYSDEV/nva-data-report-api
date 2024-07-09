@@ -16,44 +16,39 @@ SELECT DISTINCT
     ?publicationIdentifier
 WHERE {
   GRAPH ?g {
-    ?uri a :Publication ;
+    ?uri a ?instanceType ;
          :status ?publicationStatus ;
          :modifiedDate ?modifiedDate ;
          :identifier ?publicationIdentifier ;
-         :entityDescription ?entityDescription .
+         :entityDescription ?entityDescription ;
+         :year ?year ;
+         :mainTitle ?publicationTitle ;
+         :publicationContext ?publicationContext .
 
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
     BIND(STR(?uri) AS ?publicationId)
+    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
-    ?entityDescription :mainTitle ?publicationTitle ;
-                       :publicationDate ?date .
-    ?date :year ?year ;
-
     OPTIONAL {
-        ?date :month ?month .
+        ?uri :month ?month .
     }
     OPTIONAL {
-        ?date :day ?day .
+        ?uri :day ?day .
     }
 
     BIND(IF(BOUND(?month), CONCAT("-", ?month), "") AS ?monthPart)
     BIND(IF(BOUND(?day), CONCAT("-", ?day), "") AS ?dayPart)
     BIND(CONCAT(?year, CONCAT(?monthPart, ?dayPart)) AS ?publicationDate)
 
-    ?entityDescription :reference ?reference .
-    ?reference :publicationContext ?publicationContext .
     ?publicationContext a ?channelTypeId ;
                         :name ?channelName ;
+                        :identifier ?channelIdentifier ;
                         :scientificValue ?channelLevel .
 
-    BIND(REPLACE(STR(?publicationContext), "^.*/([^/]+)/[^/]+$", "$1") AS ?channelIdentifier)
     BIND(STR(?channelTypeId) AS ?channelType)
-    ?reference :publicationInstance ?instance .
-    ?instance a ?instanceType .
-    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
 
     OPTIONAL {
         ?publicationContext :onlineIssn ?channelOnlineIssn
