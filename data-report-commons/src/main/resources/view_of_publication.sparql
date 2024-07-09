@@ -76,6 +76,8 @@ CONSTRUCT {
   ?uri :modifiedDate ?modifiedDate .
   ?uri :mainTitle ?mainTitle.
   ?uri :year ?year .
+  ?uri :month ?month .
+  ?uri :day ?day .
   ?uri :publicationDate ?publicationDateIso.
   ?uri :publicationContext ?publicationContext .
   ?uri :funding ?funding .

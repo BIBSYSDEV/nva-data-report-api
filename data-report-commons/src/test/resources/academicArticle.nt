@@ -5,6 +5,8 @@
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#mainTitle> "Convective Instability in a Horizontal Porous Channel with Permeable and Conducting Side Boundaries" .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#publicationDate> "2013-10-01" .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#year> "2013" .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#month> "10" .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#day> "01" .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#publicationContext> <https://api.dev.nva.aws.unit.no/publication-channels-v2/journal/22612958-B6AA-4869-B398-71CFF4DFD23F/2013> .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#funding> _:b0 .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#funding> <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> .
