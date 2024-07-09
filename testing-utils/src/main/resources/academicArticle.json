@@ -88,7 +88,7 @@
         "type": "Contributor",
         "affiliations": [
           {
-            "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0",
+            "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1",
             "type": "Organization",
             "countryCode": "NO",
             "labels": {
@@ -170,11 +170,23 @@
           "type": "Organization",
           "countryCode": "NO",
           "labels": {
-            "nb": "Institutt for matematiske fag",
-            "en": "Department of Mathematical Sciences"
+            "nb": "Some Department",
+            "en": "Some Department"
           },
           "partOf": {
             "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.0.0"
+          },
+          "hasPart": {
+            "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1",
+            "type": "Organization",
+            "countryCode": "NO",
+            "labels": {
+              "nb": "Institutt for matematiske fag",
+              "en": "Department of Mathematical Sciences"
+            },
+            "partOf": {
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0"
+            }
           }
         },
         "labels": {

@@ -228,8 +228,9 @@ CONSTRUCT {
           }
         }
         BIND(IF(!BOUND(?institutionUriRaw), ?affiliation, ?institutionUriRaw) AS ?institutionUri)
-        BIND(IF(!BOUND(?facultyUriRaw) && BOUND(?institutionUriRaw), ?affiliation, ?facultyUriRaw) AS ?facultyUri)
-        BIND(IF(!BOUND(?departmentUriRaw) && BOUND(?facultyUriRaw), ?affiliation, ?departmentUriRaw) AS ?departmentUri)
+        ##TODO: Clarify with brinxmat
+        BIND(IF(!BOUND(?facultyUriRaw) && BOUND(?institutionUriRaw) && BOUND(?departmentUriRaw), ?affiliation, ?facultyUriRaw) AS ?facultyUri)
+        BIND(IF(!BOUND(?departmentUriRaw) && BOUND(?facultyUriRaw) && BOUND(?groupUriRaw), ?affiliation, ?departmentUriRaw) AS ?departmentUri)
         BIND(IF(!BOUND(?groupUriRaw) && BOUND(?departmentUriRaw), ?affiliation, ?groupUriRaw) AS ?groupUri)
       }
     }
