@@ -29,6 +29,16 @@ class ViewCompilerTest {
     }
 
     @Test
+    void shouldReduceTriplesToPublicationViewRequiredToProduceApiDataWithInputModel() {
+        var uri = randomUri();
+        var inputStream = StaticTestDataUtil.getPublication(uri);
+        var inputModel = ModelFactory.createDefaultModel();
+        RDFDataMgr.read(inputModel, inputStream, Lang.JSONLD);
+        var actualModelWithAppliedView = new ViewCompiler(inputModel).extractView(uri);
+        Assertions.assertTrue(expected(ACADEMIC_ARTICLE_NT, uri).isIsomorphicWith(actualModelWithAppliedView));
+    }
+
+    @Test
     void shouldReduceTriplesToNviCandidateViewRequiredToProduceApiData() {
         var uri = randomUri();
         var inputStream = StaticTestDataUtil.getNviCandidate(uri);
