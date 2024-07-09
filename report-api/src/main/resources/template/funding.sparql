@@ -10,11 +10,10 @@ SELECT DISTINCT
     ?fundingName
 WHERE {
   GRAPH ?g {
-    ?uri a :Publication ;
-                    :status ?publicationStatus ;
-                    :modifiedDate ?modifiedDate ;
-                    :identifier ?publicationIdentifier ;
-                    :funding ?funding .
+    ?uri :status ?publicationStatus ;
+         :modifiedDate ?modifiedDate ;
+         :identifier ?publicationIdentifier ;
+         :funding ?funding .
 
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
@@ -22,7 +21,7 @@ WHERE {
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
-    ?funding :source/:identifier ?fundingSource .
+    ?funding :fundingSource ?fundingSource .
     ?funding :identifier ?fundingId .
     ?funding :label ?label .
     FILTER(LANG(?label) = "en")
