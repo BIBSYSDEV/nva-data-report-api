@@ -31,8 +31,7 @@ public class TestFunding {
     public FundingGenerator toModel() {
         return new FundingGenerator()
                    .withIdentifier(id)
-                   .withLabel(name, "en")
-                   .withSource(new FundingSourceGenerator().withIdentifier(fundingSource));
+                   .withSource(new FundingSourceGenerator().withLabel(name, "en").withIdentifier(fundingSource));
     }
 
     public String getFundingSource() {
