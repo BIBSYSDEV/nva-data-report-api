@@ -133,6 +133,10 @@ CONSTRUCT {
     ( :PUBLISHED "PUBLISHED" )
     ( :DELETED "DELETED" )
     ( :UNPUBLISHED "UNPUBLISHED" )
+    ##TODO: Clarify these with brinxmat
+    ( "PUBLISHED" "PUBLISHED" )
+    ( "DELETED" "DELETED" )
+    ( "UNPUBLISHED" "UNPUBLISHED" )
   }
 
 # The following code extracts the parts of the publication date and binds the year and the parts
