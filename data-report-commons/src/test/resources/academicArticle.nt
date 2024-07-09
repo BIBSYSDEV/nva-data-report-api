@@ -5,6 +5,8 @@
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#mainTitle> "Convective Instability in a Horizontal Porous Channel with Permeable and Conducting Side Boundaries" .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#publicationDate> "2013-10-01" .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#year> "2013" .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#month> "10" .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#day> "01" .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#publicationContext> <https://api.dev.nva.aws.unit.no/publication-channels-v2/journal/22612958-B6AA-4869-B398-71CFF4DFD23F/2013> .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#funding> _:b0 .
 <__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#funding> <https://api.dev.nva.aws.unit.no/verified-funding/nfr/237906> .
@@ -26,9 +28,10 @@ _:b0 <https://nva.sikt.no/ontology/publication#label> "Finansmarkedfondet"@nb .
 <https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#name> "Leiv Storesletten" .
 <https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#sequence> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#role> <https://nva.sikt.no/ontology/publication#Creator> .
-<https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#affiliation> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> .
-<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#label> "Institutt for matematiske fag"@nb .
-<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#label> "Department of Mathematical Sciences"@en .
-<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#institution> <https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0> .
-<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#faculty> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.0.0> .
-<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> <https://nva.sikt.no/ontology/publication#department> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> .
+<https://api.dev.nva.aws.unit.no/cristin/person/208070> <https://nva.sikt.no/ontology/publication#affiliation> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> .
+<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> <https://nva.sikt.no/ontology/publication#label> "Institutt for matematiske fag"@nb .
+<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> <https://nva.sikt.no/ontology/publication#label> "Department of Mathematical Sciences"@en .
+<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> <https://nva.sikt.no/ontology/publication#institution> <https://api.dev.nva.aws.unit.no/cristin/organization/201.0.0.0> .
+<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> <https://nva.sikt.no/ontology/publication#faculty> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.0.0> .
+<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> <https://nva.sikt.no/ontology/publication#department> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.0> .
+<https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> <https://nva.sikt.no/ontology/publication#group> <https://api.dev.nva.aws.unit.no/cristin/organization/201.15.1.1> .

@@ -226,7 +226,7 @@ public class TestPublication {
 
     private static String getItemAt(ArrayList<String> affiliations, int offset) {
         int size = affiliations.size();
-        return (size > offset) ? affiliations.get(size - offset) : EMPTY_STRING;
+        return (size >= offset) ? affiliations.get(size - offset) : EMPTY_STRING;
     }
 
     private static Optional<TestOrganization> getPartOf(ArrayList<String> affiliations, TestOrganization partOf) {

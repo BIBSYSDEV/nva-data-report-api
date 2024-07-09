@@ -15,7 +15,8 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.model.publication.O
 import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.rdf.model.Model;
 
-public record TestNviCandidate(String identifier,
+public record TestNviCandidate(String candidateUri,
+                               String identifier,
                                boolean isApplicable,
                                Instant modifiedDate,
                                TestPublicationDetails publicationDetails,
@@ -55,7 +56,7 @@ public record TestNviCandidate(String identifier,
 
     private ApprovalGenerator getApprovalGenerator(TestApproval testApproval) {
         var institutionPointsGenerator = new InstitutionPointsGenerator()
-                                             .withPoints(testApproval.points().points().toString());
+                                             .withPoints(testApproval.points().institutionPoints().toString());
         addCreatorAffiliationPoints(testApproval, institutionPointsGenerator);
         return new ApprovalGenerator()
                    .withApprovalStatus(testApproval.approvalStatus().getValue())
@@ -95,7 +96,7 @@ public record TestNviCandidate(String identifier,
     }
 
     private CandidateGenerator getCandidateGenerator(PublicationDetailsGenerator publicationDetails) {
-        return new CandidateGenerator(identifier, modifiedDate.toString())
+        return new CandidateGenerator(candidateUri, identifier, modifiedDate.toString())
                    .withIsApplicable(isApplicable)
                    .withPublicationDetails(publicationDetails)
                    .withPoints(totalPoints.toString())
@@ -119,7 +120,7 @@ public record TestNviCandidate(String identifier,
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
             .append(approval.institutionId()).append(DELIMITER)
-            .append(approval.points().points()).append(DELIMITER)
+            .append(approval.points().institutionPoints()).append(DELIMITER)
             .append(getExpectedPointsForAffiliation(affiliation, contributor, approval)).append(DELIMITER)
             .append(approval.approvalStatus().getValue()).append(DELIMITER)
             .append(globalApprovalStatus.getValue()).append(DELIMITER)
@@ -147,6 +148,7 @@ public record TestNviCandidate(String identifier,
 
     public static final class Builder {
 
+        private String candidateUri;
         private String identifier;
         private boolean isApplicable;
         private Instant modifiedDate;
@@ -161,6 +163,11 @@ public record TestNviCandidate(String identifier,
         private TestGlobalApprovalStatus globalApprovalStatus;
 
         private Builder() {
+        }
+
+        public Builder withCandidateUri(String uri) {
+            this.candidateUri = uri;
+            return this;
         }
 
         public Builder withIdentifier(String identifier) {
@@ -224,7 +231,8 @@ public record TestNviCandidate(String identifier,
         }
 
         public TestNviCandidate build() {
-            return new TestNviCandidate(identifier, isApplicable, modifiedDate, publicationDetails, approvals,
+            return new TestNviCandidate(candidateUri, identifier, isApplicable, modifiedDate, publicationDetails,
+                                        approvals,
                                         totalPoints, publicationTypeChannelLevelPoints, creatorShareCount,
                                         internationalCollaborationFactor, reported, reportingPeriod,
                                         globalApprovalStatus);

@@ -1,0 +1,5 @@
+<__REPLACE_ID__> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://nva.sikt.no/ontology/publication#NviCandidate> .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#identifier> "b98d295a-10c6-4e81-917a-bd087d78fdf8" .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#isApplicable> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#modifiedDate> "2024-06-18T09:32:40.777188857Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<__REPLACE_ID__> <https://nva.sikt.no/ontology/publication#publicationId> <https://api.test.nva.aws.unit.no/publication/01902aafc1f7-8e364227-efc1-4a5f-a676-e8d3d7b3c656> .

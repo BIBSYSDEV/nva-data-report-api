@@ -19,7 +19,6 @@ public class FundingGenerator extends TripleBasedBuilder {
     private static final int MAX = 60_000;
     private static final Resource FUNDING = new ResourceImpl(Constants.ONTOLOGY_BASE_URI + "Funding");
     private static final Property SOURCE = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "source");
-    private static final Property LABEL = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "label");
 
     public final Resource subject;
 
@@ -40,11 +39,6 @@ public class FundingGenerator extends TripleBasedBuilder {
         if (nonNull(identifier)) {
             model.add(subject, IDENTIFIER, model.createLiteral(identifier));
         }
-        return this;
-    }
-
-    public FundingGenerator withLabel(String label, String language) {
-        model.add(subject, LABEL, model.createLiteral(label, language));
         return this;
     }
 

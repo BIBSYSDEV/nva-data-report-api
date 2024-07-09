@@ -24,7 +24,7 @@ public class InstitutionPointsGenerator extends TripleBasedBuilder {
     }
 
     public InstitutionPointsGenerator withPoints(String points) {
-        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "points"), points);
+        model.add(subject, new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "institutionPoints"), points);
         return this;
     }
 
