@@ -6,7 +6,6 @@ import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import java.net.URI;
 import java.nio.file.Path;
 import no.sikt.nva.data.report.testing.utils.StaticTestDataUtil;
-import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -51,7 +50,7 @@ class ViewCompilerTest {
         var uri = randomUri();
         var inputStream = StaticTestDataUtil.getNonApplicableNviCandidate(uri);
         var model = new ViewCompiler(inputStream).extractView(uri);
-        Model expected = expected(NON_APPLICABLE_NVI_CANDIDATE_NT, uri);
+        var expected = expected(NON_APPLICABLE_NVI_CANDIDATE_NT, uri);
         Assertions.assertTrue(expected.isIsomorphicWith(model));
     }
 
