@@ -28,14 +28,14 @@ class BulkReportGeneratorTest {
 
     @Test
     void shouldRequireReportType() {
-        var request = new GenerateReportRequest(null);
+        var request = new BulkReportRequest(null);
         assertThrows(IllegalArgumentException.class,
                      () -> handler.handleRequest(eventStream(request), outputStream, context));
     }
 
     @Test
     void shouldThrowIllegalArgumentExceptionWhenReportTypeIsInvalid() {
-        var request = new GenerateReportRequest(randomString());
+        var request = new BulkReportRequest(randomString());
         assertThrows(IllegalArgumentException.class,
                      () -> handler.handleRequest(eventStream(request), outputStream, context));
     }
@@ -55,8 +55,8 @@ class BulkReportGeneratorTest {
 
     }
 
-    private InputStream eventStream(GenerateReportRequest detail) throws JsonProcessingException {
-        var event = new AwsEventBridgeEvent<GenerateReportRequest>();
+    private InputStream eventStream(BulkReportRequest detail) throws JsonProcessingException {
+        var event = new AwsEventBridgeEvent<BulkReportRequest>();
         event.setDetail(detail);
         event.setId(randomString());
         var jsonString = dtoObjectMapper.writeValueAsString(event);

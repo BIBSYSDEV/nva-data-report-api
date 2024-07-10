@@ -2,7 +2,6 @@ package no.sikt.nva.data.report.api.fetch.model;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import nva.commons.apigateway.exceptions.BadRequestException;
 
 public enum ReportType {
     AFFILIATION("affiliation"),
@@ -13,27 +12,27 @@ public enum ReportType {
     NVI("nvi");
 
     public static final String DELIMITER = ", ";
-    public static final String BAD_REQUEST_MESSAGE_TEMPLATE = "Bad request. Acceptable report types: %s";
+    public static final String BAD_REQUEST_MESSAGE_TEMPLATE = "Illegal argument. Acceptable report types: %s";
     private final String type;
 
     ReportType(String type) {
         this.type = type;
     }
 
-    public static ReportType parse(String candidate) throws BadRequestException {
+    public static ReportType parse(String candidate) throws IllegalArgumentException {
         return Arrays.stream(values())
                    .filter(reportType -> reportType.getType().equals(candidate))
                    .findAny()
-                   .orElseThrow(ReportType::getBadRequest);
+                   .orElseThrow(ReportType::getIllegalArgument);
     }
 
     public String getType() {
         return type;
     }
 
-    private static BadRequestException getBadRequest() {
+    private static IllegalArgumentException getIllegalArgument() {
         var message = String.format(BAD_REQUEST_MESSAGE_TEMPLATE, getValidReportTypes());
-        return new BadRequestException(message);
+        return new IllegalArgumentException(message);
     }
 
     private static String getValidReportTypes() {
