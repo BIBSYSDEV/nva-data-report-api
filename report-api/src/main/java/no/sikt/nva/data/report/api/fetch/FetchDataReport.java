@@ -5,6 +5,7 @@ import static com.google.common.net.MediaType.OOXML_SHEET;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
 import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.model.ReportFormat.EXCEL;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import commons.db.GraphStoreProtocolConnection;
@@ -19,6 +20,7 @@ import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class FetchDataReport extends ApiGatewayHandler<Void, String> {
@@ -46,7 +48,7 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
     }
 
     protected String processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        var reportRequest = ReportRequest.fromRequestInfo(requestInfo);
+        var reportRequest = getReportRequest(requestInfo);
         var reportFormat = reportRequest.getReportFormat();
         var result = queryService.getResult(reportRequest, getFormatter(reportFormat));
         setIsBase64EncodedIfReportFormatExcel(reportFormat);
@@ -56,6 +58,11 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
     @Override
     protected Integer getSuccessStatusCode(Void input, String output) {
         return 200;
+    }
+
+    private static ReportRequest getReportRequest(RequestInfo requestInfo) throws BadRequestException {
+        return attempt(() -> ReportRequest.fromRequestInfo(requestInfo))
+                   .orElseThrow(failure -> new BadRequestException(failure.getException().getMessage()));
     }
 
     private static ResponseFormatter getFormatter(ReportFormat reportFormat) {
