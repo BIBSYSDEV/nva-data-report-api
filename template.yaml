@@ -531,6 +531,24 @@ Resources:
               detail:
                 topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
 
+  BulkReportGenerator:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: report-api
+      Handler: no.sikt.nva.data.report.api.fetch.BulkReportGenerator::handleRequest
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref LambdaSubnet1
+          - !Ref LambdaSubnet2
+      Policies:
+        - !GetAtt NeptuneManagedPolicy.PolicyArn
+        - !GetAtt DeployToVpnPolicy.PolicyArn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
   # parameter groups
