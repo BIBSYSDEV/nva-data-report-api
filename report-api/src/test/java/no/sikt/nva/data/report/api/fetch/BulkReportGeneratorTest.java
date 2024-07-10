@@ -1,15 +1,20 @@
 package no.sikt.nva.data.report.api.fetch;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import no.sikt.nva.data.report.api.fetch.model.ReportType;
+import no.sikt.nva.data.report.api.fetch.testutils.NviTestUtils;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.ioutils.IoUtils;
+import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,18 +46,12 @@ class BulkReportGeneratorTest {
     }
 
     @Test
-    void shouldProduceReportAndPersistInS3() {
-
-    }
-
-    @Test
-    void shouldNotNewEventWhenThereAreNoMoreItemsToFetch() {
-
-    }
-
-    @Test
-    void shouldEmitNewEventWhenThereAreMoreItemsToFetch() {
-
+    void shouldLogReportType() throws JsonProcessingException {
+        var reportType = randomElement(ReportType.values()).getType();
+        var request = new BulkReportRequest(reportType);
+        var appender = LogUtils.getTestingAppenderForRootLogger();
+        handler.handleRequest(eventStream(request), outputStream, context);
+        assertTrue(appender.getMessages().contains(reportType));
     }
 
     private InputStream eventStream(BulkReportRequest detail) throws JsonProcessingException {
