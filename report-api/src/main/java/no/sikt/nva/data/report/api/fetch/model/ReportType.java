@@ -19,7 +19,7 @@ public enum ReportType {
         this.type = type;
     }
 
-    public static ReportType parse(String candidate) throws IllegalArgumentException {
+    public static ReportType parse(String candidate) {
         return Arrays.stream(values())
                    .filter(reportType -> reportType.getType().equals(candidate))
                    .findAny()
