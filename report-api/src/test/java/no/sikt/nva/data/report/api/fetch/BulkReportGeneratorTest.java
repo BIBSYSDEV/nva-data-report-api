@@ -34,6 +34,13 @@ class BulkReportGeneratorTest {
     }
 
     @Test
+    void shouldThrowIllegalArgumentExceptionWhenReportTypeIsInvalid() {
+        var request = new GenerateReportRequest(randomString());
+        assertThrows(IllegalArgumentException.class,
+                     () -> handler.handleRequest(eventStream(request), outputStream, context));
+    }
+
+    @Test
     void shouldProduceReportAndPersistInS3() {
 
     }
