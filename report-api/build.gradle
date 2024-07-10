@@ -9,6 +9,7 @@ dependencies {
     implementation libs.nva.json
     implementation libs.nva.commons.auth
     implementation libs.nva.commons.secrets
+    implementation libs.nva.eventhandlers
     implementation libs.nva.s3
     implementation libs.aws.sdk2.secrets
     implementation libs.bundles.jena
