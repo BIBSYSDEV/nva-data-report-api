@@ -60,6 +60,10 @@ Parameters:
   SlackSnsArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/NVA/Monitoring/SlackSnsArn'
+  AllowedOrigins:
+    Type: String
+    Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
+    Default: '*'
 
 Mappings:
   SubnetConfig:
@@ -327,7 +331,7 @@ Resources:
       AutoPublishAlias: live
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Events:
         ApiEvent:
           Type: Api
@@ -357,7 +361,7 @@ Resources:
       AutoPublishAlias: live
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           NVI_REPORTS_BUCKET: !Ref NviReportsBucket
           GRAPH_DATABASE_PAGE_SIZE: 500
       Events:
@@ -388,7 +392,7 @@ Resources:
       AutoPublishAlias: live
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           COGNITO_HOST: !Ref CognitoAuthorizationUri
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           NVI_REPORTS_BUCKET: !Ref NviReportsBucket

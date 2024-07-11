@@ -1,6 +1,6 @@
 [versions]
 junit = { strictly = '5.10.0' }
-nva = { strictly = '1.40.0' }
+nva = { strictly = '1.40.6' }
 zalando = { strictly = '0.27.1' }
 awsLambdaJavaCore = { strictly = '1.2.3' }
 awsLambdaEvents = { strictly = '3.11.4' }
