@@ -4,6 +4,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -38,6 +39,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.shared.NotFoundException;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.BeforeEach;
@@ -221,6 +223,27 @@ class BulkTransformerHandlerTest {
                                                             mock(Context.class));
         assertThrows(MissingIdException.class, executable);
         assertTrue(loggerAppender.getMessages().contains("Missing id-node in content"));
+    }
+
+    @Test
+    void shouldNotFailWhenBlobNotFound() throws IOException {
+        var expectedDocuments = createExpectedDocuments(10);
+        removeOneResourceFromPersistedResourcesBucket(expectedDocuments);
+        var batch = expectedDocuments.stream()
+                        .map(IndexDocument::getDocumentIdentifier)
+                        .collect(Collectors.joining(System.lineSeparator()));
+        var batchKey = randomString();
+        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var handler = new BulkTransformerHandler(s3ResourcesClient,
+                                                 s3BatchesClient,
+                                                 s3OutputClient,
+                                                 eventBridgeClient);
+        assertDoesNotThrow(() -> handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class)));
+    }
+
+    private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
+        var document = expectedDocuments.getFirst();
+        s3ResourcesDriver.deleteFile(UnixPath.of(document.getDocumentIdentifier()));
     }
 
     private static Model getActualModel(String nqauds) {
