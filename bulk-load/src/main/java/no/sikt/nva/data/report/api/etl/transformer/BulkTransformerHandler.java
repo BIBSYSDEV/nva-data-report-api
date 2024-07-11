@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, Void> {
@@ -205,6 +206,8 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
         return extractIdentifiers(content)
                    .filter(Objects::nonNull)
                    .map(this::fetchS3Content)
+                   .filter(Optional::isPresent)
+                   .map(Optional::get)
                    .map(this::unwrap);
     }
 
@@ -218,10 +221,15 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
                    : Stream.empty();
     }
 
-    private String fetchS3Content(String key) {
+    private Optional<String> fetchS3Content(String key) {
         logger.info("Fetching content for key: {}", key);
         var s3Driver = new S3Driver(s3ResourcesClient, ENVIRONMENT.readEnv(EXPANDED_RESOURCES_BUCKET));
-        return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
+        try {
+            return Optional.of(s3Driver.getFile(UnixPath.of(key)));
+        } catch (NoSuchKeyException noSuchKeyException) {
+            logger.info("Key not found: {}", key);
+            return Optional.empty();
+        }
     }
 
     private static class ListingResponse {
