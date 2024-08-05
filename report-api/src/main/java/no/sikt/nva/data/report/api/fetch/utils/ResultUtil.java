@@ -11,10 +11,6 @@ public final class ResultUtil {
     private ResultUtil() {
     }
 
-    public static boolean isNotEmpty(ResultSet result) {
-        return result.getRowNumber() > 0;
-    }
-
     public static List<List<String>> extractData(ResultSet resultSet) {
         var headers = resultSet.getResultVars();
         var data = new ArrayList<List<String>>();

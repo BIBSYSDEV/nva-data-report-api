@@ -35,8 +35,8 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     private static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
     private static final String EXCEL = "application/vnd.ms-excel";
     private static final Environment ENVIRONMENT = new Environment();
+    private static final int PAGE_SIZE = Integer.parseInt(ENVIRONMENT.readEnv("GRAPH_DATABASE_PAGE_SIZE"));
     private static final String bucketName = ENVIRONMENT.readEnv("NVI_REPORTS_BUCKET");
-    private static final String pageSize = ENVIRONMENT.readEnv("GRAPH_DATABASE_PAGE_SIZE");
     private NviInstitutionReportGenerator handler;
     private S3Client s3Client;
 
@@ -62,7 +62,7 @@ public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
     @ParameterizedTest
     @MethodSource("nviInstitutionReportExcelRequestProvider")
     void shouldWriteExcelFileToS3(NviInstitutionReportRequest request) throws IOException {
-        var numberGreaterThanPageSize =  1;
+        var numberGreaterThanPageSize = 2 * PAGE_SIZE;
         var testData = new TestData(generateDatePairs(numberGreaterThanPageSize));
         loadModels(testData.getModels());
         handler.handleRequest(sqsEventWithOneMessage(request), new FakeContext());
