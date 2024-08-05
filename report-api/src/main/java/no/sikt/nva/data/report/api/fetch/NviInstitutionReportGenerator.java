@@ -2,7 +2,6 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.utils.ExceptionUtils.getStackTrace;
 import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.extractData;
-import static no.sikt.nva.data.report.api.fetch.utils.ResultUtil.isNotEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -84,13 +83,17 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
         logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
         var result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
         var report = Excel.fromJava(result.getResultVars(), extractData(result));
-        while (isNotEmpty(result)) {
+        while (thereAreMoreResultsToFetch(result)) {
             offset += Integer.parseInt(pageSize);
             logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
             result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
             report.addData(extractData(result));
         }
         return NviInstitutionReportPostProcessor.postProcess(report);
+    }
+
+    private boolean thereAreMoreResultsToFetch(ResultSet result) {
+        return result.getRowNumber() == Integer.parseInt(pageSize);
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {
@@ -122,6 +125,8 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
                                         REPLACE_TOP_LEVEL_ORG, topLevelOrganization,
                                         PAGE_SIZE, pageSize,
                                         OFFSET, offset);
-        return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings);
+        var result = queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings);
+        logger.info("Result fetched from database. Row count: {}", result.getRowNumber());
+        return result;
     }
 }
