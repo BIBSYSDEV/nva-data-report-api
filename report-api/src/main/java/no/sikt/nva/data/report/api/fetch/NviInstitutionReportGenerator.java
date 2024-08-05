@@ -125,6 +125,8 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
                                         REPLACE_TOP_LEVEL_ORG, topLevelOrganization,
                                         PAGE_SIZE, pageSize,
                                         OFFSET, offset);
-        return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings);
+        var result = queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings);
+        logger.info("Result fetched from database. Row count: {}", result.getRowNumber());
+        return result;
     }
 }
