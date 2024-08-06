@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.sikt.nva.data.report.api.etl.transformer.model.EventConsumptionAttributes;
-import no.sikt.nva.data.report.api.etl.transformer.model.IndexDocument;
 import no.sikt.nva.data.report.testing.utils.StaticTestDataUtil;
+import no.sikt.nva.data.report.testing.utils.model.EventConsumptionAttributes;
+import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
@@ -39,7 +39,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.shared.NotFoundException;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.BeforeEach;
@@ -241,11 +240,6 @@ class BulkTransformerHandlerTest {
         assertDoesNotThrow(() -> handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class)));
     }
 
-    private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
-        var document = expectedDocuments.getFirst();
-        s3ResourcesDriver.deleteFile(UnixPath.of(document.getDocumentIdentifier()));
-    }
-
     private static Model getActualModel(String nqauds) {
         var actualGraph = DatasetGraphFactory.createTxnMem();
         RDFDataMgr.read(actualGraph, IoUtils.stringToStream(nqauds), Lang.NQUADS);
@@ -273,6 +267,11 @@ class BulkTransformerHandlerTest {
 
     private static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
+    }
+
+    private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
+        var document = expectedDocuments.getFirst();
+        s3ResourcesDriver.deleteFile(UnixPath.of(document.getDocumentIdentifier()));
     }
 
     private String getActualPersistedFile() {
