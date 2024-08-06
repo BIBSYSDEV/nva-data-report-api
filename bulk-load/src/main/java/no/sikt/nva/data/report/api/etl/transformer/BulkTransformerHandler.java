@@ -1,7 +1,7 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
 import static java.util.Objects.nonNull;
-import static no.sikt.nva.data.report.api.etl.transformer.util.GzipUtil.compress;
+import static commons.utils.GzipUtil.compress;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import static nva.commons.core.attempt.Try.attempt;
 import static nva.commons.core.ioutils.IoUtils.stringToStream;

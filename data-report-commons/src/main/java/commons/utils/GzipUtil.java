@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.etl.transformer.util;
+package commons.utils;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.ByteArrayInputStream;
