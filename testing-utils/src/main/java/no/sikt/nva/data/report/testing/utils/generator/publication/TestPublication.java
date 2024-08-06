@@ -61,6 +61,10 @@ public class TestPublication {
         return channel;
     }
 
+    public String getPublicationUri() {
+        return publicationUri;
+    }
+
     public TestPublication withModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
         return this;
@@ -216,10 +220,6 @@ public class TestPublication {
         fundings.stream().map(TestFunding::toModel).forEach(publication::withFunding);
 
         return publication.build();
-    }
-
-    public String getPublicationUri() {
-        return publicationUri;
     }
 
     public JsonNode toJsonNode() {

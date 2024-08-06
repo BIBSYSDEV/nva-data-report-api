@@ -32,11 +32,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 class CsvBulkTransformerTest {
 
     private static final String DEFAULT_LOCATION = "resources";
-    private S3Driver s3Driver;
-    private S3Client s3Client;
+    private S3Driver s3keyBatches3Driver;
+    private S3Client s3keyBatchClient;
     private ByteArrayOutputStream outputStream;
     private S3Client s3OutputClient;
     private S3Driver s3OutputDriver;
+    private S3Client s3ResourcesClient;
+    private S3Driver s3ResourcesDriver;
 
     public static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
@@ -45,10 +47,12 @@ class CsvBulkTransformerTest {
     @BeforeEach
     void setUp() {
         outputStream = new ByteArrayOutputStream();
-        s3Client = new FakeS3Client();
-        s3Driver = new S3Driver(s3Client, "keyBathesBucket");
+        s3keyBatchClient = new FakeS3Client();
+        s3keyBatches3Driver = new S3Driver(s3keyBatchClient, "keyBathesBucket");
         s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, "csvOutputBucket");
+        s3ResourcesClient = new FakeS3Client();
+        s3ResourcesDriver = new S3Driver(s3ResourcesClient, "resourcesBucket");
     }
 
     @Test
@@ -59,8 +63,8 @@ class CsvBulkTransformerTest {
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
-        s3Driver.insertFile(UnixPath.of(batchKey), batch);
-        var handler = new CsvBulkTransformer();
+        s3keyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
+        var handler = new CsvBulkTransformer(s3keyBatchClient, s3OutputClient, s3ResourcesClient);
         handler.handleRequest(eventStream(), outputStream, mock(Context.class));
         var actualContent = getActualPersistedFile();
         var expectedContent = testData.getPublicationResponseData();
@@ -77,9 +81,10 @@ class CsvBulkTransformerTest {
     private List<IndexDocument> createAndPersistIndexDocuments(TestData testData) {
         var indexDocuments = testData.getPublicationTestData().stream()
                                  .map(publication -> new IndexDocument(randomConsumptionAttribute(),
-                                                                       publication.toJsonNode()))
+                                                                       IndexDocumentGenerator.createExpandedResource(
+                                                                           publication)))
                                  .toList();
-        indexDocuments.forEach(document -> document.persistInS3(s3Driver));
+        indexDocuments.forEach(document -> document.persistInS3(s3ResourcesDriver));
         return indexDocuments;
     }
 

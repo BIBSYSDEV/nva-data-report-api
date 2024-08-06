@@ -11,7 +11,7 @@ import com.google.common.net.MediaType;
 import commons.db.GraphStoreProtocolConnection;
 import commons.formatter.ResponseFormatter;
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.formatter.CsvFormatter;
+import commons.formatter.CsvFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.ExcelFormatter;
 import no.sikt.nva.data.report.api.fetch.formatter.PlainTextFormatter;
 import no.sikt.nva.data.report.api.fetch.model.ReportFormat;

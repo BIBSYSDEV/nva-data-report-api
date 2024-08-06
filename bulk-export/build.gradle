@@ -1,0 +1,42 @@
+plugins {
+    id 'nva.data.report.api.java-conventions'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(':data-report-commons'))
+    implementation(libs.bundles.jena) {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
+    implementation libs.bundles.jackson
+    implementation libs.nva.s3
+    implementation libs.nva.commons.core
+    implementation libs.nva.json
+    implementation libs.aws.sdk2.lambda.events
+    implementation libs.aws.lambda.java.core
+    implementation libs.bundles.logging
+    implementation libs.nva.eventhandlers
+    implementation libs.aws.sdk2.eventbridge
+    implementation libs.aws.sdk2.s3
+    implementation libs.aws.sdk2.sqs
+    implementation libs.aws.lambda.events
+    implementation libs.aws.sdk2.urlconnection
+    implementation libs.nva.identifiers
+
+    testImplementation(libs.nva.testutils) {
+        exclude group: 'org.wiremock', module: 'wiremock'
+    }
+    testImplementation(project(':testing-utils'))
+
+    test {
+        environment("API_HOST", "example.org")
+        environment("AWS_REGION", "eu-west-1")
+        environment("EXPANDED_RESOURCES_BUCKET", "s3://persistedResources")
+        environment("KEY_BATCHES_BUCKET", "s3://keyBatches")
+        environment("EVENT_BUS", "eventBus")
+        environment("TOPIC", "some topic")
+    }
+}
