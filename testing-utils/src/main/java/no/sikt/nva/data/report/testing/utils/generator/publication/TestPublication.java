@@ -1,9 +1,7 @@
 package no.sikt.nva.data.report.testing.utils.generator.publication;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.PERSON_BASE_URI;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

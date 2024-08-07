@@ -244,7 +244,7 @@ public final class NviTestData {
                    .withApprovals(approvals)
                    .withCreatorShareCount(countCombinationsOfCreatorsAndAffiliations(publicationDetails))
                    .withInternationalCollaborationFactor(randomBigDecimal())
-                   .withGlobalApprovalStatus(RandomDataGenerator.randomElement(TestGlobalApprovalStatus.values()))
+                   .withGlobalApprovalStatus(randomElement(TestGlobalApprovalStatus.values()))
                    .withPublicationTypeChannelLevelPoints(randomBigDecimal())
                    .withTotalPoints(randomBigDecimal())
                    .withReportingPeriod(reportingPeriod);
