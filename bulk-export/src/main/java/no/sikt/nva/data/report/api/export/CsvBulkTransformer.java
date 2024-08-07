@@ -36,10 +36,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class CsvBulkTransformer extends EventHandler<KeyBatchEvent, Void> {
 
-    public static final String TEMPLATE_DIRECTORY = "template";
-    public static final String SPARQL = ".sparql";
-    public static final String PUBLICATION = "publication";
-    public static final String API_HOST = new Environment().readEnv("API_HOST");
+    private static final String TEMPLATE_DIRECTORY = "template";
+    private static final String SPARQL = ".sparql";
+    private static final String PUBLICATION = "publication";
+    private static final String API_HOST = new Environment().readEnv("API_HOST");
     private static final String LINE_BREAK = "\n";
     private static final String ENV_VAR_KEY_BATCHES_BUCKET = "KEY_BATCHES_BUCKET";
     private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
@@ -74,8 +74,7 @@ public class CsvBulkTransformer extends EventHandler<KeyBatchEvent, Void> {
 
         batchResponse.getKey()
             .map(this::extractContent)
-            .filter(keys -> !keys.isEmpty())
-            .map(this::mapToIndexDocuments)
+            .map(this::fetchIndexDocuments)
             .map(this::mapToCsv)
             .map(content -> attempt(() -> compress(content)).orElseThrow())
             .map(this::persist);
@@ -92,14 +91,14 @@ public class CsvBulkTransformer extends EventHandler<KeyBatchEvent, Void> {
         return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
     }
 
-    private Stream<String> extractIdentifiers(String value) {
-        return nonNull(value) && !value.isBlank()
-                   ? Arrays.stream(value.split(LINE_BREAK))
+    private Stream<String> extractIdentifiers(String keyBatch) {
+        return nonNull(keyBatch) && !keyBatch.isBlank()
+                   ? Arrays.stream(keyBatch.split(LINE_BREAK))
                    : Stream.empty();
     }
 
-    private Stream<JsonNode> mapToIndexDocuments(String content) {
-        return extractIdentifiers(content)
+    private Stream<JsonNode> fetchIndexDocuments(String keyBatch) {
+        return extractIdentifiers(keyBatch)
                    .filter(Objects::nonNull)
                    .map(this::fetchS3Content)
                    .filter(Optional::isPresent)
@@ -123,7 +122,7 @@ public class CsvBulkTransformer extends EventHandler<KeyBatchEvent, Void> {
     private boolean persist(byte[] content) {
         var request = PutObjectRequest.builder()
                           .bucket(exportBucket)
-                          .key(UUID.randomUUID() + ".gz")
+                          .key(PUBLICATION + UUID.randomUUID() + ".gz")
                           .build();
         var response = s3OutputClient.putObject(request, RequestBody.fromBytes(content));
         return response.sdkHttpResponse().isSuccessful();
