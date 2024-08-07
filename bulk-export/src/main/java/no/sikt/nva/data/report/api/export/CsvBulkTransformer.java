@@ -41,23 +41,30 @@ public class CsvBulkTransformer extends EventHandler<KeyBatchEvent, Void> {
     public static final String PUBLICATION = "publication";
     public static final String API_HOST = new Environment().readEnv("API_HOST");
     private static final String LINE_BREAK = "\n";
+    private static final String ENV_VAR_KEY_BATCHES_BUCKET = "KEY_BATCHES_BUCKET";
+    private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
+    private static final String ENV_VAR_EXPANDED_RESOURCE_BUCKET = "EXPANDED_RESOURCES_BUCKET";
     private final S3Client s3BatchesClient;
     private final S3Client s3OutputClient;
     private final S3Client s3ResourcesClient;
-    private String keyBatchesBucket = "keyBatchesBucket";
-    private String exportBucket = "exportBucket";
-    private String expandedResourceBucket = "expandedResourceBucket";
+    private final String keyBatchesBucket;
+    private final String exportBucket;
+    private final String expandedResourceBucket;
 
     @JacocoGenerated
     public CsvBulkTransformer() {
-        this(defaultS3Client(), defaultS3Client(), defaultS3Client());
+        this(defaultS3Client(), defaultS3Client(), defaultS3Client(), new Environment());
     }
 
-    public CsvBulkTransformer(S3Client s3BatchesClient, S3Client s3OutputClient, S3Client s3ResourcesClient) {
+    public CsvBulkTransformer(S3Client s3BatchesClient, S3Client s3OutputClient, S3Client s3ResourcesClient,
+                              Environment environment) {
         super(KeyBatchEvent.class);
         this.s3BatchesClient = s3BatchesClient;
         this.s3OutputClient = s3OutputClient;
         this.s3ResourcesClient = s3ResourcesClient;
+        this.keyBatchesBucket = environment.readEnv(ENV_VAR_KEY_BATCHES_BUCKET);
+        this.exportBucket = environment.readEnv(ENV_VAR_EXPORT_BUCKET);
+        this.expandedResourceBucket = environment.readEnv(ENV_VAR_EXPANDED_RESOURCE_BUCKET);
     }
 
     @Override

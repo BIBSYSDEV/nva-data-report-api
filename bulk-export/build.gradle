@@ -36,6 +36,7 @@ dependencies {
         environment("AWS_REGION", "eu-west-1")
         environment("EXPANDED_RESOURCES_BUCKET", "s3://persistedResources")
         environment("KEY_BATCHES_BUCKET", "s3://keyBatches")
+        environment("EXPORT_BUCKET", "s3://exportBucket")
         environment("EVENT_BUS", "eventBus")
         environment("TOPIC", "some topic")
     }

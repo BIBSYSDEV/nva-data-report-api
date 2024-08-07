@@ -27,6 +27,7 @@ import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
+import nva.commons.core.Environment;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 class CsvBulkTransformerTest {
 
     private static final String DEFAULT_LOCATION = "resources";
+    private static final Environment environment = new Environment();
     private S3Driver s3keyBatches3Driver;
     private S3Client s3keyBatchClient;
     private ByteArrayOutputStream outputStream;
@@ -52,11 +54,11 @@ class CsvBulkTransformerTest {
     void setUp() {
         outputStream = new ByteArrayOutputStream();
         s3keyBatchClient = new FakeS3Client();
-        s3keyBatches3Driver = new S3Driver(s3keyBatchClient, "keyBathesBucket");
+        s3keyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
         s3OutputClient = new FakeS3Client();
-        s3OutputDriver = new S3Driver(s3OutputClient, "csvOutputBucket");
+        s3OutputDriver = new S3Driver(s3OutputClient, environment.readEnv("EXPORT_BUCKET"));
         s3ResourcesClient = new FakeS3Client();
-        s3ResourcesDriver = new S3Driver(s3ResourcesClient, "resourcesBucket");
+        s3ResourcesDriver = new S3Driver(s3ResourcesClient, environment.readEnv("EXPANDED_RESOURCES_BUCKET"));
     }
 
     @Test
@@ -68,7 +70,7 @@ class CsvBulkTransformerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3keyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
-        var handler = new CsvBulkTransformer(s3keyBatchClient, s3OutputClient, s3ResourcesClient);
+        var handler = new CsvBulkTransformer(s3keyBatchClient, s3OutputClient, s3ResourcesClient, new Environment());
         handler.handleRequest(eventStream(), outputStream, mock(Context.class));
         var actualContent = ResultSorter.sortResponse(ReportFormat.CSV, getActualPersistedFile(), PUBLICATION_ID,
                                                       CONTRIBUTOR_IDENTIFIER);
