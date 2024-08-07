@@ -57,6 +57,10 @@ Parameters:
     Type: 'String'
     Default: "nvi-reports"
     Description: Name of bucket for nvi reports
+  ExportBucketName:
+    Type: 'String'
+    Default: "data-report-csv-export"
+    Description: Name of bucket for csv export files
   SlackSnsArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/NVA/Monitoring/SlackSnsArn'
@@ -553,6 +557,23 @@ Resources:
       MemorySize: 1536
       AutoPublishAlias: live
 
+  CsvBulkTransformerHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bulk-export
+      Handler: no.sikt.nva.data.report.api.export.CsvBulkTransformer::handleRequest
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Policies:
+        - !GetAtt S3ManagedPolicy.PolicyArn
+      Environment:
+        Variables:
+          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
+          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
+          KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
+          EXPORT_BUCKET: !Ref ExportBucket
+
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
   # parameter groups
@@ -796,6 +817,12 @@ Resources:
           - Id: DeleteContentAfter3Days
             Status: Enabled
             ExpirationInDays: 3
+
+  ExportBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${NviExportBucketName}-${AWS::AccountId}"
 
   NviReportsBucket:
     Type: AWS::S3::Bucket
