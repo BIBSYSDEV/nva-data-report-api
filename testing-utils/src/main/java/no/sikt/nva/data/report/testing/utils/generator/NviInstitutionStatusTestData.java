@@ -1,11 +1,29 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
-
-import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.*;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.DEPARTMENT_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.FACULTY_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.FIRST_NAME;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.GLOBAL_STATUS;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.GROUP_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.INSTITUTION_APPROVAL_STATUS;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.INSTITUTION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.ISSN;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.LAST_NAME;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.POINTS_FOR_AFFILIATION;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_NAME;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_TYPE;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_INSTANCE;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_TITLE;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLISHED_YEAR;
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.REPORTING_YEAR;
 import static no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.util.List;
-import no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders;
 import no.sikt.nva.data.report.testing.utils.generator.nvi.TestApproval;
 import no.sikt.nva.data.report.testing.utils.generator.nvi.TestApprovalStatus;
 import no.sikt.nva.data.report.testing.utils.generator.nvi.TestGlobalApprovalStatus;

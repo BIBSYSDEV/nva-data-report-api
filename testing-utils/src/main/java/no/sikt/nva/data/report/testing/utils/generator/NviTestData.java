@@ -1,8 +1,20 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
-import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.*;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.*;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.AUTHOR_SHARE_COUNT;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.GLOBAL_APPROVAL_STATUS;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.INSTITUTION_APPROVAL_STATUS;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.INSTITUTION_POINTS;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.INTERNATIONAL_COLLABORATION_FACTOR;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.IS_APPLICABLE;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.POINTS_FOR_AFFILIATION;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.REPORTED_PERIOD;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.TOTAL_POINTS;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.INSTITUTION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.TestData.SOME_SUB_UNIT_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -28,7 +40,6 @@ import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviContributor;
 import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviOrganization;
 import no.sikt.nva.data.report.testing.utils.generator.nvi.TestPublicationDetails;
 import no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication;
-import no.unit.nva.testutils.RandomDataGenerator;
 
 public final class NviTestData {
 
@@ -45,10 +56,9 @@ public final class NviTestData {
                                                            AUTHOR_SHARE_COUNT,
                                                            INTERNATIONAL_COLLABORATION_FACTOR,
                                                            IS_APPLICABLE);
-
+    public static final String SOME_YEAR = "2023";
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
-    public static final String SOME_YEAR = "2023";
 
     private NviTestData() {
         // NO-OP
