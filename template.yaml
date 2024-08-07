@@ -511,11 +511,11 @@ Resources:
               detail:
                 topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
 
-  BulkTransformerHandler:
+  NquadsTransformerHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: bulk-load
-      Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
+      Handler: no.sikt.nva.data.report.api.etl.transformer.NquadsTransformer::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -573,6 +573,14 @@ Resources:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           EXPORT_BUCKET: !Ref ExportBucket
+      Events:
+        BatchIndexEvent:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !GetAtt BatchLoadEventBus.Name
+            Pattern:
+              detail:
+                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
 
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
