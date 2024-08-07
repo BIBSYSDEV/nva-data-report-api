@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.*;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import commons.ViewCompiler;
 import java.net.URI;
@@ -25,38 +26,38 @@ public class TestData {
     public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     public static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
     private static final String DELIMITER = ",";
-    private static final List<String> AFFILIATION_HEADERS = List.of(PublicationHeaders.PUBLICATION_ID, PublicationHeaders.STATUS,
-                                                                    PublicationHeaders.PUBLICATION_IDENTIFIER,
-                                                                    PublicationHeaders.CONTRIBUTOR_ID,
-                                                                    PublicationHeaders.CONTRIBUTOR_NAME,
-                                                                    PublicationHeaders.AFFILIATION_ID,
-                                                                    PublicationHeaders.AFFILIATION_NAME,
-                                                                    PublicationHeaders.INSTITUTION_ID, PublicationHeaders.FACULTY_ID,
-                                                                    PublicationHeaders.DEPARTMENT_ID, PublicationHeaders.GROUP_ID);
-    private static final List<String> FUNDING_HEADERS = List.of(PublicationHeaders.PUBLICATION_ID, PublicationHeaders.STATUS,
-                                                                PublicationHeaders.PUBLICATION_IDENTIFIER,
-                                                                PublicationHeaders.FUNDING_SOURCE,
-                                                                PublicationHeaders.FUNDING_ID, PublicationHeaders.FUNDING_NAME);
-    private static final List<String> PUBLICATION_HEADERS = List.of(PublicationHeaders.PUBLICATION_ID, PublicationHeaders.STATUS,
-                                                                    PublicationHeaders.PUBLICATION_TITLE,
-                                                                    PublicationHeaders.PUBLICATION_CATEGORY,
-                                                                    PublicationHeaders.PUBLICATION_DATE,
-                                                                    PublicationHeaders.CHANNEL_TYPE,
-                                                                    PublicationHeaders.CHANNEL_IDENTIFIER,
-                                                                    PublicationHeaders.CHANNEL_NAME,
-                                                                    PublicationHeaders.CHANNEL_ONLINE_ISSN,
-                                                                    PublicationHeaders.CHANNEL_PRINT_ISSN,
-                                                                    PublicationHeaders.CHANNEL_LEVEL,
-                                                                    PublicationHeaders.PUBLICATION_IDENTIFIER);
-    private static final List<String> CONTRIBUTOR_HEADERS = List.of(PublicationHeaders.PUBLICATION_ID, PublicationHeaders.STATUS,
-                                                                    PublicationHeaders.PUBLICATION_IDENTIFIER,
-                                                                    PublicationHeaders.CONTRIBUTOR_IDENTIFIER,
-                                                                    PublicationHeaders.CONTRIBUTOR_NAME,
-                                                                    PublicationHeaders.CONTRIBUTOR_SEQUENCE_NUMBER,
-                                                                    PublicationHeaders.CONTRIBUTOR_ROLE);
-    private static final List<String> IDENTIFIER_HEADERS = List.of(PublicationHeaders.PUBLICATION_ID, PublicationHeaders.STATUS,
-                                                                   PublicationHeaders.PUBLICATION_IDENTIFIER,
-                                                                   PublicationHeaders.FUNDING_SOURCE, PublicationHeaders.FUNDING_ID);
+    private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                    PUBLICATION_IDENTIFIER,
+                                                                    CONTRIBUTOR_ID,
+                                                                    CONTRIBUTOR_NAME,
+                                                                    AFFILIATION_ID,
+                                                                    AFFILIATION_NAME,
+                                                                    INSTITUTION_ID, FACULTY_ID,
+                                                                    DEPARTMENT_ID, GROUP_ID);
+    private static final List<String> FUNDING_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                PUBLICATION_IDENTIFIER,
+                                                                FUNDING_SOURCE,
+                                                                FUNDING_ID, FUNDING_NAME);
+    private static final List<String> PUBLICATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                    PUBLICATION_TITLE,
+                                                                    PUBLICATION_CATEGORY,
+                                                                    PUBLICATION_DATE,
+                                                                    CHANNEL_TYPE,
+                                                                    CHANNEL_IDENTIFIER,
+                                                                    CHANNEL_NAME,
+                                                                    CHANNEL_ONLINE_ISSN,
+                                                                    CHANNEL_PRINT_ISSN,
+                                                                    CHANNEL_LEVEL,
+                                                                    PUBLICATION_IDENTIFIER);
+    private static final List<String> CONTRIBUTOR_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                    PUBLICATION_IDENTIFIER,
+                                                                    CONTRIBUTOR_IDENTIFIER,
+                                                                    CONTRIBUTOR_NAME,
+                                                                    CONTRIBUTOR_SEQUENCE_NUMBER,
+                                                                    CONTRIBUTOR_ROLE);
+    private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
+                                                                   PUBLICATION_IDENTIFIER,
+                                                                   FUNDING_SOURCE, FUNDING_ID);
 
     public List<TestPublication> getPublicationTestData() {
         return publicationTestData;

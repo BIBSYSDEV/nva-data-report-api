@@ -1,6 +1,8 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.*;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.*;
 import static no.sikt.nva.data.report.testing.utils.generator.TestData.SOME_SUB_UNIT_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -30,19 +32,19 @@ import no.unit.nva.testutils.RandomDataGenerator;
 
 public final class NviTestData {
 
-    public static final List<String> NVI_HEADERS = List.of(PublicationHeaders.PUBLICATION_ID,
-                                                           PublicationHeaders.CONTRIBUTOR_IDENTIFIER,
-                                                           PublicationHeaders.AFFILIATION_ID, PublicationHeaders.INSTITUTION_ID,
-                                                           NviHeaders.INSTITUTION_POINTS,
-                                                           NviHeaders.POINTS_FOR_AFFILIATION,
-                                                           NviHeaders.INSTITUTION_APPROVAL_STATUS,
-                                                           NviHeaders.GLOBAL_APPROVAL_STATUS,
-                                                           NviHeaders.REPORTED_PERIOD,
-                                                           NviHeaders.TOTAL_POINTS,
-                                                           NviHeaders.PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
-                                                           NviHeaders.AUTHOR_SHARE_COUNT,
-                                                           NviHeaders.INTERNATIONAL_COLLABORATION_FACTOR,
-                                                           NviHeaders.IS_APPLICABLE);
+    public static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID,
+                                                           CONTRIBUTOR_IDENTIFIER,
+                                                           AFFILIATION_ID, INSTITUTION_ID,
+                                                           INSTITUTION_POINTS,
+                                                           POINTS_FOR_AFFILIATION,
+                                                           INSTITUTION_APPROVAL_STATUS,
+                                                           GLOBAL_APPROVAL_STATUS,
+                                                           REPORTED_PERIOD,
+                                                           TOTAL_POINTS,
+                                                           PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
+                                                           AUTHOR_SHARE_COUNT,
+                                                           INTERNATIONAL_COLLABORATION_FACTOR,
+                                                           IS_APPLICABLE);
 
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;

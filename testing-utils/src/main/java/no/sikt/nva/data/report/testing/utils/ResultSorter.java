@@ -1,5 +1,8 @@
 package no.sikt.nva.data.report.testing.utils;
 
+import static no.sikt.nva.data.report.testing.utils.StringUtils.buildString;
+import static no.sikt.nva.data.report.testing.utils.StringUtils.printAsString;
+import static no.sikt.nva.data.report.testing.utils.StringUtils.scanData;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import commons.model.ReportFormat;
 import java.io.IOException;
@@ -35,7 +38,7 @@ public class ResultSorter {
     }
 
     public static List<String> extractDataLines(String data) {
-        var scanningResult = StringUtils.scanData(data);
+        var scanningResult = scanData(data);
         return scanningResult.lines()
                    .subList(RESULT_HEADER_LAST_INDEX,
                             scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
@@ -65,13 +68,13 @@ public class ResultSorter {
         var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
         var csvParser = format.parse(stringReader);
         var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, sortByHeader2);
-        return StringUtils.printAsString(format, csvParser, sortedCsvRecords);
+        return printAsString(format, csvParser, sortedCsvRecords);
     }
 
     private static String sortTextPlain(String data, int primaryIndex, int secondaryIndex) {
-        var scanningResult = StringUtils.scanData(data);
+        var scanningResult = scanData(data);
         var dataLines = sortDataLines(scanningResult, primaryIndex, secondaryIndex);
-        return StringUtils.buildString(scanningResult, dataLines);
+        return buildString(scanningResult, dataLines);
     }
 
     private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1,

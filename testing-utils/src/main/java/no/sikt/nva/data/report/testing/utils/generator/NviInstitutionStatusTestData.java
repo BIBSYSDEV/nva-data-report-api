@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
 
+import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.*;
 import static no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.util.List;
@@ -19,27 +20,27 @@ import nva.commons.core.paths.UriWrapper;
 
 public final class NviInstitutionStatusTestData {
 
-    public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(NviInstitutionStatusHeaders.REPORTING_YEAR,
-                                                                              NviInstitutionStatusHeaders.PUBLICATION_IDENTIFIER,
-                                                                              NviInstitutionStatusHeaders.PUBLISHED_YEAR,
-                                                                              NviInstitutionStatusHeaders.INSTITUTION_APPROVAL_STATUS,
-                                                                              NviInstitutionStatusHeaders.PUBLICATION_INSTANCE,
-                                                                              NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_TYPE,
-                                                                              NviInstitutionStatusHeaders.ISSN,
-                                                                              NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL,
-                                                                              NviInstitutionStatusHeaders.CONTRIBUTOR_IDENTIFIER,
-                                                                              NviInstitutionStatusHeaders.INSTITUTION_ID,
-                                                                              NviInstitutionStatusHeaders.FACULTY_ID,
-                                                                              NviInstitutionStatusHeaders.DEPARTMENT_ID,
-                                                                              NviInstitutionStatusHeaders.GROUP_ID,
-                                                                              NviInstitutionStatusHeaders.LAST_NAME,
-                                                                              NviInstitutionStatusHeaders.FIRST_NAME,
-                                                                              NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_NAME,
-                                                                              NviInstitutionStatusHeaders.PUBLICATION_TITLE,
-                                                                              NviInstitutionStatusHeaders.GLOBAL_STATUS,
-                                                                              NviInstitutionStatusHeaders.PUBLICATION_CHANNEL_LEVEL_POINTS,
-                                                                              NviInstitutionStatusHeaders.INTERNATIONAL_COLLABORATION_FACTOR,
-                                                                              NviInstitutionStatusHeaders.POINTS_FOR_AFFILIATION);
+    public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(REPORTING_YEAR,
+                                                                              PUBLICATION_IDENTIFIER,
+                                                                              PUBLISHED_YEAR,
+                                                                              INSTITUTION_APPROVAL_STATUS,
+                                                                              PUBLICATION_INSTANCE,
+                                                                              PUBLICATION_CHANNEL_TYPE,
+                                                                              ISSN,
+                                                                              PUBLICATION_CHANNEL_LEVEL,
+                                                                              CONTRIBUTOR_IDENTIFIER,
+                                                                              INSTITUTION_ID,
+                                                                              FACULTY_ID,
+                                                                              DEPARTMENT_ID,
+                                                                              GROUP_ID,
+                                                                              LAST_NAME,
+                                                                              FIRST_NAME,
+                                                                              PUBLICATION_CHANNEL_NAME,
+                                                                              PUBLICATION_TITLE,
+                                                                              GLOBAL_STATUS,
+                                                                              PUBLICATION_CHANNEL_LEVEL_POINTS,
+                                                                              INTERNATIONAL_COLLABORATION_FACTOR,
+                                                                              POINTS_FOR_AFFILIATION);
 
     public static String generateExpectedNviInstitutionResponse(TestNviContributor contributor,
                                                                 TestNviCandidate candidate,
