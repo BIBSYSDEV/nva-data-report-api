@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import commons.model.ReportFormat;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class CsvBulkTransformerTest {
 
+    public static final String CSV = "CSV";
     private static final String DEFAULT_LOCATION = "resources";
     private static final Environment environment = new Environment();
     private S3Driver s3keyBatches3Driver;
@@ -72,7 +72,7 @@ class CsvBulkTransformerTest {
         s3keyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
         var handler = new CsvBulkTransformer(s3keyBatchClient, s3OutputClient, s3ResourcesClient, new Environment());
         handler.handleRequest(eventStream(), outputStream, mock(Context.class));
-        var actualContent = ResultSorter.sortResponse(ReportFormat.CSV, getActualPersistedFile(), PUBLICATION_ID,
+        var actualContent = ResultSorter.sortResponse(CSV, getActualPersistedFile(), PUBLICATION_ID,
                                                       CONTRIBUTOR_IDENTIFIER);
         var expectedContent = testData.getPublicationResponseData();
         assertEquals(expectedContent, actualContent);

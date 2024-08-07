@@ -1,7 +1,7 @@
-package commons.model;
+package no.sikt.nva.data.report.api.fetch.model;
 
 import static com.google.common.net.MediaType.*;
-import static commons.model.CustomMediaType.*;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.*;
 import com.google.common.net.MediaType;
 import java.util.Arrays;
 import java.util.List;

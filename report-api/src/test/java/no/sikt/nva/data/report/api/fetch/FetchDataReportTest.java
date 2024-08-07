@@ -2,8 +2,8 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static com.google.common.net.HttpHeaders.ACCEPT;
 import static java.lang.String.valueOf;
-import static commons.model.CustomMediaType.TEXT_CSV;
-import static commons.model.CustomMediaType.TEXT_PLAIN;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.TEXT_CSV;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.testing.utils.ResultSorter.extractDataLines;
@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Base64;
-import commons.model.ReportFormat;
+import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
@@ -72,7 +72,7 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
+        var sortedResponse = sortResponse(getReportFormat(request).toString(), response.getBody(), PUBLICATION_ID,
                                           CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
@@ -146,7 +146,7 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
+        var sortedResponse = sortResponse(getReportFormat(request).toString(), response.getBody(), PUBLICATION_ID,
                                           CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
