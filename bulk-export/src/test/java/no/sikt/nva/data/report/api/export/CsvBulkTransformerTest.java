@@ -4,7 +4,6 @@ import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -27,12 +26,12 @@ import no.sikt.nva.data.report.testing.utils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.testing.utils.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
+import no.sikt.nva.data.report.testing.utils.stubs.StubEventBridgeClient;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.Environment;
-import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
@@ -40,14 +39,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 
 class CsvBulkTransformerTest {
 
-    public static final String CSV = "CSV";
+    private static final String CSV = "CSV";
     private static final String DEFAULT_LOCATION = "resources";
     private static final Environment environment = new Environment();
     private S3Driver s3KeyBatches3Driver;
@@ -184,37 +180,5 @@ class CsvBulkTransformerTest {
         event.setId(randomString());
         var jsonString = dtoObjectMapper.writeValueAsString(event);
         return IoUtils.stringToStream(jsonString);
-    }
-
-    private static class StubEventBridgeClient implements EventBridgeClient {
-
-        private KeyBatchRequestEvent latestEvent;
-
-        public KeyBatchRequestEvent getLatestEvent() {
-            return latestEvent;
-        }
-
-        public PutEventsResponse putEvents(PutEventsRequest putEventsRequest) {
-            this.latestEvent = saveContainedEvent(putEventsRequest);
-            return PutEventsResponse.builder().failedEntryCount(0).build();
-        }
-
-        @Override
-        public String serviceName() {
-            return null;
-        }
-
-        @Override
-        public void close() {
-
-        }
-
-        private KeyBatchRequestEvent saveContainedEvent(PutEventsRequest putEventsRequest) {
-            PutEventsRequestEntry eventEntry = putEventsRequest.entries()
-                                                   .stream()
-                                                   .collect(SingletonCollector.collect());
-            return attempt(eventEntry::detail).map(
-                jsonString -> dtoObjectMapper.readValue(jsonString, KeyBatchRequestEvent.class)).orElseThrow();
-        }
     }
 }

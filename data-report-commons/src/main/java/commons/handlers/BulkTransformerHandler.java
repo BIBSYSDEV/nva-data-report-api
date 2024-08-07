@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
+@JacocoGenerated //Abstract class, subclasses tested in modules bulk-export and bulk-load
 public abstract class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, Void> {
 
     private static final Logger logger = LoggerFactory.getLogger(BulkTransformerHandler.class);

@@ -25,12 +25,12 @@ import java.util.stream.IntStream;
 import no.sikt.nva.data.report.testing.utils.StaticTestDataUtil;
 import no.sikt.nva.data.report.testing.utils.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
+import no.sikt.nva.data.report.testing.utils.stubs.StubEventBridgeClient;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
-import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
@@ -46,9 +46,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 
 class NquadsTransformerTest {
@@ -305,37 +302,5 @@ class NquadsTransformerTest {
         attempt(() -> s3ResourcesDriver.insertFile(UnixPath.of(document.getDocumentIdentifier()),
                                                    document.toJsonString())).orElseThrow();
         return document;
-    }
-
-    private static class StubEventBridgeClient implements EventBridgeClient {
-
-        private KeyBatchRequestEvent latestEvent;
-
-        public KeyBatchRequestEvent getLatestEvent() {
-            return latestEvent;
-        }
-
-        public PutEventsResponse putEvents(PutEventsRequest putEventsRequest) {
-            this.latestEvent = saveContainedEvent(putEventsRequest);
-            return PutEventsResponse.builder().failedEntryCount(0).build();
-        }
-
-        @Override
-        public String serviceName() {
-            return null;
-        }
-
-        @Override
-        public void close() {
-
-        }
-
-        private KeyBatchRequestEvent saveContainedEvent(PutEventsRequest putEventsRequest) {
-            PutEventsRequestEntry eventEntry = putEventsRequest.entries()
-                                                   .stream()
-                                                   .collect(SingletonCollector.collect());
-            return attempt(eventEntry::detail).map(
-                jsonString -> objectMapperWithEmpty.readValue(jsonString, KeyBatchRequestEvent.class)).orElseThrow();
-        }
     }
 }
