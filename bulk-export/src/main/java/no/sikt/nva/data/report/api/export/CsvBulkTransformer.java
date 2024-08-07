@@ -45,7 +45,7 @@ public class CsvBulkTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    public String processBatch(Stream<JsonNode> jsonNodeStream) {
+    protected String processBatch(Stream<JsonNode> jsonNodeStream) {
         var model = ModelFactory.createDefaultModel();
         jsonNodeStream.forEach(element -> RDFDataMgr.read(model, stringToStream(element.toString()), Lang.JSONLD));
         var query = getQuery();
@@ -56,7 +56,7 @@ public class CsvBulkTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    public boolean persist(byte[] content) {
+    protected boolean persist(byte[] content) {
         var request = PutObjectRequest.builder()
                           .bucket(exportBucket)
                           .key(PUBLICATION + UUID.randomUUID() + ".gz")

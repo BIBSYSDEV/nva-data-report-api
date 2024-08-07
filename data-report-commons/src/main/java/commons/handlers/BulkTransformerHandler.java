@@ -82,9 +82,9 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
         return null;
     }
 
-    public abstract String processBatch(Stream<JsonNode> jsonNodeStream);
+    protected abstract String processBatch(Stream<JsonNode> jsonNodeStream);
 
-    public abstract boolean persist(byte[] data);
+    protected abstract boolean persist(byte[] data);
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
                                                                String location,

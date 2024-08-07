@@ -47,13 +47,13 @@ public class NquadsTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    public String processBatch(Stream<JsonNode> jsonNodeStream) {
+    protected String processBatch(Stream<JsonNode> jsonNodeStream) {
         return jsonNodeStream.map(this::mapToNquads)
                    .collect(Collectors.joining(System.lineSeparator()));
     }
 
     @Override
-    public boolean persist(byte[] data) {
+    protected boolean persist(byte[] data) {
         var request = PutObjectRequest.builder()
                           .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
                           .key(UUID.randomUUID() + NQUADS_GZIPPED)
