@@ -178,6 +178,7 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
         }
     }
 
+    @JacocoGenerated
     private static class ListingResponse {
 
         private final boolean truncated;

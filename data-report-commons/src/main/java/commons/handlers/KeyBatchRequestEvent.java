@@ -8,6 +8,7 @@ import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.events.models.EventBody;
 import nva.commons.core.JacocoGenerated;
 
+@JacocoGenerated //Used in abstract class BulkTransformerHandler, subclasses tested in modules bulk-export and bulk-load
 public class KeyBatchRequestEvent implements JsonSerializable, EventBody {
 
     private static final String START_MARKER_JSON_NAME = "startMarker";
@@ -41,6 +42,12 @@ public class KeyBatchRequestEvent implements JsonSerializable, EventBody {
 
     @JacocoGenerated
     @Override
+    public int hashCode() {
+        return Objects.hash(getStartMarker(), getTopic(), getLocation());
+    }
+
+    @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -52,12 +59,6 @@ public class KeyBatchRequestEvent implements JsonSerializable, EventBody {
         return Objects.equals(getStartMarker(), that.getStartMarker())
                && Objects.equals(getTopic(), that.getTopic())
                && Objects.equals(getLocation(), that.getLocation());
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getStartMarker(), getTopic(), getLocation());
     }
 
     @Override
