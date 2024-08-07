@@ -2,11 +2,14 @@ package no.sikt.nva.data.report.api.export;
 
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import commons.handlers.KeyBatchRequestEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,16 +24,20 @@ import no.sikt.nva.data.report.testing.utils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDate;
 import no.sikt.nva.data.report.testing.utils.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.Environment;
+import nva.commons.core.SingletonCollector;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 
 class CsvBulkTransformerTest {
@@ -39,12 +46,11 @@ class CsvBulkTransformerTest {
     private static final String DEFAULT_LOCATION = "resources";
     private static final Environment environment = new Environment();
     private S3Driver s3keyBatches3Driver;
-    private S3Client s3keyBatchClient;
     private ByteArrayOutputStream outputStream;
-    private S3Client s3OutputClient;
     private S3Driver s3OutputDriver;
-    private S3Client s3ResourcesClient;
     private S3Driver s3ResourcesDriver;
+    private EventBridgeClient eventBridgeClient;
+    private CsvBulkTransformer handler;
 
     public static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
@@ -53,12 +59,14 @@ class CsvBulkTransformerTest {
     @BeforeEach
     void setUp() {
         outputStream = new ByteArrayOutputStream();
-        s3keyBatchClient = new FakeS3Client();
+        S3Client s3keyBatchClient = new FakeS3Client();
         s3keyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
-        s3OutputClient = new FakeS3Client();
+        S3Client s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, environment.readEnv("EXPORT_BUCKET"));
-        s3ResourcesClient = new FakeS3Client();
+        S3Client s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, environment.readEnv("EXPANDED_RESOURCES_BUCKET"));
+        eventBridgeClient = new StubEventBridgeClient();
+        handler = new CsvBulkTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);
     }
 
     @Test
@@ -70,8 +78,7 @@ class CsvBulkTransformerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3keyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
-        var handler = new CsvBulkTransformer(s3keyBatchClient, s3OutputClient, s3ResourcesClient, new Environment());
-        handler.handleRequest(eventStream(), outputStream, mock(Context.class));
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var actualContent = ResultSorter.sortResponse(CSV, getActualPersistedFile(), PUBLICATION_ID,
                                                       CONTRIBUTOR_IDENTIFIER);
         var expectedContent = testData.getPublicationResponseData();
@@ -100,11 +107,43 @@ class CsvBulkTransformerTest {
         return s3OutputDriver.getFile(file);
     }
 
-    private InputStream eventStream() throws JsonProcessingException {
-        var event = new AwsEventBridgeEvent<KeyBatchEvent>();
-        event.setDetail(new KeyBatchEvent());
+    private InputStream eventStream(String startMarker) throws JsonProcessingException {
+        var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
+        event.setDetail(new KeyBatchRequestEvent(startMarker, randomString(), DEFAULT_LOCATION));
         event.setId(randomString());
-        var jsonString = JsonUtils.dtoObjectMapper.writeValueAsString(event);
+        var jsonString = dtoObjectMapper.writeValueAsString(event);
         return IoUtils.stringToStream(jsonString);
+    }
+
+    private static class StubEventBridgeClient implements EventBridgeClient {
+
+        private KeyBatchEvent latestEvent;
+
+        public KeyBatchEvent getLatestEvent() {
+            return latestEvent;
+        }
+
+        public PutEventsResponse putEvents(PutEventsRequest putEventsRequest) {
+            this.latestEvent = saveContainedEvent(putEventsRequest);
+            return PutEventsResponse.builder().failedEntryCount(0).build();
+        }
+
+        @Override
+        public String serviceName() {
+            return null;
+        }
+
+        @Override
+        public void close() {
+
+        }
+
+        private KeyBatchEvent saveContainedEvent(PutEventsRequest putEventsRequest) {
+            PutEventsRequestEntry eventEntry = putEventsRequest.entries()
+                                                   .stream()
+                                                   .collect(SingletonCollector.collect());
+            return attempt(eventEntry::detail).map(
+                jsonString -> dtoObjectMapper.readValue(jsonString, KeyBatchEvent.class)).orElseThrow();
+        }
     }
 }
