@@ -21,9 +21,7 @@ dependencies {
     implementation libs.nva.eventhandlers
     implementation libs.aws.sdk2.eventbridge
     implementation libs.aws.sdk2.s3
-    implementation libs.aws.sdk2.sqs
     implementation libs.aws.lambda.events
-    implementation libs.aws.sdk2.urlconnection
     implementation libs.nva.identifiers
 
     testImplementation(libs.nva.testutils) {
