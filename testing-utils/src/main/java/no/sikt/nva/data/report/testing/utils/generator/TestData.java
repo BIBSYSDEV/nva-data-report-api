@@ -1,7 +1,32 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.*;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_LEVEL;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_NAME;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_ONLINE_ISSN;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_PRINT_ISSN;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_TYPE;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_NAME;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_ROLE;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_SEQUENCE_NUMBER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.DEPARTMENT_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.FACULTY_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.FUNDING_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.FUNDING_NAME;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.FUNDING_SOURCE;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.GROUP_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.INSTITUTION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_CATEGORY;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_DATE;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_TITLE;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.STATUS;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import commons.ViewCompiler;
 import java.net.URI;
@@ -58,6 +83,16 @@ public class TestData {
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
                                                                    FUNDING_SOURCE, FUNDING_ID);
+    private final List<TestPublication> publicationTestData;
+    private final List<TestNviCandidate> nviTestData;
+    private final List<Model> models;
+    public TestData(List<DatePair> dates) {
+        this.models = new ArrayList<>();
+        this.publicationTestData = generatePublicationData(dates);
+        this.nviTestData = NviTestData.generateNviData(publicationTestData);
+        addPublicationDataToModel(publicationTestData);
+        addNviDataToModel(nviTestData);
+    }
 
     public List<TestPublication> getPublicationTestData() {
         return publicationTestData;
@@ -65,18 +100,6 @@ public class TestData {
 
     public List<TestNviCandidate> getNviTestData() {
         return nviTestData;
-    }
-
-    private final List<TestPublication> publicationTestData;
-    private final List<TestNviCandidate> nviTestData;
-    private final List<Model> models;
-
-    public TestData(List<DatePair> dates) {
-        this.models = new ArrayList<>();
-        this.publicationTestData = generatePublicationData(dates);
-        this.nviTestData = NviTestData.generateNviData(publicationTestData);
-        addPublicationDataToModel(publicationTestData);
-        addNviDataToModel(nviTestData);
     }
 
     public List<Model> getModels() {
@@ -139,7 +162,8 @@ public class TestData {
     }
 
     public String getNviInstitutionStatusResponseData(String reportingYear, URI institutionId) {
-        var headers = String.join(DELIMITER, NviInstitutionStatusTestData.NVI_INSTITUTION_STATUS_HEADERS) + CRLF.getString();
+        var headers = String.join(DELIMITER, NviInstitutionStatusTestData.NVI_INSTITUTION_STATUS_HEADERS)
+                      + CRLF.getString();
         var expectedCandidates = getExpectedCandidates(reportingYear, institutionId);
         sortContributors(expectedCandidates);
         var values = expectedCandidates.stream()
@@ -239,8 +263,10 @@ public class TestData {
         return expectedCandidate.publicationDetails()
                    .contributors()
                    .stream()
-                   .map(contributor -> NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse(contributor, expectedCandidate,
-                                                                                                           getPublication(expectedCandidate)))
+                   .map(contributor -> NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse(contributor,
+                                                                                                           expectedCandidate,
+                                                                                                           getPublication(
+                                                                                                               expectedCandidate)))
                    .collect(Collectors.joining());
     }
 
