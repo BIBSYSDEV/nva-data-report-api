@@ -41,7 +41,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.s3.S3Client;
 
-class CsvBulkTransformerTest {
+class CsvTransformerTest {
 
     private static final String CSV = "CSV";
     private static final String DEFAULT_LOCATION = "resources";
@@ -51,7 +51,7 @@ class CsvBulkTransformerTest {
     private S3Driver s3OutputDriver;
     private S3Driver s3ResourcesDriver;
     private EventBridgeClient eventBridgeClient;
-    private CsvBulkTransformer handler;
+    private CsvTransformer handler;
 
     public static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
@@ -67,7 +67,7 @@ class CsvBulkTransformerTest {
         S3Client s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, environment.readEnv("EXPANDED_RESOURCES_BUCKET"));
         eventBridgeClient = new StubEventBridgeClient();
-        handler = new CsvBulkTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);
+        handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);
     }
 
     @Test

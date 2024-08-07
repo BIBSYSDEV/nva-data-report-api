@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-public class CsvBulkTransformer extends BulkTransformerHandler {
+public class CsvTransformer extends BulkTransformerHandler {
 
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
@@ -33,12 +33,12 @@ public class CsvBulkTransformer extends BulkTransformerHandler {
     private final String exportBucket;
 
     @JacocoGenerated
-    public CsvBulkTransformer() {
+    public CsvTransformer() {
         this(defaultS3Client(), defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
     }
 
-    public CsvBulkTransformer(S3Client s3BatchesClient, S3Client s3ResourcesClient, S3Client s3OutputClient,
-                              EventBridgeClient eventBridgeClient) {
+    public CsvTransformer(S3Client s3BatchesClient, S3Client s3ResourcesClient, S3Client s3OutputClient,
+                          EventBridgeClient eventBridgeClient) {
         super(s3ResourcesClient, s3BatchesClient, eventBridgeClient);
         this.exportBucket = new Environment().readEnv(ENV_VAR_EXPORT_BUCKET);
         this.s3OutputClient = s3OutputClient;

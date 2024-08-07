@@ -511,7 +511,7 @@ Resources:
               detail:
                 topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
 
-  NquadsTransformerHandler:
+  NquadsBulkTransformerHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: bulk-load
@@ -561,7 +561,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: bulk-export
-      Handler: no.sikt.nva.data.report.api.export.CsvBulkTransformer::handleRequest
+      Handler: no.sikt.nva.data.report.api.export.CsvTransformer::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
