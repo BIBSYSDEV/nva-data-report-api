@@ -5,7 +5,9 @@ import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -30,10 +33,12 @@ import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.StringUtils;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
@@ -45,7 +50,7 @@ class CsvBulkTransformerTest {
     public static final String CSV = "CSV";
     private static final String DEFAULT_LOCATION = "resources";
     private static final Environment environment = new Environment();
-    private S3Driver s3keyBatches3Driver;
+    private S3Driver s3KeyBatches3Driver;
     private ByteArrayOutputStream outputStream;
     private S3Driver s3OutputDriver;
     private S3Driver s3ResourcesDriver;
@@ -60,7 +65,7 @@ class CsvBulkTransformerTest {
     void setUp() {
         outputStream = new ByteArrayOutputStream();
         S3Client s3keyBatchClient = new FakeS3Client();
-        s3keyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
+        s3KeyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
         S3Client s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, environment.readEnv("EXPORT_BUCKET"));
         S3Client s3ResourcesClient = new FakeS3Client();
@@ -77,7 +82,7 @@ class CsvBulkTransformerTest {
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
-        s3keyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
+        s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var actualContent = ResultSorter.sortResponse(CSV, getActualPersistedFile(), PUBLICATION_ID,
                                                       CONTRIBUTOR_IDENTIFIER);
@@ -85,11 +90,77 @@ class CsvBulkTransformerTest {
         assertEquals(expectedContent, actualContent);
     }
 
+    @Test
+    void shouldNotEmitNewEventWhenNoMoreBatchesToRetrieve() throws IOException {
+        var testData = new TestData(generateDatePairs(2));
+        var indexDocuments = createAndPersistIndexDocuments(testData);
+        var batch = indexDocuments.stream()
+                        .map(IndexDocument::getDocumentIdentifier)
+                        .collect(Collectors.joining(System.lineSeparator()));
+        var batchKey = randomString();
+        s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
+        handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
+        var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+        assertNull(emittedEvent);
+    }
+
+    @Test
+    void shouldEmitNewEventWhenThereAreMoreBatchesToProcess() throws IOException {
+        var testData = new TestData(generateDatePairs(2));
+        var indexDocuments = createAndPersistIndexDocuments(testData);
+        var batch = indexDocuments.stream()
+                        .map(IndexDocument::getDocumentIdentifier)
+                        .collect(Collectors.joining(System.lineSeparator()));
+        var batchKey = randomString();
+        s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
+        var expectedStarMarkerFromEmittedEvent = randomString();
+        s3KeyBatches3Driver.insertFile(UnixPath.of(expectedStarMarkerFromEmittedEvent), batch);
+        var list = new ArrayList<String>();
+        list.add(null);
+        list.add(batchKey);
+        list.add(expectedStarMarkerFromEmittedEvent);
+        for (var item : list) {
+            handler.handleRequest(eventStream(item), outputStream, Mockito.mock(Context.class));
+
+            var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+
+            assertEquals(batchKey, emittedEvent.getStartMarker());
+        }
+    }
+
+    @Test
+    void shouldNotFailWhenBlobNotFound() throws IOException {
+        var testData = new TestData(generateDatePairs(2));
+        var indexDocuments = createAndPersistIndexDocuments(testData);
+        removeOneResourceFromPersistedResourcesBucket(indexDocuments);
+        var batch = indexDocuments.stream()
+                        .map(IndexDocument::getDocumentIdentifier)
+                        .collect(Collectors.joining(System.lineSeparator()));
+        var batchKey = randomString();
+        s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
+        assertDoesNotThrow(() -> handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class)));
+    }
+
+    @Test
+    void shouldSkipEmptyBatches() throws IOException {
+        var batchKey = randomString();
+        s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), StringUtils.EMPTY_STRING);
+        handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
+
+        var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
+        assertEquals(0, actual.size());
+    }
+
     List<DatePair> generateDatePairs(int numberOfDatePairs) {
         return IntStream.range(0, numberOfDatePairs)
                    .mapToObj(i -> new DatePair(new PublicationDate("2024", "02", "02"),
                                                Instant.now().minus(100, ChronoUnit.DAYS)))
                    .toList();
+    }
+
+    private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
+        var document = expectedDocuments.getFirst();
+        s3ResourcesDriver.deleteFile(UnixPath.of(document.getDocumentIdentifier()));
     }
 
     private List<IndexDocument> createAndPersistIndexDocuments(TestData testData) {
@@ -117,9 +188,9 @@ class CsvBulkTransformerTest {
 
     private static class StubEventBridgeClient implements EventBridgeClient {
 
-        private KeyBatchEvent latestEvent;
+        private KeyBatchRequestEvent latestEvent;
 
-        public KeyBatchEvent getLatestEvent() {
+        public KeyBatchRequestEvent getLatestEvent() {
             return latestEvent;
         }
 
@@ -138,12 +209,12 @@ class CsvBulkTransformerTest {
 
         }
 
-        private KeyBatchEvent saveContainedEvent(PutEventsRequest putEventsRequest) {
+        private KeyBatchRequestEvent saveContainedEvent(PutEventsRequest putEventsRequest) {
             PutEventsRequestEntry eventEntry = putEventsRequest.entries()
                                                    .stream()
                                                    .collect(SingletonCollector.collect());
             return attempt(eventEntry::detail).map(
-                jsonString -> dtoObjectMapper.readValue(jsonString, KeyBatchEvent.class)).orElseThrow();
+                jsonString -> dtoObjectMapper.readValue(jsonString, KeyBatchRequestEvent.class)).orElseThrow();
         }
     }
 }
