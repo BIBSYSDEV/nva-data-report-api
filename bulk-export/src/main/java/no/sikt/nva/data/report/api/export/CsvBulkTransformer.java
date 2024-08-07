@@ -6,7 +6,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
-import commons.ViewCompiler;
 import commons.db.utils.DocumentUnwrapper;
 import commons.formatter.CsvFormatter;
 import java.nio.file.Path;

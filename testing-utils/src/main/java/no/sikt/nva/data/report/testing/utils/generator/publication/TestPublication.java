@@ -226,10 +226,6 @@ public class TestPublication {
         return publication.build();
     }
 
-    public JsonNode toJsonNode() {
-        return dtoObjectMapper.valueToTree(this);
-    }
-
     private static String getLocalName(TestContributor contributor) {
         return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
     }
