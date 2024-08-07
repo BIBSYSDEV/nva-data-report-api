@@ -1,10 +1,13 @@
 package no.sikt.nva.data.report.api.export;
 
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import commons.model.ReportFormat;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import no.sikt.nva.data.report.testing.utils.ResultSorter;
 import no.sikt.nva.data.report.testing.utils.generator.TestData;
 import no.sikt.nva.data.report.testing.utils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDate;
@@ -66,7 +70,8 @@ class CsvBulkTransformerTest {
         s3keyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
         var handler = new CsvBulkTransformer(s3keyBatchClient, s3OutputClient, s3ResourcesClient);
         handler.handleRequest(eventStream(), outputStream, mock(Context.class));
-        var actualContent = getActualPersistedFile();
+        var actualContent = ResultSorter.sortResponse(ReportFormat.CSV, getActualPersistedFile(), PUBLICATION_ID,
+                                                      CONTRIBUTOR_IDENTIFIER);
         var expectedContent = testData.getPublicationResponseData();
         assertEquals(expectedContent, actualContent);
     }
@@ -81,8 +86,8 @@ class CsvBulkTransformerTest {
     private List<IndexDocument> createAndPersistIndexDocuments(TestData testData) {
         var indexDocuments = testData.getPublicationTestData().stream()
                                  .map(publication -> new IndexDocument(randomConsumptionAttribute(),
-                                                                       IndexDocumentGenerator.createExpandedResource(
-                                                                           publication)))
+                                                                       PublicationIndexDocument.from(publication)
+                                                                           .asJsonNode()))
                                  .toList();
         indexDocuments.forEach(document -> document.persistInS3(s3ResourcesDriver));
         return indexDocuments;

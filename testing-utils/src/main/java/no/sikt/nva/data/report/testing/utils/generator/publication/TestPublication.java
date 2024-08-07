@@ -115,6 +115,10 @@ public class TestPublication {
         return this;
     }
 
+    public String getPublicationStatus() {
+        return publicationStatus;
+    }
+
     public String getExpectedAffiliationResponse() {
         var stringBuilder = new StringBuilder();
         for (TestContributor contributor : contributors) {

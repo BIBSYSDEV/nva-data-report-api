@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch;
+package commons.model;
 
 import com.google.common.net.MediaType;
 

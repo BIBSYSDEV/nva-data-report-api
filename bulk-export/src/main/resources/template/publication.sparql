@@ -15,36 +15,41 @@ SELECT DISTINCT
     ?channelLevel
     ?publicationIdentifier
 WHERE {
-  GRAPH ?g {
-    ?uri a ?instanceType ;
+    ?uri a :Publication ;
          :status ?publicationStatus ;
          :modifiedDate ?modifiedDate ;
          :identifier ?publicationIdentifier ;
-         :year ?year ;
-         :mainTitle ?publicationTitle ;
-         :publicationContext ?publicationContext .
+         :entityDescription ?entityDescription .
 
     BIND(STR(?uri) AS ?publicationId)
-    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
-    BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
+    BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
+
+    ?entityDescription :mainTitle ?publicationTitle ;
+                       :publicationDate ?date .
+    ?date :year ?year ;
 
     OPTIONAL {
-        ?uri :month ?month .
+        ?date :month ?month .
     }
     OPTIONAL {
-        ?uri :day ?day .
+        ?date :day ?day .
     }
 
     BIND(IF(BOUND(?month), CONCAT("-", ?month), "") AS ?monthPart)
     BIND(IF(BOUND(?day), CONCAT("-", ?day), "") AS ?dayPart)
     BIND(CONCAT(?year, CONCAT(?monthPart, ?dayPart)) AS ?publicationDate)
 
+    ?entityDescription :reference ?reference .
+    ?reference :publicationContext ?publicationContext .
     ?publicationContext a ?channelTypeId ;
                         :name ?channelName ;
-                        :identifier ?channelIdentifier ;
-                        :scientificValue ?channelLevel .
+                        :scientificValue ?channelLevel ;
+                        :identifier ?channelIdentifier .
 
     BIND(STR(?channelTypeId) AS ?channelType)
+    ?reference :publicationInstance ?instance .
+    ?instance a ?instanceType .
+    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
 
     OPTIONAL {
         ?publicationContext :onlineIssn ?channelOnlineIssn
@@ -52,5 +57,4 @@ WHERE {
     OPTIONAL {
         ?publicationContext :printIssn ?channelPrintIssn
     }
-  }
 }

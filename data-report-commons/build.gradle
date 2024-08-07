@@ -10,6 +10,7 @@ dependencies {
     implementation libs.jena.core
     implementation libs.bundles.logging
     implementation libs.jena.rdfconnection
+    implementation libs.guava
     testImplementation(project(':testing-utils'))
     testImplementation libs.jena.fuseki
     testImplementation(libs.nva.testutils) {

@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch.model;
 
 import static com.google.common.net.HttpHeaders.ACCEPT;
 import static java.util.Objects.nonNull;
+import commons.model.ReportFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import no.sikt.nva.data.report.api.fetch.utils.InstantUtil;

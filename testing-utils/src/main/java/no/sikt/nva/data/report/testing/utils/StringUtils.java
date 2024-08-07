@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.formatter;
+package no.sikt.nva.data.report.testing.utils;
 
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.io.IOException;

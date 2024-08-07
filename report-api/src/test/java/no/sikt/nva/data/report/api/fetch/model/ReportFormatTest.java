@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import commons.model.ReportFormat;
 import org.junit.jupiter.api.Test;
 
 class ReportFormatTest {

@@ -1,17 +1,14 @@
-package no.sikt.nva.data.report.api.fetch.formatter;
+package no.sikt.nva.data.report.testing.utils;
 
-import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.buildString;
-import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.printAsString;
-import static no.sikt.nva.data.report.api.fetch.formatter.StringUtils.scanData;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
+import commons.model.ReportFormat;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import no.sikt.nva.data.report.api.fetch.formatter.StringUtils.ScanningResult;
-import no.sikt.nva.data.report.api.fetch.model.ReportFormat;
+import no.sikt.nva.data.report.testing.utils.StringUtils.ScanningResult;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -38,7 +35,7 @@ public class ResultSorter {
     }
 
     public static List<String> extractDataLines(String data) {
-        var scanningResult = scanData(data);
+        var scanningResult = StringUtils.scanData(data);
         return scanningResult.lines()
                    .subList(RESULT_HEADER_LAST_INDEX,
                             scanningResult.lines().size() - RESULT_ENDING_FORMATTED_LINE);
@@ -68,13 +65,13 @@ public class ResultSorter {
         var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
         var csvParser = format.parse(stringReader);
         var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, sortByHeader2);
-        return printAsString(format, csvParser, sortedCsvRecords);
+        return StringUtils.printAsString(format, csvParser, sortedCsvRecords);
     }
 
     private static String sortTextPlain(String data, int primaryIndex, int secondaryIndex) {
-        var scanningResult = scanData(data);
+        var scanningResult = StringUtils.scanData(data);
         var dataLines = sortDataLines(scanningResult, primaryIndex, secondaryIndex);
-        return buildString(scanningResult, dataLines);
+        return StringUtils.buildString(scanningResult, dataLines);
     }
 
     private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1,
