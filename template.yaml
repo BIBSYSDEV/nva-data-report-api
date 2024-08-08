@@ -528,7 +528,7 @@ Resources:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           LOADER_BUCKET: !Ref LoaderBucket
-          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
+          TOPIC: 'ReportApi.Bulk.TransformKeyBatchNquads'
           API_HOST: !Ref ApiDomain
       Events:
         BatchIndexEvent:
@@ -537,7 +537,7 @@ Resources:
             EventBusName: !GetAtt BatchLoadEventBus.Name
             Pattern:
               detail:
-                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
+                topic: [ 'ReportApi.Bulk.TransformKeyBatchNquads' ]
 
   BulkReportGenerator:
     Type: AWS::Serverless::Function
@@ -573,7 +573,7 @@ Resources:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           EXPORT_BUCKET: !Ref ExportBucket
-          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
+          TOPIC: 'ReportApi.Bulk.TransformKeyBatchCsv'
       Events:
         BatchIndexEvent:
           Type: EventBridgeRule
@@ -581,7 +581,7 @@ Resources:
             EventBusName: !GetAtt BatchLoadEventBus.Name
             Pattern:
               detail:
-                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
+                topic: [ 'ReportApi.Bulk.TransformKeyBatchCsv' ]
 
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default

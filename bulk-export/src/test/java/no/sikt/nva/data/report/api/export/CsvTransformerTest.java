@@ -60,11 +60,11 @@ class CsvTransformerTest {
     @BeforeEach
     void setUp() {
         outputStream = new ByteArrayOutputStream();
-        S3Client s3keyBatchClient = new FakeS3Client();
+        var s3keyBatchClient = new FakeS3Client();
         s3KeyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
-        S3Client s3OutputClient = new FakeS3Client();
+        var s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, environment.readEnv("EXPORT_BUCKET"));
-        S3Client s3ResourcesClient = new FakeS3Client();
+        var s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, environment.readEnv("EXPANDED_RESOURCES_BUCKET"));
         eventBridgeClient = new StubEventBridgeClient();
         handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);

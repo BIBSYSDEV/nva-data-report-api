@@ -33,7 +33,7 @@ public class StubEventBridgeClient implements EventBridgeClient {
         }
 
         private KeyBatchRequestEvent saveContainedEvent(PutEventsRequest putEventsRequest) {
-            PutEventsRequestEntry eventEntry = putEventsRequest.entries()
+            var eventEntry = putEventsRequest.entries()
                                                    .stream()
                                                    .collect(SingletonCollector.collect());
             return attempt(eventEntry::detail).map(
