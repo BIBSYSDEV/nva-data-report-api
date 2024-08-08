@@ -573,6 +573,7 @@ Resources:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           EXPORT_BUCKET: !Ref ExportBucket
+          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
       Events:
         BatchIndexEvent:
           Type: EventBridgeRule
