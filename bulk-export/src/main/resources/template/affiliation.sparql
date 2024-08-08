@@ -1,0 +1,61 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT DISTINCT
+    ?publicationId
+    ?status
+    ?publicationIdentifier
+    ?contributorId
+    ?contributorName
+    ?affiliationId
+    ?affiliationName
+    ?institutionId
+    ?facultyId
+    ?departmentId
+    ?groupId
+WHERE {
+    ?uri a :Publication ;
+         :identifier ?publicationIdentifier ;
+         :status ?publicationStatus ;
+         :modifiedDate ?modifiedDate ;
+         :entityDescription/:contributor ?contributor .
+
+    BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
+
+    ?contributor :identity ?personId ;
+                 :affiliation ?affiliationUri .
+
+    BIND(STR(?uri) AS ?publicationId)
+    ?affiliationUri :label ?label .
+    OPTIONAL {
+        ?institutionUri a :Organization ;
+                       :hasPart+ ?affiliationUri .
+        OPTIONAL {
+           ?somewhere :hasPart ?institutionUri
+        }
+        FILTER(!BOUND(?somewhere))
+        OPTIONAL {
+            ?institutionUri :hasPart ?facultyUri .
+            ?facultyUri :hasPart+ ?affiliationUri .
+            OPTIONAL {
+                ?facultyUri :hasPart ?departmentUri .
+                ?departmentUri :hasPart+ ?affiliationUri .
+                OPTIONAL {
+                    ?departmentUri :hasPart ?groupUri .
+                    ?groupUri :hasPart+ ?affiliationUri .
+                }
+            }
+        }
+    }
+
+    BIND(STR(?affiliationUri) as ?affiliationId)
+    BIND(STR(?institutionUri) as ?institutionId)
+    BIND(STR(?facultyUri) as ?facultyId)
+    BIND(STR(?departmentUri) as ?departmentId)
+    BIND(STR(?groupUri) as ?groupId)
+    FILTER(LANG(?label) = "en")
+    BIND(STR(?label) AS ?affiliationName)
+
+    ?personId :name ?contributorName .
+    BIND(REPLACE(STR(?personId), "^.*/([^/]*)$", "$1") AS ?contributorId)
+    FILTER(!ISBLANK(?personId))
+}

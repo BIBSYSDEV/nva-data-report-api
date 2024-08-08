@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.testing.utils.generator.publication;
 
 import static java.util.Objects.isNull;
+import java.util.List;
 import java.util.Optional;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.OrganizationGenerator;
 
@@ -68,4 +69,5 @@ public class TestOrganization {
     public Optional<TestOrganization> getPartOf() {
         return Optional.ofNullable(partOf);
     }
+
 }

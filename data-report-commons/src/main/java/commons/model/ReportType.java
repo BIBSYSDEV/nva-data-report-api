@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.fetch.model;
+package commons.model;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;

@@ -6,6 +6,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.EntityDescriptionGenerator;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.PublicationDateGenerator;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.PublicationGenerator;
@@ -61,6 +63,12 @@ public class TestPublication {
 
     public String getPublicationUri() {
         return publicationUri;
+    }
+
+    public Set<TestOrganization> getContributorAffiliations() {
+        return getContributors().stream()
+                   .flatMap(contributor -> contributor.getAffiliations().stream())
+                   .collect(Collectors.toSet());
     }
 
     public TestPublication withModifiedDate(Instant modifiedDate) {
