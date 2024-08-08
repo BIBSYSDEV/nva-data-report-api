@@ -86,6 +86,7 @@ public class TestData {
     private final List<TestPublication> publicationTestData;
     private final List<TestNviCandidate> nviTestData;
     private final List<Model> models;
+
     public TestData(List<DatePair> dates) {
         this.models = new ArrayList<>();
         this.publicationTestData = generatePublicationData(dates);
@@ -96,10 +97,6 @@ public class TestData {
 
     public List<TestPublication> getPublicationTestData() {
         return publicationTestData;
-    }
-
-    public List<TestNviCandidate> getNviTestData() {
-        return nviTestData;
     }
 
     public List<Model> getModels() {
