@@ -57,6 +57,10 @@ Parameters:
     Type: 'String'
     Default: "nvi-reports"
     Description: Name of bucket for nvi reports
+  ExportBucketName:
+    Type: 'String'
+    Default: "data-report-csv-export"
+    Description: Name of bucket for csv export files
   SlackSnsArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/NVA/Monitoring/SlackSnsArn'
@@ -507,11 +511,11 @@ Resources:
               detail:
                 topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
 
-  BulkTransformerHandler:
+  NquadsBulkTransformerHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: bulk-load
-      Handler: no.sikt.nva.data.report.api.etl.transformer.BulkTransformerHandler::handleRequest
+      Handler: no.sikt.nva.data.report.api.etl.transformer.NquadsTransformer::handleRequest
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -524,7 +528,7 @@ Resources:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           LOADER_BUCKET: !Ref LoaderBucket
-          TOPIC: 'ReportApi.Bulk.TransformKeyBatch'
+          TOPIC: 'ReportApi.Bulk.TransformKeyBatchNquads'
           API_HOST: !Ref ApiDomain
       Events:
         BatchIndexEvent:
@@ -533,7 +537,7 @@ Resources:
             EventBusName: !GetAtt BatchLoadEventBus.Name
             Pattern:
               detail:
-                topic: [ 'ReportApi.Bulk.TransformKeyBatch' ]
+                topic: [ 'ReportApi.Bulk.TransformKeyBatchNquads' ]
 
   BulkReportGenerator:
     Type: AWS::Serverless::Function
@@ -552,6 +556,32 @@ Resources:
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
+
+  CsvBulkTransformerHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bulk-export
+      Handler: no.sikt.nva.data.report.api.export.CsvTransformer::handleRequest
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+      Policies:
+        - !GetAtt S3ManagedPolicy.PolicyArn
+      Environment:
+        Variables:
+          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
+          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
+          KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
+          EXPORT_BUCKET: !Ref ExportBucket
+          TOPIC: 'ReportApi.Bulk.TransformKeyBatchCsv'
+      Events:
+        BatchIndexEvent:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !GetAtt BatchLoadEventBus.Name
+            Pattern:
+              detail:
+                topic: [ 'ReportApi.Bulk.TransformKeyBatchCsv' ]
 
   # ---- Amazon Neptune ----
   # Two instance Amazon Neptune cluster, using default
@@ -796,6 +826,12 @@ Resources:
           - Id: DeleteContentAfter3Days
             Status: Enabled
             ExpirationInDays: 3
+
+  ExportBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${ExportBucketName}-${AWS::AccountId}"
 
   NviReportsBucket:
     Type: AWS::S3::Bucket

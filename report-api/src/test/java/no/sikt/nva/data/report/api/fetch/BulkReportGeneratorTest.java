@@ -10,7 +10,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import no.sikt.nva.data.report.api.fetch.model.ReportType;
-import no.sikt.nva.data.report.api.fetch.testutils.NviTestUtils;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.ioutils.IoUtils;

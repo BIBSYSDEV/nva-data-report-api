@@ -4,10 +4,13 @@ plugins {
 
 dependencies {
     implementation(project(':data-report-commons'))
-    implementation libs.jena.fuseki
     implementation libs.nva.commons.core
+    implementation libs.nva.s3
     implementation libs.nva.json
+    implementation libs.nva.identifiers
+    implementation libs.jena.fuseki
     implementation libs.bundles.jackson
+    implementation libs.aws.sdk2.eventbridge
     implementation(libs.nva.testutils) {
         exclude group: 'org.wiremock', module: 'wiremock'
     }

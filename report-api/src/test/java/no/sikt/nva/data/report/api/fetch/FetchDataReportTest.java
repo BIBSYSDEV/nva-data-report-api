@@ -2,15 +2,15 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static com.google.common.net.HttpHeaders.ACCEPT;
 import static java.lang.String.valueOf;
-import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
-import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedCsvFormatter.generateTable;
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
-import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.extractDataLines;
-import static no.sikt.nva.data.report.api.fetch.formatter.ResultSorter.sortResponse;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.TEXT_CSV;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.TEXT_PLAIN;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
+import static no.sikt.nva.data.report.testing.utils.ResultSorter.extractDataLines;
+import static no.sikt.nva.data.report.testing.utils.ResultSorter.sortResponse;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
 import static nva.commons.apigateway.GatewayResponse.fromOutputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -29,9 +29,10 @@ import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.testutils.BadRequestProvider;
 import no.sikt.nva.data.report.api.fetch.testutils.ValidExcelRequestSource;
 import no.sikt.nva.data.report.api.fetch.testutils.ValidRequestSource;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchDataReportRequest;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
+import no.sikt.nva.data.report.testing.utils.generator.TestData;
+import no.sikt.nva.data.report.testing.utils.model.ResultType;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -72,7 +73,7 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
+        var sortedResponse = sortResponse(ResultType.fromString(getReportFormat(request).toString()), response.getBody(), PUBLICATION_ID,
                                           CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
@@ -146,8 +147,8 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(getReportFormat(request), response.getBody(), PUBLICATION_ID,
-                                          CONTRIBUTOR_IDENTIFIER);
+        var sortedResponse = sortResponse(ResultType.fromString(getReportFormat(request).toString()),
+                                          response.getBody(), PUBLICATION_ID, CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 

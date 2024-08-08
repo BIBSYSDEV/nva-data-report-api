@@ -1,6 +1,6 @@
 package no.sikt.nva.data.report.api.fetch.testutils;
 
-import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.TEXT_PLAIN;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.fetch.testutils.requests.FetchDataReportRequest;
 import org.junit.jupiter.api.Named;

@@ -2,8 +2,8 @@ package no.sikt.nva.data.report.api.fetch.model;
 
 import static com.google.common.net.MediaType.MICROSOFT_EXCEL;
 import static com.google.common.net.MediaType.OOXML_SHEET;
-import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_CSV;
-import static no.sikt.nva.data.report.api.fetch.CustomMediaType.TEXT_PLAIN;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.TEXT_CSV;
+import static no.sikt.nva.data.report.api.fetch.model.CustomMediaType.TEXT_PLAIN;
 import com.google.common.net.MediaType;
 import java.util.Arrays;
 import java.util.List;

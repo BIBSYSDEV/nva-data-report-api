@@ -2,8 +2,9 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static no.sikt.nva.data.report.api.fetch.formatter.ExpectedExcelFormatter.generateExcel;
 import static no.sikt.nva.data.report.api.fetch.testutils.ExcelAsserter.assertEqualsInAnyOrder;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.Constants.organizationUri;
-import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.testing.utils.generator.NviTestData.SOME_YEAR;
+import static no.sikt.nva.data.report.testing.utils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
@@ -13,7 +14,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Stream;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
-import no.sikt.nva.data.report.api.fetch.testutils.generator.TestData;
+import no.sikt.nva.data.report.testing.utils.generator.TestData;
 import no.sikt.nva.data.report.api.fetch.xlsx.Excel;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeS3Client;
@@ -30,8 +31,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 public class NviInstitutionReportGeneratorTest extends LocalFusekiTest {
-
-    public static final String SOME_YEAR = "2023";
     private static final URI HARDCODED_INSTITUTION_ID = URI.create(organizationUri(SOME_TOP_LEVEL_IDENTIFIER));
     private static final String EXCEL = "application/vnd.ms-excel";
     private static final Environment ENVIRONMENT = new Environment();
