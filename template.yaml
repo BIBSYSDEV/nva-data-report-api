@@ -830,7 +830,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: Private
-      BucketName: !Sub "${NviExportBucketName}-${AWS::AccountId}"
+      BucketName: !Sub "${ExportBucketName}-${AWS::AccountId}"
 
   NviReportsBucket:
     Type: AWS::S3::Bucket

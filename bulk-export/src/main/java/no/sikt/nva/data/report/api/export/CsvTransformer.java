@@ -47,7 +47,7 @@ public class CsvTransformer extends BulkTransformerHandler {
     @Override
     protected String processBatch(Stream<JsonNode> jsonNodeStream) {
         var model = ModelFactory.createDefaultModel();
-        jsonNodeStream.forEach(element -> RDFDataMgr.read(model, stringToStream(element.toString()), Lang.JSONLD));
+        jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
         var query = getQuery();
         try (var queryExecution = QueryExecutionFactory.create(query, model)) {
             var resultSet = queryExecution.execSelect();
