@@ -3,6 +3,7 @@ package no.sikt.nva.data.report.testing.utils;
 import static no.sikt.nva.data.report.testing.utils.StringUtils.buildString;
 import static no.sikt.nva.data.report.testing.utils.StringUtils.printAsString;
 import static no.sikt.nva.data.report.testing.utils.StringUtils.scanData;
+import static no.sikt.nva.data.report.testing.utils.model.ResultType.CSV;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.io.IOException;
 import java.io.StringReader;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import no.sikt.nva.data.report.testing.utils.StringUtils.ScanningResult;
+import no.sikt.nva.data.report.testing.utils.model.ResultType;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -18,7 +20,6 @@ import org.apache.commons.csv.CSVRecord;
 public class ResultSorter {
 
     public static final String TARGET = "\"";
-    public static final String CSV = "CSV";
     private static final int RESULT_HEADER_LAST_INDEX = 1;
     private static final int RESULT_ENDING_FORMATTED_LINE = 1;
     private static final String COLUMN_SPLIT_REGEX = "\\|";
@@ -27,7 +28,7 @@ public class ResultSorter {
         // NO-OP
     }
 
-    public static String sortResponse(String type, String data, String sortByHeader1, String sortByHeader2)
+    public static String sortResponse(ResultType type, String data, String sortByHeader1, String sortByHeader2)
         throws IOException {
         var headers = getHeaders(data);
         var primaryIndex = headers.indexOf(sortByHeader1);

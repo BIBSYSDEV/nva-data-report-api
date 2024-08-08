@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.export;
 
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
+import static no.sikt.nva.data.report.testing.utils.model.ResultType.CSV;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -39,11 +40,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.s3.S3Client;
 
 class CsvTransformerTest {
 
-    private static final String CSV = "CSV";
     private static final String DEFAULT_LOCATION = "resources";
     private static final Environment environment = new Environment();
     private S3Driver s3KeyBatches3Driver;
