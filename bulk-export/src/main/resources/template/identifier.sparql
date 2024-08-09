@@ -14,9 +14,9 @@ WHERE {
                     :funding ?funding .
 
     BIND(STR(?uri) AS ?publicationId)
-    BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
+    BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
 
-    ?funding :identifier ?fundingId ;
-             :source ?sourceId .
-    ?sourceId :identifier ?fundingSource .
+    ?funding :source ?source .
+    ?source :identifier ?fundingSource .
+    BIND(STR(?funding) AS ?fundingId)
 }
