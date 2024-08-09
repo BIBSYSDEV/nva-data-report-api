@@ -356,6 +356,7 @@ public record PublicationIndexDocument(String type,
         private record Contributor(String type,
                                    Identity identity,
                                    Role role,
+                                   String sequence,
                                    List<Affiliation> affiliations) {
 
             public static final String TYPE = "Contributor";
@@ -365,6 +366,7 @@ public record PublicationIndexDocument(String type,
                     TYPE,
                     Identity.from(testContributor.getIdentity()),
                     new Role(testContributor.role()),
+                    testContributor.getSequenceNumber(),
                     testContributor.getAffiliations().stream().map(Affiliation::from).toList()
                 );
             }
