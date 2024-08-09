@@ -1,17 +1,22 @@
 package no.sikt.nva.data.report.api.etl.transformer;
 
+import static commons.utils.GzipUtil.compress;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
+import static nva.commons.core.attempt.Try.attempt;
 import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.ViewCompiler;
 import commons.handlers.BulkTransformerHandler;
+import commons.model.ContentWithLocation;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UnixPath;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +28,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class NquadsTransformer extends BulkTransformerHandler {
 
-    public static final String NULL_CHARACTER = "\\u0000";
     private static final Logger logger = LoggerFactory.getLogger(NquadsTransformer.class);
     private static final Environment ENVIRONMENT = new Environment();
+    private static final String NULL_CHARACTER = "\\u0000";
     private static final String LOADER_BUCKET = "LOADER_BUCKET";
     private static final String NQUADS_GZIPPED = ".nquads.gz";
     private static final String ID_POINTER = "/id";
@@ -47,19 +52,29 @@ public class NquadsTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    protected String processBatch(Stream<JsonNode> jsonNodeStream) {
-        return jsonNodeStream.map(this::mapToNquads)
-                   .collect(Collectors.joining(System.lineSeparator()));
+    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream) {
+        var nquads = jsonNodeStream.map(this::mapToNquads)
+                         .collect(Collectors.joining(System.lineSeparator()));
+        return List.of(new ContentWithLocation(UnixPath.ROOT_PATH, nquads));
     }
 
     @Override
-    protected boolean persist(byte[] data) {
-        var request = PutObjectRequest.builder()
-                          .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
-                          .key(UUID.randomUUID() + NQUADS_GZIPPED)
-                          .build();
-        var response = s3OutputClient.putObject(request, RequestBody.fromBytes(data));
-        return response.sdkHttpResponse().isSuccessful();
+    protected void persist(List<ContentWithLocation> transformedData) {
+        transformedData.forEach(this::persist);
+    }
+
+    private static PutObjectRequest buildRequest(ContentWithLocation transformedData) {
+        var key = generateKey(transformedData);
+        return PutObjectRequest.builder()
+                   .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
+                   .key(key)
+                   .build();
+    }
+
+    private static String generateKey(ContentWithLocation transformedData) {
+        return transformedData.location().equals(UnixPath.ROOT_PATH)
+                   ? UUID.randomUUID() + NQUADS_GZIPPED
+                   : transformedData.location().addChild(UUID.randomUUID().toString()) + NQUADS_GZIPPED;
     }
 
     @JacocoGenerated
@@ -79,6 +94,16 @@ public class NquadsTransformer extends BulkTransformerHandler {
             throw new MissingIdException();
         }
         return URI.create(id.textValue());
+    }
+
+    private void persist(ContentWithLocation transformation) {
+        var request = buildRequest(transformation);
+        compressAndPersist(transformation, request);
+    }
+
+    private void compressAndPersist(ContentWithLocation transformedData, PutObjectRequest request) {
+        var data = attempt(() -> compress(transformedData.content())).orElseThrow();
+        s3OutputClient.putObject(request, RequestBody.fromBytes(data));
     }
 
     // Necessary to avoid issues with Neptune downstream

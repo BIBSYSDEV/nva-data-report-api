@@ -1,13 +1,14 @@
 package commons.handlers;
 
-import static commons.utils.GzipUtil.compress;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.db.utils.DocumentUnwrapper;
+import commons.model.ContentWithLocation;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -76,16 +77,15 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
             .filter(keys -> !keys.isEmpty())
             .map(this::mapToIndexDocuments)
             .map(this::processBatch)
-            .map(transformedData -> attempt(() -> compress(transformedData)).orElseThrow())
-            .map(this::persist);
+            .ifPresent(this::persist);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
         return null;
     }
 
-    protected abstract String processBatch(Stream<JsonNode> jsonNodeStream);
+    protected abstract List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream);
 
-    protected abstract boolean persist(byte[] data);
+    protected abstract void persist(List<ContentWithLocation> content);
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
                                                                String location,

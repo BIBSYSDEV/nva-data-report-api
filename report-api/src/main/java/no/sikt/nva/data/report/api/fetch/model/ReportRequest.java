@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.api.fetch.model;
 
 import static com.google.common.net.HttpHeaders.ACCEPT;
 import static java.util.Objects.nonNull;
+import commons.model.ReportType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import no.sikt.nva.data.report.api.fetch.utils.InstantUtil;
@@ -36,18 +37,6 @@ public class ReportRequest {
         this.offset = nonNull(offset) ? offset : 0;
         this.pageSize = nonNull(pageSize) ? pageSize : 10;
         validate();
-    }
-
-    private void validate() throws BadRequestException {
-        if (this.offset < 0) {
-            throw new BadRequestException("Offset cannot be less than zero");
-        }
-        if (this.pageSize < 0) {
-            throw new BadRequestException("Page size cannot be less than zero");
-        }
-        if (this.after.isAfter(this.before)) {
-            throw new BadRequestException("Logically, 'before should be after the value of 'after'");
-        }
     }
 
     public ReportRequest(String reportFormat,
@@ -94,7 +83,6 @@ public class ReportRequest {
         return pageSize;
     }
 
-
     private static Integer extractPageSize(RequestInfo requestInfo) {
         return extractValueAsInteger(requestInfo, PAGE_SIZE_SELECTOR);
     }
@@ -123,5 +111,17 @@ public class ReportRequest {
 
     private static String extractFormat(RequestInfo requestInfo) {
         return requestInfo.getHeaders().getOrDefault(ACCEPT, null);
+    }
+
+    private void validate() throws BadRequestException {
+        if (this.offset < 0) {
+            throw new BadRequestException("Offset cannot be less than zero");
+        }
+        if (this.pageSize < 0) {
+            throw new BadRequestException("Page size cannot be less than zero");
+        }
+        if (this.after.isAfter(this.before)) {
+            throw new BadRequestException("Logically, 'before should be after the value of 'after'");
+        }
     }
 }

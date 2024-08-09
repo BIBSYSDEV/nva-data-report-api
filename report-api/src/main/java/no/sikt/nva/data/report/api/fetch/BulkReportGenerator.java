@@ -2,7 +2,7 @@ package no.sikt.nva.data.report.api.fetch;
 
 import static java.util.Objects.isNull;
 import com.amazonaws.services.lambda.runtime.Context;
-import no.sikt.nva.data.report.api.fetch.model.ReportType;
+import commons.model.ReportType;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import org.slf4j.Logger;

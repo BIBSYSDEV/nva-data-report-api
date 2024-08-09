@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.export;
 
+import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,10 +8,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.testing.utils.generator.publication.TestContributor;
+import no.sikt.nva.data.report.testing.utils.generator.publication.TestFunding;
 import no.sikt.nva.data.report.testing.utils.generator.publication.TestIdentity;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestOrganization;
 import no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication;
 import no.unit.nva.commons.json.JsonSerializable;
+import nva.commons.core.paths.UriWrapper;
 
 public record PublicationIndexDocument(String type,
                                        @JsonProperty("@context") String context,
@@ -18,8 +20,11 @@ public record PublicationIndexDocument(String type,
                                        EntityDescription entityDescription,
                                        String identifier,
                                        String modifiedDate,
-                                       String status) implements JsonSerializable {
+                                       String status,
+                                       List<Funding> fundings,
+                                       List<TestOrganization> topLevelOrganizations) implements JsonSerializable {
 
+    public static final String EN = "en";
     private static final String TYPE = "Publication";
     private static final String CONTEXT = "https://api.dev.nva.aws.unit.no/publication/context";
 
@@ -31,12 +36,57 @@ public record PublicationIndexDocument(String type,
             EntityDescription.from(publication),
             publication.getIdentifier(),
             publication.getModifiedDate().toString(),
-            publication.getPublicationStatus()
+            publication.getPublicationStatus(),
+            publication.getFundings().stream().map(Funding::from).toList(),
+            generateTopLevelOrganizations(publication)
         );
     }
 
     public JsonNode asJsonNode() {
         return attempt(() -> dtoObjectMapper.readTree(this.toJsonString())).orElseThrow();
+    }
+
+    private static List<TestOrganization> generateTopLevelOrganizations(TestPublication publication) {
+        return publication.getContributorAffiliations()
+                   .stream()
+                   .map(PublicationIndexDocument::generateTopLevelOrganization)
+                   .map(json -> attempt(() -> dtoObjectMapper.readValue(json, TestOrganization.class)).orElseThrow())
+                   .toList();
+    }
+
+    private static String generateTopLevelOrganization(
+        no.sikt.nva.data.report.testing.utils.generator.publication.TestOrganization affiliation) {
+        // Struggled to recreate the nested structure for top level organization based on affiliation, therefore
+        // hardcoded
+        return String.format("""
+                                 {
+                                   "id": "https://example.org/organization/10.0.0.0",
+                                   "type": "Organization",
+                                   "hasPart": {
+                                     "id": "https://example.org/organization/10.1.0.0",
+                                     "type": "Organization",
+                                     "hasPart": {
+                                       "id": "https://example.org/organization/10.1.1.0",
+                                       "type": "Organization",
+                                       "hasPart": {
+                                         "id": "%s",
+                                         "type": "Organization",
+                                         "labels": {
+                                           "en": "%s"
+                                         }
+                                       }
+                                     }
+                                   }
+                                 }
+                                 """, affiliation.getId(), affiliation.getName());
+    }
+
+    private record TestOrganization(String id,
+                                    String type,
+                                    Map<String, String> labels,
+                                    TestOrganization partOf,
+                                    TestOrganization hasPart) {
+
     }
 
     private record EntityDescription(String type,
@@ -58,6 +108,7 @@ public record PublicationIndexDocument(String type,
         private record Contributor(String type,
                                    Identity identity,
                                    Role role,
+                                   String sequence,
                                    List<Affiliation> affiliations) {
 
             public static final String TYPE = "Contributor";
@@ -67,6 +118,7 @@ public record PublicationIndexDocument(String type,
                     TYPE,
                     Identity.from(testContributor.getIdentity()),
                     new Role(testContributor.role()),
+                    testContributor.getSequenceNumber(),
                     testContributor.getAffiliations().stream().map(Affiliation::from).toList()
                 );
             }
@@ -92,16 +144,18 @@ public record PublicationIndexDocument(String type,
 
             private record Affiliation(String id,
                                        String type,
-                                       Map<String, String> labels) {
+                                       Map<String, String> labels,
+                                       Affiliation partOf) {
 
                 public static final String TYPE = "Organization";
-                public static final String NB = "nb";
 
-                public static Affiliation from(TestOrganization testOrganization) {
+                public static Affiliation from(
+                    no.sikt.nva.data.report.testing.utils.generator.publication.TestOrganization testOrganization) {
                     return new Affiliation(
                         testOrganization.getId(),
                         TYPE,
-                        Map.of(NB, testOrganization.getName())
+                        isNull(testOrganization.getName()) ? null : Map.of(EN, testOrganization.getName()),
+                        testOrganization.getPartOf().map(Affiliation::from).orElse(null)
                     );
                 }
             }
@@ -159,6 +213,38 @@ public record PublicationIndexDocument(String type,
                 public static PublicationInstance from(TestPublication publication) {
                     return new PublicationInstance(publication.getPublicationCategory());
                 }
+            }
+        }
+    }
+
+    private record Funding(String type,
+                           String id,
+                           String identifier,
+                           FundingSource source) {
+
+        public static final String IRRELEVANT_HARDCODED_FUNDING_TYPE = "ConfirmedFunding";
+
+        public static Funding from(TestFunding testFunding) {
+            return new Funding(
+                IRRELEVANT_HARDCODED_FUNDING_TYPE,
+                testFunding.getId(),
+                UriWrapper.fromUri(testFunding.getId()).getLastPathElement(),
+                FundingSource.from(testFunding)
+            );
+        }
+
+        private record FundingSource(String identifier,
+                                     String type,
+                                     Map<String, String> labels) {
+
+            public static final String TYPE = "FundingSource";
+
+            public static FundingSource from(TestFunding testFunding) {
+                return new FundingSource(
+                    testFunding.getFundingSource(),
+                    TYPE,
+                    Map.of(EN, testFunding.getName())
+                );
             }
         }
     }
