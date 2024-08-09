@@ -19,7 +19,7 @@ WHERE {
          :modifiedDate ?modifiedDate ;
          :entityDescription/:contributor ?contributor .
 
-    BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
+    BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
 
     ?contributor :identity ?personId ;
                  :affiliation ?affiliationUri .
@@ -41,7 +41,6 @@ WHERE {
                 ?departmentUri :hasPart+ ?affiliationUri .
                 OPTIONAL {
                     ?departmentUri :hasPart ?groupUri .
-                    ?groupUri :hasPart+ ?affiliationUri .
                 }
             }
         }
