@@ -1,12 +1,10 @@
 package no.sikt.nva.data.report.api.export;
 
-import static commons.utils.GzipUtil.compress;
-import static nva.commons.core.attempt.Try.attempt;
 import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.formatter.CsvFormatter;
 import commons.handlers.BulkTransformerHandler;
-import commons.handlers.ContentWithLocation;
+import commons.model.ContentWithLocation;
 import commons.model.ReportType;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -63,13 +61,13 @@ public class CsvTransformer extends BulkTransformerHandler {
                    .toList();
     }
 
-    private static boolean isNotNviReport(ReportType type) {
-        return !type.equals(ReportType.NVI);
-    }
-
     @Override
     protected void persist(List<ContentWithLocation> transformedData) {
         transformedData.forEach(this::persist);
+    }
+
+    private static boolean isNotNviReport(ReportType type) {
+        return !type.equals(ReportType.NVI);
     }
 
     @JacocoGenerated
@@ -105,18 +103,13 @@ public class CsvTransformer extends BulkTransformerHandler {
 
     private void persist(ContentWithLocation transformation) {
         var request = buildRequest(transformation.location());
-        compressAndPersist(transformation, request);
+        s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
     }
 
     private PutObjectRequest buildRequest(UnixPath path) {
         return PutObjectRequest.builder()
                    .bucket(exportBucket)
-                   .key(path + DELIMITER + UUID.randomUUID() + GZIP)
+                   .key(path + DELIMITER + UUID.randomUUID())
                    .build();
-    }
-
-    private void compressAndPersist(ContentWithLocation transformedData, PutObjectRequest request) {
-        var data = attempt(() -> compress(transformedData.content())).orElseThrow();
-        s3OutputClient.putObject(request, RequestBody.fromBytes(data));
     }
 }

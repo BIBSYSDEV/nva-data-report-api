@@ -7,7 +7,7 @@ import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.ViewCompiler;
 import commons.handlers.BulkTransformerHandler;
-import commons.handlers.ContentWithLocation;
+import commons.model.ContentWithLocation;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -65,10 +65,17 @@ public class NquadsTransformer extends BulkTransformerHandler {
     }
 
     private static PutObjectRequest buildRequest(ContentWithLocation transformedData) {
+        var key = generateKey(transformedData);
         return PutObjectRequest.builder()
                    .bucket(ENVIRONMENT.readEnv(LOADER_BUCKET))
-                   .key(transformedData.location() + DELIMITER + UUID.randomUUID() + NQUADS_GZIPPED)
+                   .key(key)
                    .build();
+    }
+
+    private static String generateKey(ContentWithLocation transformedData) {
+        return transformedData.location().equals(UnixPath.ROOT_PATH)
+                   ? UUID.randomUUID() + NQUADS_GZIPPED
+                   : transformedData.location().addChild(UUID.randomUUID().toString()) + NQUADS_GZIPPED;
     }
 
     @JacocoGenerated

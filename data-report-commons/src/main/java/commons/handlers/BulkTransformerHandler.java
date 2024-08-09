@@ -5,6 +5,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.db.utils.DocumentUnwrapper;
+import commons.model.ContentWithLocation;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
