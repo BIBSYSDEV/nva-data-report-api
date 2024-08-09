@@ -16,11 +16,12 @@ WHERE {
                     :funding ?funding .
 
     BIND(STR(?uri) AS ?publicationId)
-    BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
+    BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
 
-    ?funding :source/:identifier ?fundingSource .
-    ?funding :identifier ?fundingId .
-    ?funding :label ?label .
+    ?funding :source ?fundingSourceNode .
+    ?fundingSourceNode :label ?label .
+    ?fundingSourceNode :identifier ?fundingSource .
     FILTER(LANG(?label) = "en")
     BIND(STR(?label) AS ?fundingName)
+    BIND(STR(?funding) AS ?fundingId)
 }
