@@ -64,6 +64,11 @@ public class NquadsTransformer extends BulkTransformerHandler {
         transformedData.forEach(this::persist);
     }
 
+    private void persist(ContentWithLocation transformation) {
+        var request = buildRequest(transformation);
+        compressAndPersist(transformation, request);
+    }
+
     private static PutObjectRequest buildRequest(ContentWithLocation transformedData) {
         var key = generateKey(transformedData);
         return PutObjectRequest.builder()
@@ -95,11 +100,6 @@ public class NquadsTransformer extends BulkTransformerHandler {
             throw new MissingIdException();
         }
         return URI.create(id.textValue());
-    }
-
-    private void persist(ContentWithLocation transformation) {
-        var request = buildRequest(transformation);
-        compressAndPersist(transformation, request);
     }
 
     private void compressAndPersist(ContentWithLocation transformedData, PutObjectRequest request) {

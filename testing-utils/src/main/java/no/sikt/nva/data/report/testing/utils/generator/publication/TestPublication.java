@@ -29,6 +29,7 @@ public class TestPublication {
     private List<TestFunding> fundings;
     private String publicationUri;
     private String publicationStatus;
+
     public TestPublication() {
     }
 

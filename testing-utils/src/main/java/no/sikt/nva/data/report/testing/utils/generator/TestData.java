@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.testing.utils.generator.NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
@@ -261,10 +262,9 @@ public class TestData {
         return expectedCandidate.publicationDetails()
                    .contributors()
                    .stream()
-                   .map(contributor -> NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse(contributor,
-                                                                                                           expectedCandidate,
-                                                                                                           getPublication(
-                                                                                                               expectedCandidate)))
+                   .map(contributor ->
+                            generateExpectedNviInstitutionResponse(contributor, expectedCandidate,
+                                                                   getPublication(expectedCandidate)))
                    .collect(Collectors.joining());
     }
 

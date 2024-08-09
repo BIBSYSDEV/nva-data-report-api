@@ -73,8 +73,8 @@ class FetchDataReportTest extends LocalFusekiTest {
         var response = fromOutputStream(output, String.class);
         assertEquals(200, response.getStatusCode());
         var expected = getExpected(request, testData);
-        var sortedResponse = sortResponse(ResultType.fromString(getReportFormat(request).toString()), response.getBody(), PUBLICATION_ID,
-                                          CONTRIBUTOR_IDENTIFIER);
+        var sortedResponse = sortResponse(ResultType.fromString(getReportFormat(request).toString()),
+                                          response.getBody(), PUBLICATION_ID, CONTRIBUTOR_IDENTIFIER);
         assertEquals(expected, sortedResponse);
     }
 
