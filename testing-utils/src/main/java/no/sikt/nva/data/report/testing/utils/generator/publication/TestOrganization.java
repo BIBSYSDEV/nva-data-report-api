@@ -1,7 +1,6 @@
 package no.sikt.nva.data.report.testing.utils.generator.publication;
 
 import static java.util.Objects.isNull;
-import java.util.List;
 import java.util.Optional;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.OrganizationGenerator;
 
@@ -34,6 +33,18 @@ public class TestOrganization {
         return organizationGenerator;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Optional<TestOrganization> getPartOf() {
+        return Optional.ofNullable(partOf);
+    }
+
     private TestOrganization generatePartOf(String id) {
 
         if (isNull(id) || id.endsWith(".0.0.0")) {
@@ -57,17 +68,4 @@ public class TestOrganization {
             return new TestOrganization(baseUri + parts[0] + "." + parts[1] + "." + parts[2] + ".0", null);
         }
     }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Optional<TestOrganization> getPartOf() {
-        return Optional.ofNullable(partOf);
-    }
-
 }

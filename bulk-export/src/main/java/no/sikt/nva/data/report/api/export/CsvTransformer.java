@@ -32,7 +32,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class CsvTransformer extends BulkTransformerHandler {
 
     private static final String DELIMITER = "/";
-    private static final String GZIP = ".gz";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
     private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
@@ -66,11 +65,6 @@ public class CsvTransformer extends BulkTransformerHandler {
         transformedData.forEach(this::persist);
     }
 
-    private void persist(ContentWithLocation transformation) {
-        var request = buildRequest(transformation.location());
-        s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
-    }
-
     private static boolean isNotNviReport(ReportType type) {
         return !type.equals(ReportType.NVI);
     }
@@ -87,6 +81,11 @@ public class CsvTransformer extends BulkTransformerHandler {
 
     private static Path constructPath(String sparqlTemplate) {
         return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
+    }
+
+    private void persist(ContentWithLocation transformation) {
+        var request = buildRequest(transformation.location());
+        s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
     }
 
     private ContentWithLocation transform(Model model, ReportType reportType) {

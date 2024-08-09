@@ -31,7 +31,6 @@ public class NquadsTransformer extends BulkTransformerHandler {
     private static final Logger logger = LoggerFactory.getLogger(NquadsTransformer.class);
     private static final Environment ENVIRONMENT = new Environment();
     private static final String NULL_CHARACTER = "\\u0000";
-    private static final String DELIMITER = "/";
     private static final String LOADER_BUCKET = "LOADER_BUCKET";
     private static final String NQUADS_GZIPPED = ".nquads.gz";
     private static final String ID_POINTER = "/id";
@@ -62,11 +61,6 @@ public class NquadsTransformer extends BulkTransformerHandler {
     @Override
     protected void persist(List<ContentWithLocation> transformedData) {
         transformedData.forEach(this::persist);
-    }
-
-    private void persist(ContentWithLocation transformation) {
-        var request = buildRequest(transformation);
-        compressAndPersist(transformation, request);
     }
 
     private static PutObjectRequest buildRequest(ContentWithLocation transformedData) {
@@ -100,6 +94,11 @@ public class NquadsTransformer extends BulkTransformerHandler {
             throw new MissingIdException();
         }
         return URI.create(id.textValue());
+    }
+
+    private void persist(ContentWithLocation transformation) {
+        var request = buildRequest(transformation);
+        compressAndPersist(transformation, request);
     }
 
     private void compressAndPersist(ContentWithLocation transformedData, PutObjectRequest request) {
