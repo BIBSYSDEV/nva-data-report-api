@@ -34,6 +34,7 @@ public class CsvTransformer extends BulkTransformerHandler {
     private static final String DELIMITER = "/";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
+    private static final String FILE_EXTENSION_CSV = ".csv";
     private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
     private final S3Client s3OutputClient;
     private final String exportBucket;
@@ -108,7 +109,7 @@ public class CsvTransformer extends BulkTransformerHandler {
     private PutObjectRequest buildRequest(UnixPath path) {
         return PutObjectRequest.builder()
                    .bucket(exportBucket)
-                   .key(path + DELIMITER + UUID.randomUUID())
+                   .key(path + DELIMITER + UUID.randomUUID() + FILE_EXTENSION_CSV)
                    .build();
     }
 }
