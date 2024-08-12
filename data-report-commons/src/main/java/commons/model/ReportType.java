@@ -1,6 +1,7 @@
 package commons.model;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public enum ReportType {
@@ -26,8 +27,18 @@ public enum ReportType {
                    .orElseThrow(ReportType::getIllegalArgument);
     }
 
+    public static List<ReportType> getAllTypesExcludingNviReport() {
+        return Arrays.stream(values())
+                   .filter(ReportType::isNotNviReportType)
+                   .collect(Collectors.toList());
+    }
+
     public String getType() {
         return type;
+    }
+
+    private static boolean isNotNviReportType(ReportType reportType) {
+        return !reportType.equals(NVI);
     }
 
     private static IllegalArgumentException getIllegalArgument() {

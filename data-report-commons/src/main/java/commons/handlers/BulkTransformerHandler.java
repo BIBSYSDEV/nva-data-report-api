@@ -68,7 +68,7 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
                                 Context context) {
         var startMarker = getStartMarker(input);
         var location = getLocation(input);
-        var batchResponse = fetchSingleBatch(startMarker);
+        var batchResponse = fetchSingleBatch(location, startMarker);
 
         emitNextEvent(batchResponse, location, context);
 
@@ -134,10 +134,11 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
         return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : null;
     }
 
-    private ListingResponse fetchSingleBatch(String startMarker) {
+    private ListingResponse fetchSingleBatch(String location, String startMarker) {
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
+                .prefix(location)
                 .startAfter(startMarker)
                 .maxKeys(1)
                 .build());
