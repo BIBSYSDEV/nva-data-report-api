@@ -1,27 +1,31 @@
 package no.sikt.nva.data.report.api.export;
 
+import static no.sikt.nva.data.report.testing.utils.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
 import static no.sikt.nva.data.report.testing.utils.model.ResultType.CSV;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import commons.handlers.KeyBatchRequestEvent;
+import commons.model.ReportType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.sikt.nva.data.report.testing.utils.ResultSorter;
 import no.sikt.nva.data.report.testing.utils.generator.TestData;
 import no.sikt.nva.data.report.testing.utils.generator.TestData.DatePair;
 import no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDate;
@@ -38,7 +42,8 @@ import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 class CsvTransformerTest {
@@ -69,32 +74,43 @@ class CsvTransformerTest {
         handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);
     }
 
-    @Test
-    void shouldWriteCsvFileToS3() throws IOException {
+    @ParameterizedTest
+    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
+    void shouldWriteCsvFileToS3ForAllReportTypes(ReportType reportType) throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        var indexDocuments = createAndPersistIndexDocuments(testData);
-        var batch = indexDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
-                        .collect(Collectors.joining(System.lineSeparator()));
+        var batch = setupExistingBatch(testData);
         var batchKey = randomString();
         s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
-        var actualContent = ResultSorter.sortResponse(CSV, getActualPersistedFile(), PUBLICATION_ID,
-                                                      CONTRIBUTOR_IDENTIFIER);
-        var expectedContent = testData.getPublicationResponseData();
+        var actualContent = attempt(() -> sortResponse(CSV, getActualPersistedFile(reportType), PUBLICATION_ID,
+                                                       CONTRIBUTOR_IDENTIFIER)).orElseThrow();
+        var expectedContent = getExpectedResponseData(reportType, testData);
         assertEquals(expectedContent, actualContent);
+    }
+
+    @Test
+    void shouldWriteCsvFilesForAlleReportTypesToSpecificFolderInExportBucket() throws IOException {
+        var testData = new TestData(generateDatePairs(1));
+        var batch = setupExistingBatch(testData);
+        var batchKey = randomString();
+        s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        Arrays.stream(ReportType.values())
+            .filter(reportType -> !reportType.equals(ReportType.NVI))//TODO: NVI is not supported yet
+            .forEach(reportType -> {
+                var expectedPath = UnixPath.of(reportType.getType());
+                var file = s3OutputDriver.listAllFiles(expectedPath).getFirst();
+                assertNotNull(file);
+            });
     }
 
     @Test
     void shouldNotEmitNewEventWhenNoMoreBatchesToRetrieve() throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        var indexDocuments = createAndPersistIndexDocuments(testData);
-        var batch = indexDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
-                        .collect(Collectors.joining(System.lineSeparator()));
+        var batch = setupExistingBatch(testData);
         var batchKey = randomString();
         s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
-        handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
         assertNull(emittedEvent);
     }
@@ -102,10 +118,7 @@ class CsvTransformerTest {
     @Test
     void shouldEmitNewEventWhenThereAreMoreBatchesToProcess() throws IOException {
         var testData = new TestData(generateDatePairs(2));
-        var indexDocuments = createAndPersistIndexDocuments(testData);
-        var batch = indexDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
-                        .collect(Collectors.joining(System.lineSeparator()));
+        var batch = setupExistingBatch(testData);
         var batchKey = randomString();
         s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
         var expectedStarMarkerFromEmittedEvent = randomString();
@@ -115,7 +128,7 @@ class CsvTransformerTest {
         list.add(batchKey);
         list.add(expectedStarMarkerFromEmittedEvent);
         for (var item : list) {
-            handler.handleRequest(eventStream(item), outputStream, Mockito.mock(Context.class));
+            handler.handleRequest(eventStream(item), outputStream, mock(Context.class));
 
             var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
 
@@ -133,14 +146,14 @@ class CsvTransformerTest {
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = randomString();
         s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), batch);
-        assertDoesNotThrow(() -> handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class)));
+        assertDoesNotThrow(() -> handler.handleRequest(eventStream(null), outputStream, mock(Context.class)));
     }
 
     @Test
     void shouldSkipEmptyBatches() throws IOException {
         var batchKey = randomString();
         s3KeyBatches3Driver.insertFile(UnixPath.of(batchKey), StringUtils.EMPTY_STRING);
-        handler.handleRequest(eventStream(null), outputStream, Mockito.mock(Context.class));
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
 
         var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
         assertEquals(0, actual.size());
@@ -151,6 +164,24 @@ class CsvTransformerTest {
                    .mapToObj(i -> new DatePair(new PublicationDate("2024", "02", "02"),
                                                Instant.now().minus(100, ChronoUnit.DAYS)))
                    .toList();
+    }
+
+    private static String getExpectedResponseData(ReportType reportType, TestData test) {
+        return switch (reportType) {
+            case AFFILIATION -> test.getAffiliationResponseData();
+            case CONTRIBUTOR -> test.getContributorResponseData();
+            case FUNDING -> test.getFundingResponseData();
+            case IDENTIFIER -> test.getIdentifierResponseData();
+            case PUBLICATION -> test.getPublicationResponseData();
+            case NVI -> null;
+        };
+    }
+
+    private String setupExistingBatch(TestData testData) {
+        var indexDocuments = createAndPersistIndexDocuments(testData);
+        return indexDocuments.stream()
+                   .map(IndexDocument::getDocumentIdentifier)
+                   .collect(Collectors.joining(System.lineSeparator()));
     }
 
     private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
@@ -168,8 +199,8 @@ class CsvTransformerTest {
         return indexDocuments;
     }
 
-    private String getActualPersistedFile() {
-        var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
+    private String getActualPersistedFile(ReportType reportType) {
+        var file = s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).getFirst();
         return s3OutputDriver.getFile(file);
     }
 

@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
+import static no.sikt.nva.data.report.testing.utils.generator.NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
@@ -27,6 +28,7 @@ import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.STATUS;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import commons.ViewCompiler;
 import java.net.URI;
@@ -208,9 +210,9 @@ public class TestData {
     private static TestFunding generateFunding() {
         return new TestFunding()
                    .withName("My big funding")
-                   .withId("my-funding-1")
-                   .withFundingSource(Constants.fundingSourceUri("my-funding"))
-                   .withName("My-funding");
+                   .withId(randomUri() + "/my-funding-1")
+                   .withFundingSource("NFR")
+                   .withName("Research Council of Norway");
     }
 
     private static TestContributor generateContributor() {
@@ -260,10 +262,9 @@ public class TestData {
         return expectedCandidate.publicationDetails()
                    .contributors()
                    .stream()
-                   .map(contributor -> NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse(contributor,
-                                                                                                           expectedCandidate,
-                                                                                                           getPublication(
-                                                                                                               expectedCandidate)))
+                   .map(contributor ->
+                            generateExpectedNviInstitutionResponse(contributor, expectedCandidate,
+                                                                   getPublication(expectedCandidate)))
                    .collect(Collectors.joining());
     }
 

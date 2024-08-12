@@ -4,16 +4,22 @@ import static nva.commons.core.ioutils.IoUtils.stringToStream;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.formatter.CsvFormatter;
 import commons.handlers.BulkTransformerHandler;
+import commons.model.ContentWithLocation;
+import commons.model.ReportType;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
+import nva.commons.core.paths.UnixPath;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -25,9 +31,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class CsvTransformer extends BulkTransformerHandler {
 
+    private static final String DELIMITER = "/";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
-    private static final String PUBLICATION = "publication";
     private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
     private final S3Client s3OutputClient;
     private final String exportBucket;
@@ -45,24 +51,22 @@ public class CsvTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    protected String processBatch(Stream<JsonNode> jsonNodeStream) {
+    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream) {
         var model = ModelFactory.createDefaultModel();
         jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
-        var query = getQuery();
-        try (var queryExecution = QueryExecutionFactory.create(query, model)) {
-            var resultSet = queryExecution.execSelect();
-            return new CsvFormatter().format(resultSet);
-        }
+        return Arrays.stream(ReportType.values())
+                   .filter(CsvTransformer::isNotNviReport)//TODO: Remove this filter when NVI is supported
+                   .map(reportType -> transform(model, reportType))
+                   .toList();
     }
 
     @Override
-    protected boolean persist(byte[] content) {
-        var request = PutObjectRequest.builder()
-                          .bucket(exportBucket)
-                          .key(PUBLICATION + UUID.randomUUID() + ".gz")
-                          .build();
-        var response = s3OutputClient.putObject(request, RequestBody.fromBytes(content));
-        return response.sdkHttpResponse().isSuccessful();
+    protected void persist(List<ContentWithLocation> transformedData) {
+        transformedData.forEach(this::persist);
+    }
+
+    private static boolean isNotNviReport(ReportType type) {
+        return !type.equals(ReportType.NVI);
     }
 
     @JacocoGenerated
@@ -79,9 +83,32 @@ public class CsvTransformer extends BulkTransformerHandler {
         return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
     }
 
-    private Query getQuery() {
-        var template = constructPath(PUBLICATION);
-        var sparqlString = IoUtils.stringFromResources(template);
-        return QueryFactory.create(sparqlString);
+    private void persist(ContentWithLocation transformation) {
+        var request = buildRequest(transformation.location());
+        s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
+    }
+
+    private ContentWithLocation transform(Model model, ReportType reportType) {
+        var query = getQuery(reportType);
+        try (var queryExecution = QueryExecutionFactory.create(query, model)) {
+            var resultSet = queryExecution.execSelect();
+            return new ContentWithLocation(UnixPath.of(reportType.getType()), new CsvFormatter().format(resultSet));
+        }
+    }
+
+    private Query getQuery(ReportType reportType) {
+        return QueryFactory.create(generateQuery(reportType));
+    }
+
+    private String generateQuery(ReportType reportType) {
+        var template = constructPath(reportType.getType());
+        return IoUtils.stringFromResources(template);
+    }
+
+    private PutObjectRequest buildRequest(UnixPath path) {
+        return PutObjectRequest.builder()
+                   .bucket(exportBucket)
+                   .key(path + DELIMITER + UUID.randomUUID())
+                   .build();
     }
 }
