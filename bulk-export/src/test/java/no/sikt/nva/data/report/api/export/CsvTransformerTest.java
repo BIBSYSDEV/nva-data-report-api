@@ -90,7 +90,7 @@ class CsvTransformerTest {
     }
 
     @Test
-    void shouldWriteCsvFilesForAlleReportTypesToSpecificFolderInExportBucketWithCsvFileExtension() throws IOException {
+    void shouldWriteCsvFilesForAlleReportTypesToSpecificFolderInExportBucket() throws IOException {
         var testData = new TestData(generateDatePairs(1));
         var batch = setupExistingBatch(testData);
         var batchKey = randomString();
@@ -102,8 +102,16 @@ class CsvTransformerTest {
                 var expectedPath = UnixPath.of(reportType.getType());
                 var file = s3OutputDriver.listAllFiles(expectedPath).getFirst();
                 assertNotNull(file);
-                assertTrue(file.getLastPathElement().contains(".csv"));
             });
+    }
+
+    @Test
+    void shouldWriteFilesWithCsvFileExtension() throws IOException {
+        var batch = setupExistingBatch(new TestData(generateDatePairs(1)));
+        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
+        assertTrue(file.getLastPathElement().contains(".csv"));
     }
 
     @Test
