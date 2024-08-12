@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -102,6 +103,15 @@ class CsvTransformerTest {
                 var file = s3OutputDriver.listAllFiles(expectedPath).getFirst();
                 assertNotNull(file);
             });
+    }
+
+    @Test
+    void shouldWriteFilesWithCsvFileExtension() throws IOException {
+        var batch = setupExistingBatch(new TestData(generateDatePairs(1)));
+        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
+        assertTrue(file.getLastPathElement().contains(".csv"));
     }
 
     @Test
