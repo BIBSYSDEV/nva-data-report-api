@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -171,6 +172,14 @@ class CsvTransformerTest {
     }
 
     @Test
+    void shouldThrowIllegalArgumentExceptionWhenUnknownBatchLocationProvided() throws IOException {
+        var location = "unknown";
+        setUpValidTestData(location);
+        assertThrows(IllegalArgumentException.class,
+                     () -> handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class)));
+    }
+
+    @Test
     void shouldSkipEmptyBatches() throws IOException {
         var location = PERSISTED_RESOURCES_NVI_CANDIDATES;
         var batchKey = UnixPath.of(location).addChild(randomString());
@@ -200,11 +209,19 @@ class CsvTransformerTest {
     }
 
     private static IndexDocument toIndexDocument(TestPublication publication) {
-        return new IndexDocument(randomConsumptionAttribute(), PublicationIndexDocument.from(publication).asJsonNode());
+        return new IndexDocument(randomConsumptionAttribute(),
+                                 PublicationIndexDocument.from(publication).asJsonNode());
     }
 
     private static IndexDocument toIndexDocument(TestNviCandidate nviCandidate) {
         return new IndexDocument(randomConsumptionAttribute(), NviIndexDocument.from(nviCandidate).asJsonNode());
+    }
+
+    private void setUpValidTestData(String location) throws IOException {
+        var testData = new TestData(generateDatePairs(2));
+        var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
+        var batchKey = UnixPath.of(location).addChild(randomString());
+        s3KeyBatches3Driver.insertFile(batchKey, batch);
     }
 
     private String setupExistingBatch(TestData testData, ReportType type) {
