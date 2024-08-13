@@ -6,6 +6,7 @@ import commons.formatter.CsvFormatter;
 import commons.handlers.BulkTransformerHandler;
 import commons.model.ContentWithLocation;
 import commons.model.ReportType;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -30,11 +31,14 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class CsvTransformer extends BulkTransformerHandler {
 
+    private static final String ENCODING = StandardCharsets.UTF_8.name();
+    private static final String CONTENT_TYPE = "text/csv; charset=" + ENCODING;
     private static final String PERSISTED_RESOURCES_PUBLICATION_PREFIX = "resources";
     private static final String PERSISTED_RESOURCES_NVI_PREFIX = "nvi-candidates";
     private static final String DELIMITER = "/";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
+    private static final String FILE_EXTENSION_CSV = ".csv";
     private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
     private final S3Client s3OutputClient;
     private final String exportBucket;
@@ -116,7 +120,9 @@ public class CsvTransformer extends BulkTransformerHandler {
     private PutObjectRequest buildRequest(UnixPath path) {
         return PutObjectRequest.builder()
                    .bucket(exportBucket)
-                   .key(path + DELIMITER + UUID.randomUUID())
+                   .key(path + DELIMITER + UUID.randomUUID() + FILE_EXTENSION_CSV)
+                   .contentEncoding(ENCODING)
+                   .contentType(CONTENT_TYPE)
                    .build();
     }
 }
