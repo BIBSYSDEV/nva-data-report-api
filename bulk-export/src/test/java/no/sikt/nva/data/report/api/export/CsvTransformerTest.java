@@ -135,8 +135,9 @@ class CsvTransformerTest {
     @Test
     void shouldWriteFilesWithCsvFileExtension() throws IOException {
         var batch = setupExistingBatch(new TestData(generateDatePairs(1)), ReportType.PUBLICATION);
-        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
-        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var location = PERSISTED_RESOURCES_PUBLICATIONS;
+        s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
+        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
         var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
         assertTrue(file.getLastPathElement().contains(".csv"));
     }
@@ -144,10 +145,11 @@ class CsvTransformerTest {
     @Test
     void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
         var batch = setupExistingBatch(new TestData(generateDatePairs(1)), ReportType.PUBLICATION);
-        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
+        var location = PERSISTED_RESOURCES_PUBLICATIONS;
+        s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
         var mockedS3OutputClient = mock(S3Client.class);
         var handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, mockedS3OutputClient, eventBridgeClient);
-        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
         var requestWithExpectedContentType = PutObjectRequest.builder()
                                                  .contentType("text/csv; charset=UTF-8")
                                                  .contentEncoding("UTF-8")
@@ -161,8 +163,9 @@ class CsvTransformerTest {
         var testData = new TestData(generateDatePairs(1));
         var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
         var reportType = ReportType.PUBLICATION;
-        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
-        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var location = PERSISTED_RESOURCES_PUBLICATIONS;
+        s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
+        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
         var expectedEncoding = StandardCharsets.UTF_8;
         var actualContent = s3OutputDriver.getUncompressedFile(getFirstFilePath(reportType), expectedEncoding);
         var expectedContent = getExpectedResponseData(reportType, testData);
