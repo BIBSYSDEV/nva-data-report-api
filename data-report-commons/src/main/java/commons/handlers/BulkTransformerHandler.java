@@ -76,14 +76,14 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
             .map(this::extractContent)
             .filter(keys -> !keys.isEmpty())
             .map(this::mapToIndexDocuments)
-            .map(this::processBatch)
+            .map((Stream<JsonNode> jsonNodeStream) -> processBatch(jsonNodeStream, location))
             .ifPresent(this::persist);
 
         logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
         return null;
     }
 
-    protected abstract List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream);
+    protected abstract List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream, String batchLocation);
 
     protected abstract void persist(List<ContentWithLocation> content);
 

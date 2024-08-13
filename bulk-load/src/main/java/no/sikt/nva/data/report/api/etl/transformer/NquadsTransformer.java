@@ -52,7 +52,7 @@ public class NquadsTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream) {
+    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream, String batchLocation) {
         var nquads = jsonNodeStream.map(this::mapToNquads)
                          .collect(Collectors.joining(System.lineSeparator()));
         return List.of(new ContentWithLocation(UnixPath.ROOT_PATH, nquads));

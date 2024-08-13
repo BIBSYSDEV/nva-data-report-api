@@ -6,10 +6,7 @@ import commons.formatter.CsvFormatter;
 import commons.handlers.BulkTransformerHandler;
 import commons.model.ContentWithLocation;
 import commons.model.ReportType;
-import java.net.URI;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -25,7 +22,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.vocabulary.RDF;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -34,8 +30,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class CsvTransformer extends BulkTransformerHandler {
 
-    public static final String PUBLICATION = "https://nva.sikt.no/ontology/publication#Publication";
-    public static final String NVI_CANDIDATE = "https://nva.sikt.no/ontology/publication#NviCandidate";
+    private static final String PERSISTED_RESOURCES_PUBLICATION_PREFIX = "resources";
+    private static final String PERSISTED_RESOURCES_NVI_PREFIX = "nvi-candidates";
     private static final String DELIMITER = "/";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
@@ -56,12 +52,17 @@ public class CsvTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream) {
+    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream, String batchLocation) {
         var model = ModelFactory.createDefaultModel();
         jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
-        return Arrays.stream(ReportType.values())
-                   .map(reportType -> transform(model, reportType))
-                   .toList();
+        if (PERSISTED_RESOURCES_PUBLICATION_PREFIX.equals(batchLocation)) {
+            return transformResources(model);
+        } else if (PERSISTED_RESOURCES_NVI_PREFIX.equals(batchLocation)) {
+            return List.of(transform(model, ReportType.NVI));
+        } else {
+            throw new IllegalArgumentException(
+                "Unknown batch location provided. Valid key batch locations are 'resources' and 'nvi-candidates'");
+        }
     }
 
     @Override
@@ -83,6 +84,13 @@ public class CsvTransformer extends BulkTransformerHandler {
         return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
     }
 
+    private List<ContentWithLocation> transformResources(Model model) {
+        return ReportType.getAllTypesExcludingNviReport()
+                   .stream()
+                   .map(reportType -> transform(model, reportType))
+                   .toList();
+    }
+
     private void persist(ContentWithLocation transformation) {
         var request = buildRequest(transformation.location());
         s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
@@ -94,16 +102,6 @@ public class CsvTransformer extends BulkTransformerHandler {
             var resultSet = queryExecution.execSelect();
             return new ContentWithLocation(UnixPath.of(reportType.getType()), new CsvFormatter().format(resultSet));
         }
-    }
-
-    private boolean isPublication(Model model, URI id) {
-        var publicationType = model.createResource(PUBLICATION);
-        return model.contains(model.createResource(id.toString()), RDF.type, publicationType) && isNotObject(model, id);
-    }
-
-    private boolean isNviCandidate(Model model, URI id) {
-        var publicationType = model.createResource(NVI_CANDIDATE);
-        return model.contains(model.createResource(id.toString()), RDF.type, publicationType) && isNotObject(model, id);
     }
 
     private Query getQuery(ReportType reportType) {

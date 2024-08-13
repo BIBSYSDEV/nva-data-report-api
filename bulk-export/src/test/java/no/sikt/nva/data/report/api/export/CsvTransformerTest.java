@@ -51,7 +51,6 @@ class CsvTransformerTest {
 
     public static final String PERSISTED_RESOURCES_NVI_CANDIDATES = "nvi-candidates";
     public static final String PERSISTED_RESOURCES_PUBLICATIONS = "resources";
-    private static final String DEFAULT_LOCATION = "resources";
     private static final Environment environment = new Environment();
     private S3Driver s3KeyBatches3Driver;
     private ByteArrayOutputStream outputStream;
@@ -92,6 +91,20 @@ class CsvTransformerTest {
         assertEquals(expectedContent, actualContent);
     }
 
+    @ParameterizedTest
+    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
+    void shouldWriteCsvFilesForAllReportTypesToSpecificFolderInExportBucket(ReportType reportType) throws IOException {
+        var testData = new TestData(generateDatePairs(1));
+        var batch = setupExistingBatch(testData, reportType);
+        var location = PERSISTED_RESOURCES_PUBLICATIONS;
+        var batchKey = UnixPath.of(location).addChild(randomString());
+        s3KeyBatches3Driver.insertFile(batchKey, batch);
+        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+        var expectedPath = UnixPath.of(reportType.getType());
+        var file = s3OutputDriver.listAllFiles(expectedPath).getFirst();
+        assertNotNull(file);
+    }
+
     @Test
     void shouldWriteCsvFileToS3ForReportTypeNvi() throws IOException {
         var reportType = ReportType.NVI;
@@ -105,20 +118,6 @@ class CsvTransformerTest {
                                                        CONTRIBUTOR_IDENTIFIER)).orElseThrow();
         var expectedContent = getExpectedResponseData(reportType, testData);
         assertEquals(expectedContent, actualContent);
-    }
-
-    @ParameterizedTest
-    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
-    void shouldWriteCsvFilesForAllReportTypesToSpecificFolderInExportBucket(ReportType reportType) throws IOException {
-        var testData = new TestData(generateDatePairs(1));
-        var batch = setupExistingBatch(testData, reportType);
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var expectedPath = UnixPath.of(reportType.getType());
-        var file = s3OutputDriver.listAllFiles(expectedPath).getFirst();
-        assertNotNull(file);
     }
 
     @Test
@@ -141,18 +140,17 @@ class CsvTransformerTest {
         var batchKey = UnixPath.of(location).addChild(randomString());
         s3KeyBatches3Driver.insertFile(batchKey, batch);
         var expectedStarMarkerFromEmittedEvent = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
+        s3KeyBatches3Driver.insertFile(expectedStarMarkerFromEmittedEvent, batch);
         var list = new ArrayList<String>();
         list.add(null);
         list.add(batchKey.toString());
         list.add(expectedStarMarkerFromEmittedEvent.toString());
         for (var item : list) {
-            handler.handleRequest(eventStream(item, PERSISTED_RESOURCES_NVI_CANDIDATES), outputStream,
-                                  mock(Context.class));
+            handler.handleRequest(eventStream(item, location), outputStream, mock(Context.class));
 
             var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
 
-            assertEquals(batchKey, emittedEvent.getStartMarker());
+            assertEquals(batchKey.toString(), emittedEvent.getStartMarker());
         }
     }
 
@@ -164,7 +162,7 @@ class CsvTransformerTest {
         var batch = indexDocuments.stream()
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
-        var location = PERSISTED_RESOURCES_NVI_CANDIDATES;
+        var location = PERSISTED_RESOURCES_PUBLICATIONS;
         var batchKey = UnixPath.of(location).addChild(randomString());
         s3KeyBatches3Driver.insertFile(batchKey, batch);
         assertDoesNotThrow(
