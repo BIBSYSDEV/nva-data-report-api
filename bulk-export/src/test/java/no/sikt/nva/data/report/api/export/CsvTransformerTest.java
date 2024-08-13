@@ -131,8 +131,8 @@ class CsvTransformerTest {
         var handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, mockedS3OutputClient, eventBridgeClient);
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var requestWithExpectedContentType = PutObjectRequest.builder()
-                                           .contentType("text/csv")
-                                           .build();
+                                                 .contentType("text/csv; charset=UTF-8")
+                                                 .build();
         verify(mockedS3OutputClient, times(5))
             .putObject(refEq(requestWithExpectedContentType, "key", "bucket"), any(RequestBody.class));
     }

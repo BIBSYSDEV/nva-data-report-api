@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class CsvTransformer extends BulkTransformerHandler {
 
-    private static final String CONTENT_TYPE_TEXT_CSV = "text/csv";
+    private static final String CONTENT_TYPE = "text/csv; charset=UTF-8";
     private static final String DELIMITER = "/";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
@@ -111,7 +111,7 @@ public class CsvTransformer extends BulkTransformerHandler {
         return PutObjectRequest.builder()
                    .bucket(exportBucket)
                    .key(path + DELIMITER + UUID.randomUUID() + FILE_EXTENSION_CSV)
-                   .contentType(CONTENT_TYPE_TEXT_CSV)
+                   .contentType(CONTENT_TYPE)
                    .build();
     }
 }
