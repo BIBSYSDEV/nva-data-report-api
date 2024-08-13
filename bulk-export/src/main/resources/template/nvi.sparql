@@ -23,12 +23,9 @@ WHERE {
         :isApplicable ?isApplicableBoolean ;
         :points ?totalPoints ;
         :globalApprovalStatus ?globalApprovalStatus ;
-        :internationalCollaborationFactor ?internationalCollaborationFactorDecimal ;
+        :internationalCollaborationFactor ?internationalCollaborationFactor ;
         :creatorShareCount ?authorShareCount ;
-        :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPointsDecimal .
-
-      BIND(STR(?internationalCollaborationFactorDecimal) AS ?internationalCollaborationFactor) .
-      BIND(STR(?publicationTypeChannelLevelPointsDecimal) AS ?publicationTypeChannelLevelPoints) .
+        :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
 
       OPTIONAL {
         ?candidate :reported ?reported ;
@@ -60,16 +57,13 @@ WHERE {
       BIND(STR(?organizationUri) AS ?institutionId)
 
       ?institutionPointsNode a :InstitutionPoints ;
-        :institutionPoints ?institutionPointsDouble ;
+        :institutionPoints ?institutionPoints ;
         :creatorAffiliationPoints ?creatorAffiliationPoints .
 
       ?creatorAffiliationPoints a :CreatorAffiliationPoints ;
         :nviCreator ?contributorIdString ;
         :affiliationId ?affiliationId ;
-        :points ?pointsForAffiliationDouble .
-
-      BIND(STR(?pointsForAffiliationDouble) AS ?pointsForAffiliation)
-      BIND(STR(?institutionPointsDouble) AS ?institutionPoints)
+        :points ?pointsForAffiliation .
     }
     UNION
     {

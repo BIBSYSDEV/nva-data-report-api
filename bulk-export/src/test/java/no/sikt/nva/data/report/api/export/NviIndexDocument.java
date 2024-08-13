@@ -23,11 +23,11 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                                String identifier,
                                PublicationDetails publicationDetails,
                                List<Approval> approvals,
-                               double points,
-                               double publicationTypeChannelLevelPoints,
+                               String points,
+                               String publicationTypeChannelLevelPoints,
                                String globalApprovalStatus,
                                int creatorShareCount,
-                               double internationalCollaborationFactor,
+                               String internationalCollaborationFactor,
                                ReportingPeriod reportingPeriod,
                                boolean reported,
                                String modifiedDate) implements JsonSerializable {
@@ -43,11 +43,11 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                                     nviCandidate.identifier(),
                                     PublicationDetails.from(nviCandidate.publicationDetails()),
                                     generateApprovals(nviCandidate),
-                                    nviCandidate.totalPoints().doubleValue(),
-                                    nviCandidate.publicationTypeChannelLevelPoints().doubleValue(),
+                                    nviCandidate.totalPoints().toString(),
+                                    nviCandidate.publicationTypeChannelLevelPoints().toString(),
                                     nviCandidate.globalApprovalStatus().getValue(),
                                     nviCandidate.creatorShareCount(),
-                                    nviCandidate.internationalCollaborationFactor().doubleValue(),
+                                    nviCandidate.internationalCollaborationFactor().toString(),
                                     ReportingPeriod.from(nviCandidate.reportingPeriod()),
                                     nviCandidate.reported(),
                                     nviCandidate.modifiedDate().toString());
@@ -92,14 +92,14 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
         }
 
         private record Points(String type,
-                              double institutionPoints,
+                              String institutionPoints,
                               List<CreatorAffiliationPoints> creatorAffiliationPoints) {
 
             public static final String TYPE = "InstitutionPoints";
 
             public static Points from(TestInstitutionPoints points) {
                 return new Points(TYPE,
-                                  points.institutionPoints().doubleValue(),
+                                  points.institutionPoints().toString(),
                                   points.creatorAffiliationPoints()
                                       .stream()
                                       .map(CreatorAffiliationPoints::from)
@@ -109,7 +109,7 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
             private record CreatorAffiliationPoints(String type,
                                                     URI nviCreator,
                                                     URI affiliationId,
-                                                    double points) {
+                                                    String points) {
 
                 public static final String TYPE = "CreatorAffiliationPoints";
 
@@ -117,7 +117,7 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                     return new CreatorAffiliationPoints(TYPE,
                                                         testCreatorAffiliationPoints.nviCreator(),
                                                         testCreatorAffiliationPoints.affiliationId(),
-                                                        testCreatorAffiliationPoints.points().doubleValue());
+                                                        testCreatorAffiliationPoints.points().toString());
                 }
             }
         }
