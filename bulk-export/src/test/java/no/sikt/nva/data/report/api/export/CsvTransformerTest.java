@@ -124,7 +124,7 @@ class CsvTransformerTest {
     }
 
     @Test
-    void shouldWriteFilesWithContentTypeCsv() throws IOException {
+    void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
         var batch = setupExistingBatch(new TestData(generateDatePairs(1)));
         s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
         var mockedS3OutputClient = mock(S3Client.class);
@@ -132,6 +132,7 @@ class CsvTransformerTest {
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var requestWithExpectedContentType = PutObjectRequest.builder()
                                                  .contentType("text/csv; charset=UTF-8")
+                                                 .contentEncoding("UTF-8")
                                                  .build();
         verify(mockedS3OutputClient, times(5))
             .putObject(refEq(requestWithExpectedContentType, "key", "bucket"), any(RequestBody.class));
