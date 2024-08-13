@@ -24,6 +24,7 @@ import commons.model.ReportType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -139,6 +140,19 @@ class CsvTransformerTest {
     }
 
     @Test
+    void shouldEncodeCsvFileInUtf8() throws IOException {
+        var testData = new TestData(generateDatePairs(1));
+        var batch = setupExistingBatch(testData);
+        var reportType = ReportType.PUBLICATION;
+        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var expectedEncoding = StandardCharsets.UTF_8;
+        var actualContent = s3OutputDriver.getUncompressedFile(getFirstFilePath(reportType), expectedEncoding);
+        var expectedContent = getExpectedResponseData(reportType, testData);
+        assertEquals(expectedContent, actualContent);
+    }
+
+    @Test
     void shouldNotEmitNewEventWhenNoMoreBatchesToRetrieve() throws IOException {
         var testData = new TestData(generateDatePairs(2));
         var batch = setupExistingBatch(testData);
@@ -211,6 +225,10 @@ class CsvTransformerTest {
         };
     }
 
+    private UnixPath getFirstFilePath(ReportType reportType) {
+        return s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).getFirst();
+    }
+
     private String setupExistingBatch(TestData testData) {
         var indexDocuments = createAndPersistIndexDocuments(testData);
         return indexDocuments.stream()
@@ -234,7 +252,7 @@ class CsvTransformerTest {
     }
 
     private String getActualPersistedFile(ReportType reportType) {
-        var file = s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).getFirst();
+        var file = getFirstFilePath(reportType);
         return s3OutputDriver.getFile(file);
     }
 
