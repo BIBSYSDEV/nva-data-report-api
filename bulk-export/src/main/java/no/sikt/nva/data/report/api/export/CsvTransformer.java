@@ -6,6 +6,7 @@ import commons.formatter.CsvFormatter;
 import commons.handlers.BulkTransformerHandler;
 import commons.model.ContentWithLocation;
 import commons.model.ReportType;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +32,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class CsvTransformer extends BulkTransformerHandler {
 
+    private static final String ENCODING = StandardCharsets.UTF_8.name();
+    private static final String CONTENT_TYPE = "text/csv; charset=" + ENCODING;
     private static final String DELIMITER = "/";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
@@ -110,6 +113,8 @@ public class CsvTransformer extends BulkTransformerHandler {
         return PutObjectRequest.builder()
                    .bucket(exportBucket)
                    .key(path + DELIMITER + UUID.randomUUID() + FILE_EXTENSION_CSV)
+                   .contentEncoding(ENCODING)
+                   .contentType(CONTENT_TYPE)
                    .build();
     }
 }

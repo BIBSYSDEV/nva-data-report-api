@@ -12,7 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import commons.handlers.KeyBatchRequestEvent;
@@ -20,6 +24,7 @@ import commons.model.ReportType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -45,7 +50,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 class CsvTransformerTest {
 
@@ -57,6 +65,8 @@ class CsvTransformerTest {
     private S3Driver s3ResourcesDriver;
     private EventBridgeClient eventBridgeClient;
     private CsvTransformer handler;
+    private S3Client s3keyBatchClient;
+    private S3Client s3ResourcesClient;
 
     public static EventConsumptionAttributes randomConsumptionAttribute() {
         return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
@@ -65,11 +75,11 @@ class CsvTransformerTest {
     @BeforeEach
     void setUp() {
         outputStream = new ByteArrayOutputStream();
-        var s3keyBatchClient = new FakeS3Client();
+        s3keyBatchClient = new FakeS3Client();
         s3KeyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
         var s3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(s3OutputClient, environment.readEnv("EXPORT_BUCKET"));
-        var s3ResourcesClient = new FakeS3Client();
+        s3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(s3ResourcesClient, environment.readEnv("EXPANDED_RESOURCES_BUCKET"));
         eventBridgeClient = new StubEventBridgeClient();
         handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);
@@ -112,6 +122,34 @@ class CsvTransformerTest {
         handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
         var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
         assertTrue(file.getLastPathElement().contains(".csv"));
+    }
+
+    @Test
+    void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
+        var batch = setupExistingBatch(new TestData(generateDatePairs(1)));
+        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
+        var mockedS3OutputClient = mock(S3Client.class);
+        var handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, mockedS3OutputClient, eventBridgeClient);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var requestWithExpectedContentType = PutObjectRequest.builder()
+                                                 .contentType("text/csv; charset=UTF-8")
+                                                 .contentEncoding("UTF-8")
+                                                 .build();
+        verify(mockedS3OutputClient, times(5))
+            .putObject(refEq(requestWithExpectedContentType, "key", "bucket"), any(RequestBody.class));
+    }
+
+    @Test
+    void shouldEncodeCsvFileInUtf8() throws IOException {
+        var testData = new TestData(generateDatePairs(1));
+        var batch = setupExistingBatch(testData);
+        var reportType = ReportType.PUBLICATION;
+        s3KeyBatches3Driver.insertFile(UnixPath.of(randomString()), batch);
+        handler.handleRequest(eventStream(null), outputStream, mock(Context.class));
+        var expectedEncoding = StandardCharsets.UTF_8;
+        var actualContent = s3OutputDriver.getUncompressedFile(getFirstFilePath(reportType), expectedEncoding);
+        var expectedContent = getExpectedResponseData(reportType, testData);
+        assertEquals(expectedContent, actualContent);
     }
 
     @Test
@@ -187,6 +225,10 @@ class CsvTransformerTest {
         };
     }
 
+    private UnixPath getFirstFilePath(ReportType reportType) {
+        return s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).getFirst();
+    }
+
     private String setupExistingBatch(TestData testData) {
         var indexDocuments = createAndPersistIndexDocuments(testData);
         return indexDocuments.stream()
@@ -210,7 +252,7 @@ class CsvTransformerTest {
     }
 
     private String getActualPersistedFile(ReportType reportType) {
-        var file = s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).getFirst();
+        var file = getFirstFilePath(reportType);
         return s3OutputDriver.getFile(file);
     }
 
