@@ -44,6 +44,7 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
     private static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
     private static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
     private static final String LINE_BREAK = "\n";
+    private static final String DEFAULT_LOCATION = "resources";
     private final S3Client s3ResourcesClient;
     private final S3Client s3BatchesClient;
     private final EventBridgeClient eventBridgeClient;
@@ -131,10 +132,11 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
     }
 
     private String getLocation(KeyBatchRequestEvent input) {
-        return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : null;
+        return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : DEFAULT_LOCATION;
     }
 
     private ListingResponse fetchSingleBatch(String location, String startMarker) {
+        logger.info("Fetching batch with location: {} and startMarker: {}", location, startMarker);
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
