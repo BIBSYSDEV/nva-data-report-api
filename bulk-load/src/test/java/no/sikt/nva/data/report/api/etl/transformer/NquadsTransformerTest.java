@@ -80,8 +80,8 @@ class NquadsTransformerTest {
         var batch = expectedDocuments.stream()
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(batchKey, batch);
         var handler = new NquadsTransformer(s3ResourcesClient,
                                             s3BatchesClient,
                                             s3OutputClient,
@@ -110,8 +110,8 @@ class NquadsTransformerTest {
             """;
         var documentIdentifier = "publicationIdentifier";
         s3ResourcesDriver.insertFile(UnixPath.of(documentIdentifier), json);
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), documentIdentifier);
+        var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(batchKey, documentIdentifier);
         var handler = new NquadsTransformer(s3ResourcesClient,
                                             s3BatchesClient,
                                             s3OutputClient,
@@ -123,8 +123,8 @@ class NquadsTransformerTest {
 
     @Test
     void shouldSkipEmptyBatches() throws IOException {
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), StringUtils.EMPTY_STRING);
+        var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(batchKey, StringUtils.EMPTY_STRING);
         var handler = new NquadsTransformer(s3ResourcesClient,
                                             s3BatchesClient,
                                             s3OutputClient,
@@ -141,8 +141,8 @@ class NquadsTransformerTest {
         var batch = expectedDocuments.stream()
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(batchKey, batch);
         var handler = new NquadsTransformer(s3ResourcesClient,
                                             s3BatchesClient,
                                             s3OutputClient,
@@ -159,14 +159,14 @@ class NquadsTransformerTest {
         var batch = expectedDocuments.stream()
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
-        var expectedStarMarkerFromEmittedEvent = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(expectedStarMarkerFromEmittedEvent), batch);
+        var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(batchKey, batch);
+        var expectedStarMarkerFromEmittedEvent = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(expectedStarMarkerFromEmittedEvent, batch);
         var list = new ArrayList<String>();
         list.add(null);
-        list.add(batchKey);
-        list.add(expectedStarMarkerFromEmittedEvent);
+        list.add(batchKey.toString());
+        list.add(expectedStarMarkerFromEmittedEvent.toString());
         var handler = new NquadsTransformer(s3ResourcesClient,
                                             s3BatchesClient,
                                             s3OutputClient,
@@ -176,7 +176,7 @@ class NquadsTransformerTest {
 
             var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
 
-            assertEquals(batchKey, emittedEvent.getStartMarker());
+            assertEquals(batchKey.toString(), emittedEvent.getStartMarker());
             assertEquals(DEFAULT_LOCATION, emittedEvent.getLocation());
         }
     }
@@ -208,8 +208,8 @@ class NquadsTransformerTest {
         var batch = documents.stream()
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(batchKey, batch);
         var handler = new NquadsTransformer(s3ResourcesClient,
                                             s3BatchesClient,
                                             s3OutputClient,
@@ -228,8 +228,8 @@ class NquadsTransformerTest {
         var batch = expectedDocuments.stream()
                         .map(IndexDocument::getDocumentIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
-        var batchKey = randomString();
-        s3BatchesDriver.insertFile(UnixPath.of(batchKey), batch);
+        var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
+        s3BatchesDriver.insertFile(batchKey, batch);
         var handler = new NquadsTransformer(s3ResourcesClient,
                                             s3BatchesClient,
                                             s3OutputClient,
