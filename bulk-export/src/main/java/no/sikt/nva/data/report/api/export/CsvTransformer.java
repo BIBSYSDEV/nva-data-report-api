@@ -65,7 +65,7 @@ public class CsvTransformer extends BulkTransformerHandler {
             return List.of(transform(model, ReportType.NVI));
         } else {
             throw new IllegalArgumentException(
-                "Unknown batch location provided. Valid key batch locations are 'resources' and 'nvi-candidates'");
+                "Unknown key batch location provided. Valid key batch locations are 'resources' and 'nvi-candidates'");
         }
     }
 
