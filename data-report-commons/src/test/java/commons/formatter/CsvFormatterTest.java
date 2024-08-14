@@ -1,5 +1,6 @@
 package commons.formatter;
 
+import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import nva.commons.core.ioutils.IoUtils;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -19,10 +20,10 @@ class CsvFormatterTest {
         try (var queryExecution = QueryExecutionFactory.create(query, model)) {
             var resultSet = queryExecution.execSelect();
             var actual = new CsvFormatter().format(resultSet);
-            var expected = """
-                s,p,o
-                http://example.org/subject,http://example.org/predicate,"value,with,commas"
-                """;
+            var expected = "s,p,o"
+                           + CRLF.getString()
+                           + "http://example.org/subject,http://example.org/predicate,\"value,with,commas\""
+                           + CRLF.getString();
             assertEquals(expected, actual);
         }
     }

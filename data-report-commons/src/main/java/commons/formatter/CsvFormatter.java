@@ -11,8 +11,9 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 
 @JacocoGenerated //Tested in modules report-api and bulk-export
-public class CsvFormatter implements ResponseFormatter {
+public final class CsvFormatter implements ResponseFormatter {
 
+    public static final String DOUBLE_QUOTES = "\"";
     private static final String DECIMAL_PATTERN = "0.0000";
     private static final String DELIMITER = ",";
     private static final String TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
@@ -69,7 +70,11 @@ public class CsvFormatter implements ResponseFormatter {
     }
 
     private static void appendRdfNode(StringBuilder csvBuilder, RDFNode node) {
-        csvBuilder.append(node).append(DELIMITER);
+        var nodeValue = node.toString();
+        if (nodeValue.contains(DELIMITER)) {
+            nodeValue = DOUBLE_QUOTES + nodeValue + DOUBLE_QUOTES;
+        }
+        csvBuilder.append(nodeValue).append(DELIMITER);
     }
 
     private static void appendDouble(StringBuilder csvBuilder, String value) {
