@@ -45,19 +45,19 @@ public final class CsvFormatter implements ResponseFormatter {
 
     private static void printRow(CSVPrinter csvPrinter, List<String> headers, QuerySolution querySolution)
         throws IOException {
-        var rowData = new ArrayList<>();
+        var rowData = new ArrayList<String>();
         headers.forEach(header -> addHeaderValueInRow(rowData, querySolution.get(header)));
         csvPrinter.printRecord(rowData);
     }
 
-    private static void addHeaderValueInRow(ArrayList<Object> rowData, RDFNode rdfNode) {
+    private static void addHeaderValueInRow(List<String> rowData, RDFNode rdfNode) {
         if (isNull(rdfNode)) {
             rowData.add(EMPTY_STRING);
         } else if (isDoubleLiteral(rdfNode)) {
             var formattedDouble = formatDouble(rdfNode.asLiteral());
             rowData.add(formattedDouble);
         } else if (isIntegerLiteral(rdfNode)) {
-            rowData.add(rdfNode.asLiteral().getInt());
+            rowData.add(String.valueOf(rdfNode.asLiteral().getInt()));
         } else {
             rowData.add(rdfNode.toString());
         }
