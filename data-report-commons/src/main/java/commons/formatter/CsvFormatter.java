@@ -25,36 +25,32 @@ public final class CsvFormatter implements ResponseFormatter {
 
     @Override
     public String format(ResultSet resultSet) {
-        var resultVars = resultSet.getResultVars();
-        var writer = new StringWriter();
-        try (CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
-            printHeaders(csvPrinter, resultVars);
-            printRows(resultSet, resultVars, csvPrinter);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        var headers = resultSet.getResultVars();
+        var stringWriter = new StringWriter();
+        try (CSVPrinter csvPrinter = new CSVPrinter(stringWriter, CSVFormat.DEFAULT)) {
+            printHeaders(csvPrinter, headers);
+            printRows(csvPrinter, resultSet, headers);
+        } catch (IOException ioException) {
+            throw new RuntimeException(ioException);
         }
-        return writer.toString();
+        return stringWriter.toString();
     }
 
-    private static void printRows(ResultSet resultSet, List<String> resultVars, CSVPrinter csvPrinter)
+    private static void printRows(CSVPrinter csvPrinter, ResultSet resultSet, List<String> headers)
         throws IOException {
         while (resultSet.hasNext()) {
-            printRow(resultVars, csvPrinter, resultSet.next());
+            printRow(csvPrinter, headers, resultSet.next());
         }
     }
 
-    private static void printRow(List<String> headers, CSVPrinter csvPrinter, QuerySolution querySolution)
+    private static void printRow(CSVPrinter csvPrinter, List<String> headers, QuerySolution querySolution)
         throws IOException {
         var rowData = new ArrayList<>();
-        headers.forEach(header -> buildRow(rowData, querySolution.get(header)));
+        headers.forEach(header -> addHeaderValueInRow(rowData, querySolution.get(header)));
         csvPrinter.printRecord(rowData);
     }
 
-    private static void buildRow(ArrayList<Object> rowData, RDFNode rdfNode) {
-        addRdfNode(rdfNode, rowData);
-    }
-
-    private static void addRdfNode(RDFNode rdfNode, ArrayList<Object> rowData) {
+    private static void addHeaderValueInRow(ArrayList<Object> rowData, RDFNode rdfNode) {
         if (isNull(rdfNode)) {
             rowData.add(EMPTY_STRING);
         } else if (isDoubleLiteral(rdfNode)) {
