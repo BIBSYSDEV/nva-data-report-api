@@ -14,8 +14,6 @@ import org.apache.jena.rdf.model.RDFNode;
 public class CsvFormatter implements ResponseFormatter {
 
     private static final String DECIMAL_PATTERN = "0.0000";
-    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat(DECIMAL_PATTERN,
-                                                                          DecimalFormatSymbols.getInstance());
     private static final String DELIMITER = ",";
     private static final String TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
     private static final String TYPE_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
@@ -83,7 +81,7 @@ public class CsvFormatter implements ResponseFormatter {
     }
 
     private static String formatDouble(Literal literal) {
-        return DECIMAL_FORMAT.format(literal.getDouble());
+        return new DecimalFormat(DECIMAL_PATTERN, DecimalFormatSymbols.getInstance()).format(literal.getDouble());
     }
 
     private static boolean isIntegerLiteral(RDFNode rdfNode) {
