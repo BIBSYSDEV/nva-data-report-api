@@ -33,8 +33,6 @@ public class CsvTransformer extends BulkTransformerHandler {
 
     private static final String ENCODING = StandardCharsets.UTF_8.name();
     private static final String CONTENT_TYPE = "text/csv; charset=" + ENCODING;
-    private static final String PERSISTED_RESOURCES_PUBLICATION_PREFIX = "resources";
-    private static final String PERSISTED_RESOURCES_NVI_PREFIX = "nvi-candidates";
     private static final String DELIMITER = "/";
     private static final String TEMPLATE_DIRECTORY = "template";
     private static final String SPARQL = ".sparql";
@@ -57,21 +55,23 @@ public class CsvTransformer extends BulkTransformerHandler {
 
     @Override
     protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream, String batchLocation) {
-        var model = ModelFactory.createDefaultModel();
-        jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
-        if (PERSISTED_RESOURCES_PUBLICATION_PREFIX.equals(batchLocation)) {
-            return transformResources(model);
-        } else if (PERSISTED_RESOURCES_NVI_PREFIX.equals(batchLocation)) {
-            return List.of(transform(model, ReportType.NVI));
-        } else {
-            throw new IllegalArgumentException(
-                "Unknown key batch location provided. Valid key batch locations are 'resources' and 'nvi-candidates'");
-        }
+        var model = createModelAndLoadInput(jsonNodeStream);
+        var documentType = DocumentType.fromLocation(batchLocation);
+        return switch (documentType) {
+            case PUBLICATION -> transformResources(model);
+            case NVI_CANDIDATE -> List.of(transform(model, ReportType.NVI));
+        };
     }
 
     @Override
     protected void persist(List<ContentWithLocation> transformedData) {
         transformedData.forEach(this::persist);
+    }
+
+    private static Model createModelAndLoadInput(Stream<JsonNode> jsonNodeStream) {
+        var model = ModelFactory.createDefaultModel();
+        jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
+        return model;
     }
 
     @JacocoGenerated

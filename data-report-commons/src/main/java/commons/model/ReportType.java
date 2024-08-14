@@ -30,7 +30,7 @@ public enum ReportType {
     public static List<ReportType> getAllTypesExcludingNviReport() {
         return Arrays.stream(values())
                    .filter(ReportType::isNotNviReportType)
-                   .collect(Collectors.toList());
+                   .toList();
     }
 
     public String getType() {
