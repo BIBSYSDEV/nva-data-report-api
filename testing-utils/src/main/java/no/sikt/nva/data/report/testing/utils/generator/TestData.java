@@ -101,6 +101,10 @@ public class TestData {
         return publicationTestData;
     }
 
+    public List<TestNviCandidate> getNviTestData() {
+        return nviTestData;
+    }
+
     public List<Model> getModels() {
         return models;
     }

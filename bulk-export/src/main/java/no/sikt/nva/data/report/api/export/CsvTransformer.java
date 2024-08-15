@@ -8,7 +8,6 @@ import commons.model.ContentWithLocation;
 import commons.model.ReportType;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -55,13 +54,13 @@ public class CsvTransformer extends BulkTransformerHandler {
     }
 
     @Override
-    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream) {
-        var model = ModelFactory.createDefaultModel();
-        jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
-        return Arrays.stream(ReportType.values())
-                   .filter(CsvTransformer::isNotNviReport)//TODO: Remove this filter when NVI is supported
-                   .map(reportType -> transform(model, reportType))
-                   .toList();
+    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream, String batchLocation) {
+        var model = createModelAndLoadInput(jsonNodeStream);
+        var documentType = DocumentType.fromLocation(batchLocation);
+        return switch (documentType) {
+            case PUBLICATION -> transformResources(model);
+            case NVI_CANDIDATE -> List.of(transform(model, ReportType.NVI));
+        };
     }
 
     @Override
@@ -69,8 +68,10 @@ public class CsvTransformer extends BulkTransformerHandler {
         transformedData.forEach(this::persist);
     }
 
-    private static boolean isNotNviReport(ReportType type) {
-        return !type.equals(ReportType.NVI);
+    private static Model createModelAndLoadInput(Stream<JsonNode> jsonNodeStream) {
+        var model = ModelFactory.createDefaultModel();
+        jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
+        return model;
     }
 
     @JacocoGenerated
@@ -85,6 +86,13 @@ public class CsvTransformer extends BulkTransformerHandler {
 
     private static Path constructPath(String sparqlTemplate) {
         return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
+    }
+
+    private List<ContentWithLocation> transformResources(Model model) {
+        return ReportType.getAllTypesExcludingNviReport()
+                   .stream()
+                   .map(reportType -> transform(model, reportType))
+                   .toList();
     }
 
     private void persist(ContentWithLocation transformation) {
