@@ -277,7 +277,7 @@ Resources:
             Action: sts:AssumeRole
             Condition:
               StringEquals:
-                sts:ExternalId: "${DataWarehouseExternalId}"
+                sts:ExternalId: !Ref DataWarehouseExternalId
 
   #============================= API ==========================================================
   DataReportApi:
