@@ -200,19 +200,6 @@ Resources:
               - s3:PutObject
             Resource: !Sub '${NviReportsBucket.Arn}/*'
 
-  S3ExportManagedPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - s3:Get*
-              - s3:List*
-              - s3:CopyObject
-            Resource: !Sub '${ExportBucket.Arn}/*'
-
   NeptuneManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -278,6 +265,17 @@ Resources:
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref DataWarehouseExternalId
+      Policies:
+        - PolicyName: S3ExportPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get*
+                  - s3:List*
+                  - s3:CopyObject
+                Resource: !Sub '${ExportBucket.Arn}/*'
 
   #============================= API ==========================================================
   DataReportApi:
