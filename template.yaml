@@ -23,6 +23,14 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: The Api domain
     Default: /NVA/ApiDomain
+  DataWarehouseAccountId:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: AWS Account ID of the data warehouse account
+    Default: DataWarehouseAccountId
+  DataWarehouseExternalId:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: External ID to assume DataWarehouseRole
+    Default: DataWarehouseExternalId
   NeptuneInstanceClass:
     Type: String
     Default: db.serverless
@@ -192,6 +200,19 @@ Resources:
               - s3:PutObject
             Resource: !Sub '${NviReportsBucket.Arn}/*'
 
+  S3ExportManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:Get*
+              - s3:List*
+              - s3:CopyObject
+            Resource: !Sub '${ExportBucket.Arn}/*'
+
   NeptuneManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -243,6 +264,22 @@ Resources:
       SourceArn: !GetAtt PersistedResourcesEventRule.Arn
 
   #============================= Roles ==========================================================
+
+  DataWarehouseRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "arn:aws:iam::${DataWarehouseAccountId}:root"
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: "${DataWarehouseExternalId}"
+
+  #============================= API ==========================================================
   DataReportApi:
     Type: AWS::Serverless::Api
     Properties:
