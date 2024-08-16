@@ -255,6 +255,7 @@ Resources:
   DataWarehouseRole:
     Type: AWS::IAM::Role
     Properties:
+      Description: Provides external access when paired with known external account and id
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
