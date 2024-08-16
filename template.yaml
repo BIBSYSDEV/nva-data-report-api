@@ -26,11 +26,11 @@ Parameters:
   DataWarehouseAccountId:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: AWS Account ID of the data warehouse account
-    Default: DataWarehouseAccountId
+    Default: /NVA/IAM/DataWarehouse/AccountId
   DataWarehouseExternalId:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: External ID to assume DataWarehouseRole
-    Default: DataWarehouseExternalId
+    Default: /NVA/IAM/DataWarehouse/ExternalId
   NeptuneInstanceClass:
     Type: String
     Default: db.serverless
