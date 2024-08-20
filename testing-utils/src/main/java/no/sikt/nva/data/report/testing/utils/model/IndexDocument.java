@@ -21,6 +21,7 @@ public class IndexDocument implements JsonSerializable {
     public static final String BODY = "body";
     public static final String CONSUMPTION_ATTRIBUTES = "consumptionAttributes";
     public static final String MISSING_IDENTIFIER_IN_RESOURCE = "Missing identifier in resource";
+    public static final String NVI_INDEX = "nvi-candidates";
     @JsonProperty(CONSUMPTION_ATTRIBUTES)
     private final EventConsumptionAttributes consumptionAttributes;
     @JsonProperty(BODY)
@@ -37,6 +38,11 @@ public class IndexDocument implements JsonSerializable {
         return attempt(() -> objectMapper.readValue(json, IndexDocument.class)).orElseThrow();
     }
 
+    public static IndexDocument fromNviCandidate(NviIndexDocument nviIndexDocument) {
+        return new IndexDocument(new EventConsumptionAttributes(NVI_INDEX, nviIndexDocument.identifier()),
+                                 nviIndexDocument.asJsonNode());
+    }
+
     @JacocoGenerated
     public JsonNode getResource() {
         return resource;
@@ -49,11 +55,14 @@ public class IndexDocument implements JsonSerializable {
     @JsonIgnore
     public String getDocumentIdentifier() {
         return Optional.ofNullable(consumptionAttributes.getDocumentIdentifier())
-                   .map(SortableIdentifier::toString)
                    .orElseThrow(() -> new RuntimeException(MISSING_IDENTIFIER_IN_RESOURCE));
     }
 
     public void persistInS3(S3Driver s3Driver) {
         attempt(() -> s3Driver.insertFile(UnixPath.of(getDocumentIdentifier()), toJsonString())).orElseThrow();
+    }
+
+    public String getIndex() {
+        return consumptionAttributes.getIndex();
     }
 }

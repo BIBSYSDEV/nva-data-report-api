@@ -263,7 +263,7 @@ class NquadsTransformerTest {
     }
 
     private static EventConsumptionAttributes randomConsumptionAttribute() {
-        return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next());
+        return new EventConsumptionAttributes(DEFAULT_LOCATION, SortableIdentifier.next().toString());
     }
 
     private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {

@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.testing.utils.generator.NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse;
+import static no.sikt.nva.data.report.testing.utils.generator.NviTestData.generateNviCandidate;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
@@ -97,6 +98,15 @@ public class TestData {
         addNviDataToModel(nviTestData);
     }
 
+    public TestData() {
+        this.models = new ArrayList<>();
+        var publication = generatePublication(new PublicationDate("2024", "02", "02"), Instant.now());
+        this.publicationTestData = List.of(publication);
+        this.nviTestData = List.of(generateNviCandidate(Instant.now(), publication));
+        addPublicationDataToModel(publicationTestData);
+        addNviDataToModel(nviTestData);
+    }
+
     public List<TestPublication> getPublicationTestData() {
         return publicationTestData;
     }
@@ -159,7 +169,7 @@ public class TestData {
         nviTestData.sort(this::sortByPublicationUri);
         sortContributors(nviTestData);
         var values = nviTestData.stream()
-                         .map(TestNviCandidate::getExpectedNviResponse)
+                         .map(TestNviCandidate::getExpectedResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }

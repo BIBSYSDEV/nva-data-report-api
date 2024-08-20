@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.testing.utils.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
+import java.util.UUID;
 import no.unit.nva.identifiers.SortableIdentifier;
 import nva.commons.core.JacocoGenerated;
 
@@ -13,10 +14,10 @@ public class EventConsumptionAttributes {
     @JsonProperty(INDEX_FIELD)
     private final String index;
     @JsonProperty(DOCUMENT_IDENTIFIER)
-    private final SortableIdentifier documentIdentifier;
+    private final String documentIdentifier;
 
     public EventConsumptionAttributes(@JsonProperty(INDEX_FIELD) String index,
-                                      @JsonProperty(DOCUMENT_IDENTIFIER) SortableIdentifier documentIdentifier) {
+                                      @JsonProperty(DOCUMENT_IDENTIFIER) String documentIdentifier) {
         this.index = index;
         this.documentIdentifier = documentIdentifier;
     }
@@ -25,7 +26,7 @@ public class EventConsumptionAttributes {
         return index;
     }
 
-    public SortableIdentifier getDocumentIdentifier() {
+    public String getDocumentIdentifier() {
         return documentIdentifier;
     }
 

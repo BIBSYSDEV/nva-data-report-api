@@ -42,7 +42,6 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         this.storageReader = storageReader;
     }
 
-    //TODO: Handle failures
     @Override
     public Void handleRequest(PersistedResourceEvent input, Context context) {
         input.validate();
@@ -50,9 +49,6 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         var eventType = EventType.parse(input.eventType());
         if (UPSERT.equals(eventType)) {
             storeObject(UnixPath.of(input.key()));
-        } else {
-            //TODO: Handle delete
-            return null;
         }
         return null;
     }

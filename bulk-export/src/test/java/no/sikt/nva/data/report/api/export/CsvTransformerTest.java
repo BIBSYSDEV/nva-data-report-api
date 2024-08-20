@@ -39,6 +39,8 @@ import no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDa
 import no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication;
 import no.sikt.nva.data.report.testing.utils.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
+import no.sikt.nva.data.report.testing.utils.model.NviIndexDocument;
+import no.sikt.nva.data.report.testing.utils.model.PublicationIndexDocument;
 import no.sikt.nva.data.report.testing.utils.stubs.StubEventBridgeClient;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
@@ -72,7 +74,7 @@ class CsvTransformerTest {
     private S3Client s3ResourcesClient;
 
     public static EventConsumptionAttributes randomConsumptionAttribute() {
-        return new EventConsumptionAttributes(PERSISTED_RESOURCES_PUBLICATIONS, SortableIdentifier.next());
+        return new EventConsumptionAttributes(PERSISTED_RESOURCES_PUBLICATIONS, SortableIdentifier.next().toString());
     }
 
     @BeforeEach

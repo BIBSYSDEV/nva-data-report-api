@@ -70,6 +70,12 @@ public final class NviTestData {
         return randomBigDecimal.setScale(4, RoundingMode.HALF_UP);
     }
 
+    public static TestNviCandidate generateNviCandidate(Instant modifiedDate, TestPublication publication) {
+        var publicationDetails = generatePublicationDetails(publication);
+        var approvals = generateApprovals(publicationDetails);
+        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, SOME_YEAR).build();
+    }
+
     static List<TestNviCandidate> generateNviData(List<TestPublication> publications) {
         var dataSet = new ArrayList<TestNviCandidate>();
         for (TestPublication publication : publications) {
@@ -105,12 +111,6 @@ public final class NviTestData {
                                                      ArrayList<TestNviCandidate> dataSet) {
         var nonApplicableNviCandidate = generateNonApplicableNviCandidate(modifiedDate, reportingYear);
         dataSet.add(nonApplicableNviCandidate);
-    }
-
-    private static TestNviCandidate generateNviCandidate(Instant modifiedDate, TestPublication publication) {
-        var publicationDetails = generatePublicationDetails(publication);
-        var approvals = generateApprovals(publicationDetails);
-        return getCandidateBuilder(true, modifiedDate, publicationDetails, approvals, SOME_YEAR).build();
     }
 
     private static TestNviCandidate generateReportedNviCandidate(Instant modifiedDate, String reportingYear) {
