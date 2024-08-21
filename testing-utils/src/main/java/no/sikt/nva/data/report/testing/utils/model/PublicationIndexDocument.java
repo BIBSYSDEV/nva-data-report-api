@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.export;
+package no.sikt.nva.data.report.testing.utils.model;
 
 import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;

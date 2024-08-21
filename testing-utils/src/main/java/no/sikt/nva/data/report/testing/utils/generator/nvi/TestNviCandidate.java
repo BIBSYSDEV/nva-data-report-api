@@ -35,7 +35,7 @@ public record TestNviCandidate(String candidateUri,
         return new Builder();
     }
 
-    public String getExpectedNviResponse() {
+    public String getExpectedResponse() {
         var stringBuilder = new StringBuilder();
         if (isApplicable) {
             publicationDetails().contributors()

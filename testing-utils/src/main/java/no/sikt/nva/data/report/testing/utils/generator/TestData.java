@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.testing.utils.generator.NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse;
+import static no.sikt.nva.data.report.testing.utils.generator.NviTestData.generateNviCandidate;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
@@ -52,6 +53,7 @@ public class TestData {
 
     public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     public static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
+    public static final int ONE = 1;
     private static final String DELIMITER = ",";
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
@@ -93,6 +95,15 @@ public class TestData {
         this.models = new ArrayList<>();
         this.publicationTestData = generatePublicationData(dates);
         this.nviTestData = NviTestData.generateNviData(publicationTestData);
+        addPublicationDataToModel(publicationTestData);
+        addNviDataToModel(nviTestData);
+    }
+
+    public TestData() {
+        this.models = new ArrayList<>();
+        var publication = generatePublication(new PublicationDate("2024", "02", "02"), Instant.now());
+        this.publicationTestData = List.of(publication);
+        this.nviTestData = List.of(generateNviCandidate(Instant.now(), publication));
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
@@ -156,10 +167,12 @@ public class TestData {
 
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NviTestData.NVI_HEADERS) + CRLF.getString();
-        nviTestData.sort(this::sortByPublicationUri);
+        if (nviTestData.size() > ONE) {
+            nviTestData.sort(this::sortByPublicationUri);
+        }
         sortContributors(nviTestData);
         var values = nviTestData.stream()
-                         .map(TestNviCandidate::getExpectedNviResponse)
+                         .map(TestNviCandidate::getExpectedResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }

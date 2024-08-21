@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.export;
+package no.sikt.nva.data.report.testing.utils.model;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;

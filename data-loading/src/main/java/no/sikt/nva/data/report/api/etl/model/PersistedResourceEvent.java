@@ -22,6 +22,10 @@ public record PersistedResourceEvent(String bucketName, String key, String event
                + '}';
     }
 
+    public String getLocation() {
+        return UnixPath.fromString(key).getParent().map(UnixPath::toString).orElse(null);
+    }
+
     private static void validateParentFolder(PersistedResourceEvent input) {
         UnixPath.of(input.key())
             .getParent()

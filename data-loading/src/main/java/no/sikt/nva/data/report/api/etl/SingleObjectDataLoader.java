@@ -6,19 +6,26 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.StorageReader;
-import commons.ViewCompiler;
-import commons.db.GraphStoreProtocolConnection;
+import commons.StorageWriter;
 import commons.db.utils.DocumentUnwrapper;
-import java.net.URI;
+import commons.formatter.CsvFormatter;
+import commons.model.ContentWithLocation;
+import commons.model.DocumentType;
+import commons.model.ReportType;
+import commons.service.ModelQueryService;
+import java.time.LocalDateTime;
+import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
+import no.sikt.nva.data.report.api.etl.aws.S3StorageWriter;
 import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
-import no.sikt.nva.data.report.api.etl.service.GraphService;
-import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,32 +34,32 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     public static final Logger LOGGER = LoggerFactory.getLogger(SingleObjectDataLoader.class);
     public static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
     public static final String API_HOST = "API_HOST";
+    public static final String EXPORT_BUCKET = "EXPORT_BUCKET";
+    public static final String HYPHEN = "-";
+    public static final String IDENTIFIER = "identifier";
     private final StorageReader<UnixPath> storageReader;
-    GraphService graphService;
+    private final StorageWriter storageWriter;
 
     @JacocoGenerated
     public SingleObjectDataLoader() {
-        this(new GraphService(new GraphStoreProtocolConnection()),
-             new S3StorageReader(new Environment().readEnv(EXPANDED_RESOURCES_BUCKET)));
+        this(new S3StorageReader(new Environment().readEnv(EXPANDED_RESOURCES_BUCKET)),
+             new S3StorageWriter(new Environment().readEnv(EXPORT_BUCKET)));
     }
 
-    public SingleObjectDataLoader(GraphService graphService, StorageReader<UnixPath> storageReader) {
+    public SingleObjectDataLoader(StorageReader<UnixPath> storageReader, StorageWriter storageWriter) {
         LOGGER.info("Initializing SingleObjectDataLoader");
-        this.graphService = graphService;
         this.storageReader = storageReader;
+        this.storageWriter = storageWriter;
     }
 
-    //TODO: Handle failures
     @Override
     public Void handleRequest(PersistedResourceEvent input, Context context) {
         input.validate();
         logInput(input);
         var eventType = EventType.parse(input.eventType());
+        var documentType = DocumentType.fromLocation(input.getLocation());
         if (UPSERT.equals(eventType)) {
-            storeObject(UnixPath.of(input.key()));
-        } else {
-            //TODO: Handle delete
-            return null;
+            transformAndPersistObject(documentType, UnixPath.of(input.key()));
         }
         return null;
     }
@@ -62,17 +69,40 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         return attempt(() -> documentUnwrapper.unwrap(blob)).orElseThrow();
     }
 
-    private void storeObject(UnixPath objectKey) {
-        var blob = storageReader.read(objectKey);
-        var resource = toJsonNode(blob);
-        var id = URI.create(resource.at("/id").textValue());
-        var graph = URI.create(id + ".nt");
-        graphService.persist(graph, applyView(resource, id));
-        LOGGER.info("Persisted object with key: {} in graph: {}", objectKey, graph);
+    private static UnixPath constructNewLocation(String folder, String identifier) {
+        return UnixPath.of(folder).addChild(identifier + HYPHEN + LocalDateTime.now());
     }
 
-    private Model applyView(JsonNode resource, URI id) {
-        return new ViewCompiler(IoUtils.stringToStream(resource.toString())).extractView(id);
+    private static ContentWithLocation transform(Model model, ReportType reportType, String identifier) {
+        var result = new ModelQueryService().query(model, reportType);
+        var formatted = new CsvFormatter().format(result);
+        return new ContentWithLocation(constructNewLocation(reportType.getType(), identifier), formatted);
+    }
+
+    private static Model loadIntoModel(JsonNode resource) {
+        var model = ModelFactory.createDefaultModel();
+        RDFDataMgr.read(model, IoUtils.stringToStream(resource.toString()), Lang.JSONLD);
+        return model;
+    }
+
+    private void transformAndPersistObject(DocumentType documentType, UnixPath objectKey) {
+        var resource = readAsJsonNode(objectKey);
+        var identifier = resource.get(IDENTIFIER).asText();
+        var model = loadIntoModel(resource);
+        if (DocumentType.NVI_CANDIDATE.equals(documentType)) {
+            var contentWithLocation = transform(model, ReportType.NVI, identifier);
+            persist(contentWithLocation);
+        }
+    }
+
+    private JsonNode readAsJsonNode(UnixPath objectKey) {
+        var blob = storageReader.read(objectKey);
+        return toJsonNode(blob);
+    }
+
+    private void persist(ContentWithLocation contentWithLocation) {
+        storageWriter.writeCsv(contentWithLocation.location(), contentWithLocation.content());
+        LOGGER.info("Persisted object with key: {}", contentWithLocation.location());
     }
 
     private void logInput(PersistedResourceEvent input) {

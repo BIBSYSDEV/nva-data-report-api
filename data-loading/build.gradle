@@ -32,4 +32,5 @@ repositories {
 test {
     environment('QUERY_PATH', 'gsp/sparql')
     environment('API_HOST', 'https://example.org')
+    environment("EXPORT_BUCKET", "s3://exportBucket")
 }
