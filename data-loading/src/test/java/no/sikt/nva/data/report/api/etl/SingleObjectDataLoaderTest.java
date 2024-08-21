@@ -9,9 +9,15 @@ import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import com.amazonaws.services.lambda.runtime.Context;
 import commons.model.ReportType;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
@@ -29,6 +35,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 class SingleObjectDataLoaderTest {
 
@@ -41,11 +50,12 @@ class SingleObjectDataLoaderTest {
     private static SingleObjectDataLoader handler;
     private static S3Driver s3ResourcesDriver;
     private S3Driver s3OutputDriver;
+    private S3Client fakeS3ResourcesClient;
 
     @BeforeEach
     void setup() {
         context = new FakeContext();
-        var fakeS3ResourcesClient = new FakeS3Client();
+        fakeS3ResourcesClient = new FakeS3Client();
         s3ResourcesDriver = new S3Driver(fakeS3ResourcesClient, BUCKET_NAME);
         var fakeS3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(fakeS3OutputClient, EXPORT_BUCKET);
@@ -75,10 +85,43 @@ class SingleObjectDataLoaderTest {
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
         var reportType = ReportType.NVI.getType();
-        var actualPath = getFirstWithParent(reportType).toString();
+        var actualPath = getFirstWithParent(reportType);
         var expectedPathWithIdentifier = UnixPath.of(reportType).addChild(indexDocument.getIdentifier()).toString();
-        assertTrue(actualPath.contains(expectedPathWithIdentifier));
-        assertTrue(actualPath.contains(LocalDate.now().toString()));
+        assertTrue(actualPath.toString().contains(expectedPathWithIdentifier));
+        assertTrue(actualPath.toString().contains(LocalDate.now().toString()));
+        assertTrue(actualPath.getLastPathElement().contains(".csv"));
+    }
+
+    @Test
+    void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
+        var nviCandidate = new TestData().getNviTestData().getFirst();
+        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
+        var objectKey = setupExistingObjectInS3(indexDocument);
+        var event = createUpsertEvent(objectKey);
+        var mockedS3OutputClient = mock(S3Client.class);
+        var handler = new SingleObjectDataLoader(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
+                                                 new S3StorageWriter(mockedS3OutputClient, EXPORT_BUCKET));
+        handler.handleRequest(event, context);
+        var requestWithExpectedContentType = PutObjectRequest.builder()
+                                                 .contentType("text/csv; charset=UTF-8")
+                                                 .contentEncoding("UTF-8")
+                                                 .build();
+        verify(mockedS3OutputClient, times(1))
+            .putObject(refEq(requestWithExpectedContentType, "key", "bucket"), any(RequestBody.class));
+    }
+
+    @Test
+    void shouldEncodeCsvFileInUtf8() throws IOException {
+        var testData = new TestData();
+        var nviCandidate = testData.getNviTestData().getFirst();
+        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
+        var objectKey = setupExistingObjectInS3(indexDocument);
+        var event = createUpsertEvent(objectKey);
+        handler.handleRequest(event, context);
+        var expectedEncoding = StandardCharsets.UTF_8;
+        var actualContent = s3OutputDriver.getUncompressedFile(getFirstWithParent(ReportType.NVI.getType()), expectedEncoding);
+        var expectedContent = testData.getNviResponseData();
+        assertEquals(expectedContent, actualContent);
     }
 
     @ParameterizedTest
