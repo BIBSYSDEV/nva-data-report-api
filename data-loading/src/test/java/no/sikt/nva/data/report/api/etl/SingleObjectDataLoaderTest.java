@@ -66,10 +66,7 @@ class SingleObjectDataLoaderTest {
     @Test
     void shouldFetchNviIndexDocumentAndTransformToCsvInExportBucket() throws IOException {
         var testData = new TestData();
-        var nviCandidate = testData.getNviTestData().getFirst();
-        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
-        var objectKey = setupExistingObjectInS3(indexDocument);
-        var event = createUpsertEvent(objectKey);
+        var event = setupExistingIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expected = testData.getNviResponseData();
         var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(ReportType.NVI), PUBLICATION_ID,
@@ -94,10 +91,7 @@ class SingleObjectDataLoaderTest {
 
     @Test
     void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
-        var nviCandidate = new TestData().getNviTestData().getFirst();
-        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
-        var objectKey = setupExistingObjectInS3(indexDocument);
-        var event = createUpsertEvent(objectKey);
+        var event = setupExistingIndexDocumentAndCreateUpsertEvent(new TestData());
         var mockedS3OutputClient = mock(S3Client.class);
         var handler = new SingleObjectDataLoader(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
                                                  new S3StorageWriter(mockedS3OutputClient, EXPORT_BUCKET));
@@ -113,13 +107,11 @@ class SingleObjectDataLoaderTest {
     @Test
     void shouldEncodeCsvFileInUtf8() throws IOException {
         var testData = new TestData();
-        var nviCandidate = testData.getNviTestData().getFirst();
-        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
-        var objectKey = setupExistingObjectInS3(indexDocument);
-        var event = createUpsertEvent(objectKey);
+        var event = setupExistingIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expectedEncoding = StandardCharsets.UTF_8;
-        var actualContent = s3OutputDriver.getUncompressedFile(getFirstWithParent(ReportType.NVI.getType()), expectedEncoding);
+        var actualContent = s3OutputDriver.getUncompressedFile(getFirstWithParent(ReportType.NVI.getType()),
+                                                               expectedEncoding);
         var expectedContent = testData.getNviResponseData();
         assertEquals(expectedContent, actualContent);
     }
@@ -145,6 +137,14 @@ class SingleObjectDataLoaderTest {
 
     private static String constructCompressedFileIdentifier(UUID identifier) {
         return identifier.toString() + GZIP_ENDING;
+    }
+
+    private PersistedResourceEvent setupExistingIndexDocumentAndCreateUpsertEvent(TestData testData)
+        throws IOException {
+        var nviCandidate = testData.getNviTestData().getFirst();
+        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
+        var objectKey = setupExistingObjectInS3(indexDocument);
+        return createUpsertEvent(objectKey);
     }
 
     private String getActualPersistedFile(ReportType reportType) {
