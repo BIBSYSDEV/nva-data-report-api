@@ -166,7 +166,9 @@ public class TestData {
 
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NviTestData.NVI_HEADERS) + CRLF.getString();
-        nviTestData.sort(this::sortByPublicationUri);
+        if (nviTestData.size() > 1) {
+            nviTestData.sort(this::sortByPublicationUri);
+        }
         sortContributors(nviTestData);
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedResponse)

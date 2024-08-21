@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.etl.service;
+package no.sikt.nva.data.report.api.etl.aws;
 
 import commons.StorageReader;
 import no.unit.nva.s3.S3Driver;

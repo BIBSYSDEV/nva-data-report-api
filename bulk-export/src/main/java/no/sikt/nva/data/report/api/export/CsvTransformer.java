@@ -6,19 +6,15 @@ import commons.formatter.CsvFormatter;
 import commons.handlers.BulkTransformerHandler;
 import commons.model.ContentWithLocation;
 import commons.model.ReportType;
+import commons.service.ModelQueryService;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -32,15 +28,13 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class CsvTransformer extends BulkTransformerHandler {
 
     private static final String ENCODING = StandardCharsets.UTF_8.name();
+
     private static final String CONTENT_TYPE = "text/csv; charset=" + ENCODING;
     private static final String DELIMITER = "/";
-    private static final String TEMPLATE_DIRECTORY = "template";
-    private static final String SPARQL = ".sparql";
     private static final String FILE_EXTENSION_CSV = ".csv";
     private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
     private final S3Client s3OutputClient;
     private final String exportBucket;
-
     @JacocoGenerated
     public CsvTransformer() {
         this(defaultS3Client(), defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
@@ -84,10 +78,6 @@ public class CsvTransformer extends BulkTransformerHandler {
         return S3Driver.defaultS3Client().build();
     }
 
-    private static Path constructPath(String sparqlTemplate) {
-        return Path.of(TEMPLATE_DIRECTORY, sparqlTemplate + SPARQL);
-    }
-
     private List<ContentWithLocation> transformResources(Model model) {
         return ReportType.getAllTypesExcludingNviReport()
                    .stream()
@@ -101,20 +91,9 @@ public class CsvTransformer extends BulkTransformerHandler {
     }
 
     private ContentWithLocation transform(Model model, ReportType reportType) {
-        var query = getQuery(reportType);
-        try (var queryExecution = QueryExecutionFactory.create(query, model)) {
-            var resultSet = queryExecution.execSelect();
-            return new ContentWithLocation(UnixPath.of(reportType.getType()), new CsvFormatter().format(resultSet));
-        }
-    }
-
-    private Query getQuery(ReportType reportType) {
-        return QueryFactory.create(generateQuery(reportType));
-    }
-
-    private String generateQuery(ReportType reportType) {
-        var template = constructPath(reportType.getType());
-        return IoUtils.stringFromResources(template);
+        var resultSet = new ModelQueryService().query(model, reportType);
+        var formatted = new CsvFormatter().format(resultSet);
+        return new ContentWithLocation(UnixPath.of(reportType.getType()), formatted);
     }
 
     private PutObjectRequest buildRequest(UnixPath path) {
