@@ -15,6 +15,8 @@ import commons.model.DocumentType;
 import commons.model.ReportType;
 import commons.service.ModelQueryService;
 import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageWriter;
@@ -70,7 +72,7 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     }
 
     private static UnixPath constructNewLocation(String folder) {
-        return UnixPath.of(folder).addChild(UUID.randomUUID().toString());
+        return UnixPath.of(folder).addChild(LocalDateTime.now().toString());
     }
 
     private static ContentWithLocation transform(Model model, ReportType reportType) {
