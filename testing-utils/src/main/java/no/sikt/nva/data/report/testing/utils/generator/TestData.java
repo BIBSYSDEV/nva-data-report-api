@@ -122,7 +122,7 @@ public class TestData {
 
     public String getAffiliationResponseData() {
         var headers = String.join(DELIMITER, AFFILIATION_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
+        sortByPublicationId();
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedAffiliationResponse)
                          .collect(Collectors.joining());
@@ -131,7 +131,7 @@ public class TestData {
 
     public String getContributorResponseData() {
         var headers = String.join(DELIMITER, CONTRIBUTOR_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
+        sortByPublicationId();
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedContributorResponse)
                          .collect(Collectors.joining());
@@ -140,7 +140,7 @@ public class TestData {
 
     public String getFundingResponseData() {
         var headers = String.join(DELIMITER, FUNDING_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
+        sortByPublicationId();
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedFundingResponse)
                          .collect(Collectors.joining());
@@ -149,7 +149,7 @@ public class TestData {
 
     public String getIdentifierResponseData() {
         var headers = String.join(DELIMITER, IDENTIFIER_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
+        sortByPublicationId();
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedIdentifierResponse)
                          .collect(Collectors.joining());
@@ -158,7 +158,7 @@ public class TestData {
 
     public String getPublicationResponseData() {
         var headers = String.join(DELIMITER, PUBLICATION_HEADERS) + CRLF.getString();
-        publicationTestData.sort(this::sortByPublicationUri);
+        sortByPublicationId();
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedPublicationResponse)
                          .collect(Collectors.joining());
@@ -258,6 +258,12 @@ public class TestData {
         var id = URI.create(candidate.candidateUri());
         var model = candidate.generateModel();
         return new ViewCompiler(model).extractView(id);
+    }
+
+    private void sortByPublicationId() {
+        if (publicationTestData.size() > ONE) {
+            publicationTestData.sort(this::sortByPublicationUri);
+        }
     }
 
     private void sortContributors(List<TestNviCandidate> expectedCandidates) {

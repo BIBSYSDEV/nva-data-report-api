@@ -35,6 +35,7 @@ public class CsvTransformer extends BulkTransformerHandler {
     private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
     private final S3Client s3OutputClient;
     private final String exportBucket;
+
     @JacocoGenerated
     public CsvTransformer() {
         this(defaultS3Client(), defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
