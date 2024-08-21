@@ -100,10 +100,6 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         return model;
     }
 
-    private Model applyView(JsonNode resource, URI id) {
-        return new ViewCompiler(IoUtils.stringToStream(resource.toString())).extractView(id);
-    }
-
     private void logInput(PersistedResourceEvent input) {
         LOGGER.info("Input object key: {}, eventType: {}", input.key(), input.eventType());
     }
