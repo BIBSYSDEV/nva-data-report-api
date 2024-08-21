@@ -101,7 +101,7 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     }
 
     private void persist(ContentWithLocation contentWithLocation) {
-        storageWriter.write(contentWithLocation.location(), contentWithLocation.content());
+        storageWriter.writeCsv(contentWithLocation.location(), contentWithLocation.content());
         LOGGER.info("Persisted object with key: {}", contentWithLocation.location());
     }
 
