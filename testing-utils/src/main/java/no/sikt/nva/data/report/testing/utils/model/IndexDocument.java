@@ -53,7 +53,7 @@ public class IndexDocument implements JsonSerializable {
 
     @JsonIgnore
     public String getIdentifier() {
-        return Optional.ofNullable(consumptionAttributes.getDocumentIdentifier())
+        return Optional.ofNullable(consumptionAttributes.documentIdentifier())
                    .orElseThrow(() -> new RuntimeException(MISSING_IDENTIFIER_IN_RESOURCE));
     }
 
@@ -62,6 +62,6 @@ public class IndexDocument implements JsonSerializable {
     }
 
     public String getIndex() {
-        return consumptionAttributes.getIndex();
+        return consumptionAttributes.index();
     }
 }

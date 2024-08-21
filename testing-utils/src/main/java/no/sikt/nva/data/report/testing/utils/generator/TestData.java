@@ -53,6 +53,7 @@ public class TestData {
 
     public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     public static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
+    public static final int ONE = 1;
     private static final String DELIMITER = ",";
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
@@ -166,7 +167,7 @@ public class TestData {
 
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NviTestData.NVI_HEADERS) + CRLF.getString();
-        if (nviTestData.size() > 1) {
+        if (nviTestData.size() > ONE) {
             nviTestData.sort(this::sortByPublicationUri);
         }
         sortContributors(nviTestData);
