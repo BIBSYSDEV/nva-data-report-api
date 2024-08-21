@@ -7,17 +7,13 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.StorageReader;
 import commons.StorageWriter;
-import commons.ViewCompiler;
 import commons.db.utils.DocumentUnwrapper;
 import commons.formatter.CsvFormatter;
 import commons.model.ContentWithLocation;
 import commons.model.DocumentType;
 import commons.model.ReportType;
 import commons.service.ModelQueryService;
-import java.net.URI;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageWriter;
 import no.sikt.nva.data.report.api.etl.model.EventType;
@@ -39,6 +35,8 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     public static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
     public static final String API_HOST = "API_HOST";
     public static final String EXPORT_BUCKET = "EXPORT_BUCKET";
+    public static final String HYPHEN = "-";
+    public static final String IDENTIFIER = "identifier";
     private final StorageReader<UnixPath> storageReader;
     private final StorageWriter storageWriter;
 
@@ -71,35 +69,40 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         return attempt(() -> documentUnwrapper.unwrap(blob)).orElseThrow();
     }
 
-    private static UnixPath constructNewLocation(String folder) {
-        return UnixPath.of(folder).addChild(LocalDateTime.now().toString());
+    private static UnixPath constructNewLocation(String folder, String identifier) {
+        return UnixPath.of(folder).addChild(identifier + HYPHEN + LocalDateTime.now());
     }
 
-    private static ContentWithLocation transform(Model model, ReportType reportType) {
+    private static ContentWithLocation transform(Model model, ReportType reportType, String identifier) {
         var result = new ModelQueryService().query(model, reportType);
         var formatted = new CsvFormatter().format(result);
-        return new ContentWithLocation(constructNewLocation(reportType.getType()), formatted);
+        return new ContentWithLocation(constructNewLocation(reportType.getType(), identifier), formatted);
+    }
+
+    private static Model loadIntoModel(JsonNode resource) {
+        var model = ModelFactory.createDefaultModel();
+        RDFDataMgr.read(model, IoUtils.stringToStream(resource.toString()), Lang.JSONLD);
+        return model;
     }
 
     private void transformAndPersistObject(DocumentType documentType, UnixPath objectKey) {
-        var model = loadDataIntoModel(objectKey);
+        var resource = readAsJsonNode(objectKey);
+        var identifier = resource.get(IDENTIFIER).asText();
+        var model = loadIntoModel(resource);
         if (DocumentType.NVI_CANDIDATE.equals(documentType)) {
-            var contentWithLocation = transform(model, ReportType.NVI);
+            var contentWithLocation = transform(model, ReportType.NVI, identifier);
             persist(contentWithLocation);
         }
+    }
+
+    private JsonNode readAsJsonNode(UnixPath objectKey) {
+        var blob = storageReader.read(objectKey);
+        return toJsonNode(blob);
     }
 
     private void persist(ContentWithLocation contentWithLocation) {
         storageWriter.write(contentWithLocation.location(), contentWithLocation.content());
         LOGGER.info("Persisted object with key: {}", contentWithLocation.location());
-    }
-
-    private Model loadDataIntoModel(UnixPath objectKey) {
-        var blob = storageReader.read(objectKey);
-        var resource = toJsonNode(blob);
-        var model = ModelFactory.createDefaultModel();
-        RDFDataMgr.read(model, IoUtils.stringToStream(resource.toString()), Lang.JSONLD);
-        return model;
     }
 
     private void logInput(PersistedResourceEvent input) {

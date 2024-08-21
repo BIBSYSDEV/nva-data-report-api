@@ -68,15 +68,16 @@ class SingleObjectDataLoaderTest {
     }
 
     @Test
-    void fileNameShouldContainReportTypeAndTimeStamp() throws IOException {
+    void fileNameShouldContainReportTypeAndIdentifierAndTimeStamp() throws IOException {
         var testData = new TestData();
         var nviCandidate = testData.getNviTestData().getFirst();
         var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
         var objectKey = setupExistingObjectInS3(indexDocument);
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
-        var actualPath = getFirstWithParent(ReportType.NVI.getType()).toString();
-        assertTrue(actualPath.contains(ReportType.NVI.getType()));
+        var reportType = ReportType.NVI.getType();
+        var actualPath = getFirstWithParent(reportType).toString();
+        assertTrue(actualPath.contains(UnixPath.of(reportType).addChild(indexDocument.getDocumentIdentifier()).toString()));
         assertTrue(actualPath.contains(LocalDate.now().toString()));
     }
 
