@@ -27,6 +27,7 @@ import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
 import no.sikt.nva.data.report.testing.utils.generator.TestData;
 import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
 import no.sikt.nva.data.report.testing.utils.model.NviIndexDocument;
+import no.sikt.nva.data.report.testing.utils.model.PublicationIndexDocument;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeS3Client;
@@ -34,6 +35,7 @@ import nva.commons.core.paths.UnixPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -66,7 +68,7 @@ class SingleObjectDataLoaderTest {
     @Test
     void shouldFetchNviIndexDocumentAndTransformToCsvInExportBucket() throws IOException {
         var testData = new TestData();
-        var event = setupExistingIndexDocumentAndCreateUpsertEvent(testData);
+        var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expected = testData.getNviResponseData();
         var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(ReportType.NVI), PUBLICATION_ID,
@@ -74,10 +76,23 @@ class SingleObjectDataLoaderTest {
         assertEquals(expected, actual);
     }
 
+    @ParameterizedTest
+    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
+    void shouldFetchPublicationIndexDocumentAndTransformToFiveCsvFilesInExportBucket(ReportType reportType)
+        throws IOException {
+        var testData = new TestData();
+        var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(testData);
+        handler.handleRequest(event, context);
+        var expected = getExpectedData(testData, reportType);
+        var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(reportType), PUBLICATION_ID,
+                                                CONTRIBUTOR_IDENTIFIER)).orElseThrow();
+        assertEquals(expected, actual);
+    }
+
     @Test
     void fileNameShouldContainReportTypeAndIdentifierAndTimeStamp() throws IOException {
         var nviCandidate = new TestData().getNviTestData().getFirst();
-        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
+        var indexDocument = IndexDocument.from(NviIndexDocument.from(nviCandidate));
         var objectKey = setupExistingObjectInS3(indexDocument);
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
@@ -91,7 +106,7 @@ class SingleObjectDataLoaderTest {
 
     @Test
     void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
-        var event = setupExistingIndexDocumentAndCreateUpsertEvent(new TestData());
+        var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(new TestData());
         var mockedS3OutputClient = mock(S3Client.class);
         var handler = new SingleObjectDataLoader(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
                                                  new S3StorageWriter(mockedS3OutputClient, EXPORT_BUCKET));
@@ -107,7 +122,7 @@ class SingleObjectDataLoaderTest {
     @Test
     void shouldEncodeCsvFileInUtf8() throws IOException {
         var testData = new TestData();
-        var event = setupExistingIndexDocumentAndCreateUpsertEvent(testData);
+        var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expectedEncoding = StandardCharsets.UTF_8;
         var actualContent = s3OutputDriver.getUncompressedFile(getFirstWithParent(ReportType.NVI.getType()),
@@ -139,10 +154,29 @@ class SingleObjectDataLoaderTest {
         return identifier.toString() + GZIP_ENDING;
     }
 
-    private PersistedResourceEvent setupExistingIndexDocumentAndCreateUpsertEvent(TestData testData)
+    private String getExpectedData(TestData testData, ReportType reportType) {
+        return switch (reportType) {
+            case AFFILIATION -> testData.getAffiliationResponseData();
+            case CONTRIBUTOR -> testData.getContributorResponseData();
+            case FUNDING -> testData.getFundingResponseData();
+            case IDENTIFIER -> testData.getIdentifierResponseData();
+            case PUBLICATION -> testData.getPublicationResponseData();
+            case NVI -> testData.getNviResponseData();
+        };
+    }
+
+    private PersistedResourceEvent setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(TestData testData)
+        throws IOException {
+        var publication = testData.getPublicationTestData().getFirst();
+        var indexDocument = IndexDocument.from(PublicationIndexDocument.from(publication));
+        var objectKey = setupExistingObjectInS3(indexDocument);
+        return createUpsertEvent(objectKey);
+    }
+
+    private PersistedResourceEvent setupExistingNviIndexDocumentAndCreateUpsertEvent(TestData testData)
         throws IOException {
         var nviCandidate = testData.getNviTestData().getFirst();
-        var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
+        var indexDocument = IndexDocument.from(NviIndexDocument.from(nviCandidate));
         var objectKey = setupExistingObjectInS3(indexDocument);
         return createUpsertEvent(objectKey);
     }

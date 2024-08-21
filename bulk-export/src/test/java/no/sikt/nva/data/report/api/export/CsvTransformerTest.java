@@ -262,8 +262,7 @@ class CsvTransformerTest {
     }
 
     private static IndexDocument toIndexDocument(TestPublication publication) {
-        return new IndexDocument(randomConsumptionAttribute(),
-                                 PublicationIndexDocument.from(publication).asJsonNode());
+        return new IndexDocument(randomConsumptionAttribute(), PublicationIndexDocument.from(publication).asJsonNode());
     }
 
     private static IndexDocument toIndexDocument(TestNviCandidate nviCandidate) {
