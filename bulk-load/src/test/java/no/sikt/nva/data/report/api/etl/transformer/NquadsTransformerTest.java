@@ -78,7 +78,7 @@ class NquadsTransformerTest {
     void shouldWriteNquadsToS3() throws IOException {
         var expectedDocuments = createExpectedDocuments(10);
         var batch = expectedDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
+                        .map(IndexDocument::getIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
         s3BatchesDriver.insertFile(batchKey, batch);
@@ -139,7 +139,7 @@ class NquadsTransformerTest {
     void shouldNotEmitNewEventWhenNoMoreBatchesToRetrieve() throws IOException {
         var expectedDocuments = createExpectedDocuments(10);
         var batch = expectedDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
+                        .map(IndexDocument::getIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
         s3BatchesDriver.insertFile(batchKey, batch);
@@ -157,7 +157,7 @@ class NquadsTransformerTest {
     void shouldEmitNewEventWhenThereAreMoreBatchesToIndex() throws IOException {
         var expectedDocuments = createExpectedDocuments(10);
         var batch = expectedDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
+                        .map(IndexDocument::getIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
         s3BatchesDriver.insertFile(batchKey, batch);
@@ -192,7 +192,7 @@ class NquadsTransformerTest {
             """;
         var indexDocument = IndexDocument.fromJsonString(invalid);
 
-        var exception = assertThrows(RuntimeException.class, indexDocument::getDocumentIdentifier);
+        var exception = assertThrows(RuntimeException.class, indexDocument::getIdentifier);
         assertEquals("Missing identifier in resource", exception.getMessage());
     }
 
@@ -206,7 +206,7 @@ class NquadsTransformerTest {
         documents.add(invalidDocument);
         insertResourceInPersistedResourcesBucket(invalidDocument);
         var batch = documents.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
+                        .map(IndexDocument::getIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
         s3BatchesDriver.insertFile(batchKey, batch);
@@ -226,7 +226,7 @@ class NquadsTransformerTest {
         var expectedDocuments = createExpectedDocuments(10);
         removeOneResourceFromPersistedResourcesBucket(expectedDocuments);
         var batch = expectedDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
+                        .map(IndexDocument::getIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var batchKey = UnixPath.of(DEFAULT_LOCATION).addChild(randomString());
         s3BatchesDriver.insertFile(batchKey, batch);
@@ -268,7 +268,7 @@ class NquadsTransformerTest {
 
     private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
         var document = expectedDocuments.getFirst();
-        s3ResourcesDriver.deleteFile(UnixPath.of(document.getDocumentIdentifier()));
+        s3ResourcesDriver.deleteFile(UnixPath.of(document.getIdentifier()));
     }
 
     private String getActualPersistedFile() {
@@ -299,7 +299,7 @@ class NquadsTransformerTest {
     }
 
     private IndexDocument insertResourceInPersistedResourcesBucket(IndexDocument document) {
-        attempt(() -> s3ResourcesDriver.insertFile(UnixPath.of(document.getDocumentIdentifier()),
+        attempt(() -> s3ResourcesDriver.insertFile(UnixPath.of(document.getIdentifier()),
                                                    document.toJsonString())).orElseThrow();
         return document;
     }

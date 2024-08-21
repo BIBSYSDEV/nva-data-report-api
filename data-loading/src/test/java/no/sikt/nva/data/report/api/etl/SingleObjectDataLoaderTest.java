@@ -69,15 +69,15 @@ class SingleObjectDataLoaderTest {
 
     @Test
     void fileNameShouldContainReportTypeAndIdentifierAndTimeStamp() throws IOException {
-        var testData = new TestData();
-        var nviCandidate = testData.getNviTestData().getFirst();
+        var nviCandidate = new TestData().getNviTestData().getFirst();
         var indexDocument = IndexDocument.fromNviCandidate(NviIndexDocument.from(nviCandidate));
         var objectKey = setupExistingObjectInS3(indexDocument);
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
         var reportType = ReportType.NVI.getType();
         var actualPath = getFirstWithParent(reportType).toString();
-        assertTrue(actualPath.contains(UnixPath.of(reportType).addChild(indexDocument.getDocumentIdentifier()).toString()));
+        var expectedPathWithIdentifier = UnixPath.of(reportType).addChild(indexDocument.getIdentifier()).toString();
+        assertTrue(actualPath.contains(expectedPathWithIdentifier));
         assertTrue(actualPath.contains(LocalDate.now().toString()));
     }
 
@@ -116,7 +116,7 @@ class SingleObjectDataLoaderTest {
     private UnixPath setupExistingObjectInS3(IndexDocument document)
         throws IOException {
         var objectKey = UnixPath.of(document.getIndex(),
-                                    constructCompressedFileIdentifier(UUID.fromString(document.getDocumentIdentifier())));
+                                    constructCompressedFileIdentifier(UUID.fromString(document.getIdentifier())));
         s3ResourcesDriver.insertFile(objectKey, document.toJsonString());
         return objectKey;
     }

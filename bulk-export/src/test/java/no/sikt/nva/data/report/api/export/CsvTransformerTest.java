@@ -214,7 +214,7 @@ class CsvTransformerTest {
         var indexDocuments = createAndPersistIndexDocuments(testData, ReportType.PUBLICATION);
         removeOneResourceFromPersistedResourcesBucket(indexDocuments);
         var batch = indexDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
+                        .map(IndexDocument::getIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var location = PERSISTED_RESOURCES_PUBLICATIONS;
         var batchKey = UnixPath.of(location).addChild(randomString());
@@ -284,13 +284,13 @@ class CsvTransformerTest {
     private String setupExistingBatch(TestData testData, ReportType type) {
         var indexDocuments = createAndPersistIndexDocuments(testData, type);
         return indexDocuments.stream()
-                   .map(IndexDocument::getDocumentIdentifier)
+                   .map(IndexDocument::getIdentifier)
                    .collect(Collectors.joining(System.lineSeparator()));
     }
 
     private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
         var document = expectedDocuments.getFirst();
-        s3ResourcesDriver.deleteFile(UnixPath.of(document.getDocumentIdentifier()));
+        s3ResourcesDriver.deleteFile(UnixPath.of(document.getIdentifier()));
     }
 
     private List<IndexDocument> createAndPersistIndexDocuments(TestData testData, ReportType type) {

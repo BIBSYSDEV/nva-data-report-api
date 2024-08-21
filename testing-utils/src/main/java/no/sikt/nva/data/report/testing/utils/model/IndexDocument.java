@@ -10,7 +10,6 @@ import java.net.URI;
 import java.util.Optional;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.commons.json.JsonUtils;
-import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
@@ -53,13 +52,13 @@ public class IndexDocument implements JsonSerializable {
     }
 
     @JsonIgnore
-    public String getDocumentIdentifier() {
+    public String getIdentifier() {
         return Optional.ofNullable(consumptionAttributes.getDocumentIdentifier())
                    .orElseThrow(() -> new RuntimeException(MISSING_IDENTIFIER_IN_RESOURCE));
     }
 
     public void persistInS3(S3Driver s3Driver) {
-        attempt(() -> s3Driver.insertFile(UnixPath.of(getDocumentIdentifier()), toJsonString())).orElseThrow();
+        attempt(() -> s3Driver.insertFile(UnixPath.of(getIdentifier()), toJsonString())).orElseThrow();
     }
 
     public String getIndex() {
