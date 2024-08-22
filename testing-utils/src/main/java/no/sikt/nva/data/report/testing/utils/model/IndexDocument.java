@@ -21,6 +21,7 @@ public class IndexDocument implements JsonSerializable {
     public static final String CONSUMPTION_ATTRIBUTES = "consumptionAttributes";
     public static final String MISSING_IDENTIFIER_IN_RESOURCE = "Missing identifier in resource";
     public static final String NVI_INDEX = "nvi-candidates";
+    public static final String PUBLICATION_INDEX = "resources";
     @JsonProperty(CONSUMPTION_ATTRIBUTES)
     private final EventConsumptionAttributes consumptionAttributes;
     @JsonProperty(BODY)
@@ -37,9 +38,15 @@ public class IndexDocument implements JsonSerializable {
         return attempt(() -> objectMapper.readValue(json, IndexDocument.class)).orElseThrow();
     }
 
-    public static IndexDocument fromNviCandidate(NviIndexDocument nviIndexDocument) {
+    public static IndexDocument from(NviIndexDocument nviIndexDocument) {
         return new IndexDocument(new EventConsumptionAttributes(NVI_INDEX, nviIndexDocument.identifier()),
                                  nviIndexDocument.asJsonNode());
+    }
+
+    public static IndexDocument from(PublicationIndexDocument publicationIndexDocument) {
+        return new IndexDocument(
+            new EventConsumptionAttributes(PUBLICATION_INDEX, publicationIndexDocument.identifier()),
+            publicationIndexDocument.asJsonNode());
     }
 
     @JacocoGenerated

@@ -53,7 +53,6 @@ public class TestData {
 
     public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     public static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
-    public static final int ONE = 1;
     private static final String DELIMITER = ",";
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
@@ -102,8 +101,8 @@ public class TestData {
     public TestData() {
         this.models = new ArrayList<>();
         var publication = generatePublication(new PublicationDate("2024", "02", "02"), Instant.now());
-        this.publicationTestData = List.of(publication);
-        this.nviTestData = List.of(generateNviCandidate(Instant.now(), publication));
+        publicationTestData = generatePublicationData(publication);
+        this.nviTestData = generateNviData(publication);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
@@ -167,9 +166,7 @@ public class TestData {
 
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NviTestData.NVI_HEADERS) + CRLF.getString();
-        if (nviTestData.size() > ONE) {
-            nviTestData.sort(this::sortByPublicationUri);
-        }
+        nviTestData.sort(this::sortByPublicationUri);
         sortContributors(nviTestData);
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedResponse)
@@ -186,6 +183,12 @@ public class TestData {
                          .map(this::getExpectedNviInstitutionStatusResponse)
                          .collect(Collectors.joining());
         return headers + values;
+    }
+
+    private static List<TestNviCandidate> generateNviData(TestPublication publication) {
+        var nviDataSet = new ArrayList<TestNviCandidate>();
+        nviDataSet.add(generateNviCandidate(Instant.now(), publication));
+        return nviDataSet;
     }
 
     private static boolean isReportedInYear(String reportingYear, TestNviCandidate testNviCandidate) {
@@ -258,6 +261,12 @@ public class TestData {
         var id = URI.create(candidate.candidateUri());
         var model = candidate.generateModel();
         return new ViewCompiler(model).extractView(id);
+    }
+
+    private List<TestPublication> generatePublicationData(TestPublication publication) {
+        var publicationDataSet = new ArrayList<TestPublication>();
+        publicationDataSet.add(publication);
+        return publicationDataSet;
     }
 
     private void sortContributors(List<TestNviCandidate> expectedCandidates) {

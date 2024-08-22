@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.api.etl;
 
+import static commons.model.DocumentType.NVI_CANDIDATE;
 import static no.sikt.nva.data.report.api.etl.model.EventType.UPSERT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -14,6 +15,7 @@ import commons.model.DocumentType;
 import commons.model.ReportType;
 import commons.service.ModelQueryService;
 import java.time.LocalDateTime;
+import java.util.List;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageWriter;
 import no.sikt.nva.data.report.api.etl.model.EventType;
@@ -89,10 +91,16 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
         var resource = readAsJsonNode(objectKey);
         var identifier = resource.get(IDENTIFIER).asText();
         var model = loadIntoModel(resource);
-        if (DocumentType.NVI_CANDIDATE.equals(documentType)) {
-            var contentWithLocation = transform(model, ReportType.NVI, identifier);
-            persist(contentWithLocation);
-        }
+        var csvContent = NVI_CANDIDATE.equals(documentType)
+                             ? List.of(transform(model, ReportType.NVI, identifier))
+                             : generatePublicationReports(model, identifier);
+        csvContent.forEach(this::persist);
+    }
+
+    private List<ContentWithLocation> generatePublicationReports(Model model, String identifier) {
+        return ReportType.getAllTypesExcludingNviReport().stream()
+                   .map(reportType -> transform(model, reportType, identifier))
+                   .toList();
     }
 
     private JsonNode readAsJsonNode(UnixPath objectKey) {
