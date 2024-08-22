@@ -1,5 +1,10 @@
 package no.sikt.nva.data.report.api.etl;
 
+import static commons.model.ReportType.*;
+import static commons.model.ReportType.AFFILIATION;
+import static commons.model.ReportType.CONTRIBUTOR;
+import static commons.model.ReportType.FUNDING;
+import static commons.model.ReportType.PUBLICATION;
 import static no.sikt.nva.data.report.testing.utils.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
@@ -19,6 +24,7 @@ import commons.model.ReportType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageWriter;
@@ -71,14 +77,14 @@ class SingleObjectDataLoaderTest {
         var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expected = testData.getNviResponseData();
-        var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(ReportType.NVI), PUBLICATION_ID,
+        var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(NVI), PUBLICATION_ID,
                                                 CONTRIBUTOR_IDENTIFIER)).orElseThrow();
         assertEquals(expected, actual);
     }
 
     @ParameterizedTest
     @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
-    void shouldFetchPublicationIndexDocumentAndTransformToFiveCsvFilesInExportBucket(ReportType reportType)
+    void shouldFetchPublicationIndexDocumentAndTransformToKnownReportTypeAsCsvInExportBucket(ReportType reportType)
         throws IOException {
         var testData = new TestData();
         var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(testData);
@@ -90,13 +96,26 @@ class SingleObjectDataLoaderTest {
     }
 
     @Test
+    void shouldFetchPublicationIndexDocumentAndTransformToExpectedNumberOfFiles()
+        throws IOException {
+        var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(new TestData());
+        handler.handleRequest(event, context);
+        var expectedReportTypes = List.of(PUBLICATION, AFFILIATION, CONTRIBUTOR, FUNDING, IDENTIFIER);
+        var expectedNumberOfFiles = expectedReportTypes.size();
+        assertEquals(expectedNumberOfFiles, s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).size());
+        expectedReportTypes.forEach(reportType -> {
+            assertEquals(1, s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).size());
+        });
+    }
+
+    @Test
     void fileNameShouldContainReportTypeAndIdentifierAndTimeStamp() throws IOException {
         var nviCandidate = new TestData().getNviTestData().getFirst();
         var indexDocument = IndexDocument.from(NviIndexDocument.from(nviCandidate));
         var objectKey = setupExistingObjectInS3(indexDocument);
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
-        var reportType = ReportType.NVI.getType();
+        var reportType = NVI.getType();
         var actualPath = getFirstWithParent(reportType);
         var expectedPathWithIdentifier = UnixPath.of(reportType).addChild(indexDocument.getIdentifier()).toString();
         assertTrue(actualPath.toString().contains(expectedPathWithIdentifier));
@@ -125,7 +144,7 @@ class SingleObjectDataLoaderTest {
         var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expectedEncoding = StandardCharsets.UTF_8;
-        var actualContent = s3OutputDriver.getUncompressedFile(getFirstWithParent(ReportType.NVI.getType()),
+        var actualContent = s3OutputDriver.getUncompressedFile(getFirstWithParent(NVI.getType()),
                                                                expectedEncoding);
         var expectedContent = testData.getNviResponseData();
         assertEquals(expectedContent, actualContent);
