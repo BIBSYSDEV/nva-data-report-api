@@ -16,11 +16,12 @@ SELECT DISTINCT
   ?authorShareCount
   ?internationalCollaborationFactor
   ?isApplicable
+  ?modifiedDate
 WHERE {
   GRAPH ?g {
     {
       ?candidate a :NviCandidate ;
-        :modifiedDate ?modifiedDate ;
+        :modifiedDate ?modifiedDateRaw ;
         :publicationId ?publicationUri ;
         :isApplicable true ;
         :totalPoints ?totalPoints ;
@@ -33,11 +34,11 @@ WHERE {
         :nviContributor ?nviContributor ;
         :approval ?approval .
 
-      FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-      FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+      FILTER(?modifiedDateRaw >= "__AFTER__"^^xsd:dateTime)
+      FILTER(?modifiedDateRaw < "__BEFORE__"^^xsd:dateTime)
 
       BIND(STR(?publicationUri) AS ?publicationId)
-
+      BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
       BIND(STR(?internationalCollaborationFactorDecimal) AS ?internationalCollaborationFactor)
       BIND(STR(?publicationTypeChannelLevelPointsDecimal) AS ?publicationTypeChannelLevelPoints)
 
@@ -68,15 +69,16 @@ WHERE {
     UNION
     {
       ?candidate a :NviCandidate ;
-        :modifiedDate ?modifiedDate ;
+        :modifiedDate ?modifiedDateRaw ;
         :publicationId ?publicationUri ;
         :isApplicable false .
 
-      FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-      FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+      FILTER(?modifiedDateRaw >= "__AFTER__"^^xsd:dateTime)
+      FILTER(?modifiedDateRaw < "__BEFORE__"^^xsd:dateTime)
 
       BIND(STR(?publicationUri) AS ?publicationId)
       BIND("false" AS ?isApplicable)
+      BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
     }
   }

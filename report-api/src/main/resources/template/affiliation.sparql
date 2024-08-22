@@ -13,18 +13,20 @@ SELECT DISTINCT
     ?facultyId
     ?departmentId
     ?groupId
+    ?modifiedDate
 WHERE {
   GRAPH ?g {
     ?uri :identifier ?publicationIdentifier ;
          :status ?publicationStatus ;
-         :modifiedDate ?modifiedDate ;
+         :modifiedDate ?modifiedDateRaw ;
          :contributor ?contributor .
 
-    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+    FILTER(?modifiedDateRaw >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDateRaw < "__BEFORE__"^^xsd:dateTime)
 
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
     BIND(STR(?uri) AS ?publicationId)
+    BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
     ?contributor :name ?contributorName ;
                  :affiliation ?affiliation .
