@@ -433,6 +433,7 @@ Resources:
           BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
+          EXPORT_BUCKET: !Ref ExportBucket
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
