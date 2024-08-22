@@ -57,6 +57,10 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
         return attempt(() -> dtoObjectMapper.readTree(this.toJsonString())).orElseThrow();
     }
 
+    public IndexDocument toIndexDocument() {
+        return IndexDocument.from(this);
+    }
+
     private static List<Approval> generateApprovals(TestNviCandidate nviCandidate) {
         return nviCandidate.approvals()
                    .stream()

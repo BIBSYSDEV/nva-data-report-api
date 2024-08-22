@@ -46,6 +46,10 @@ public record PublicationIndexDocument(String type,
         return attempt(() -> dtoObjectMapper.readTree(this.toJsonString())).orElseThrow();
     }
 
+    public IndexDocument toIndexDocument() {
+        return IndexDocument.from(this);
+    }
+
     private static List<TestOrganization> generateTopLevelOrganizations(TestPublication publication) {
         return publication.getContributorAffiliations()
                    .stream()

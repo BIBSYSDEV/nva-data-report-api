@@ -1,9 +1,10 @@
 package no.sikt.nva.data.report.api.etl;
 
-import static commons.model.ReportType.*;
 import static commons.model.ReportType.AFFILIATION;
 import static commons.model.ReportType.CONTRIBUTOR;
 import static commons.model.ReportType.FUNDING;
+import static commons.model.ReportType.IDENTIFIER;
+import static commons.model.ReportType.NVI;
 import static commons.model.ReportType.PUBLICATION;
 import static no.sikt.nva.data.report.testing.utils.ResultSorter.sortResponse;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
@@ -24,6 +25,7 @@ import commons.model.ReportType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
@@ -103,9 +105,8 @@ class SingleObjectDataLoaderTest {
         var expectedReportTypes = List.of(PUBLICATION, AFFILIATION, CONTRIBUTOR, FUNDING, IDENTIFIER);
         var expectedNumberOfFiles = expectedReportTypes.size();
         assertEquals(expectedNumberOfFiles, s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).size());
-        expectedReportTypes.forEach(reportType -> {
-            assertEquals(1, s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).size());
-        });
+        expectedReportTypes.forEach(
+            reportType -> assertEquals(1, s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).size()));
     }
 
     @Test
@@ -181,13 +182,15 @@ class SingleObjectDataLoaderTest {
             case IDENTIFIER -> testData.getIdentifierResponseData();
             case PUBLICATION -> testData.getPublicationResponseData();
             case NVI -> testData.getNviResponseData();
+            default -> throw new IllegalArgumentException("Unknown report type. Known report types are "
+                                                          + Arrays.toString(ReportType.values()));
         };
     }
 
     private PersistedResourceEvent setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(TestData testData)
         throws IOException {
         var publication = testData.getPublicationTestData().getFirst();
-        var indexDocument = IndexDocument.from(PublicationIndexDocument.from(publication));
+        var indexDocument = PublicationIndexDocument.from(publication).toIndexDocument();
         var objectKey = setupExistingObjectInS3(indexDocument);
         return createUpsertEvent(objectKey);
     }
@@ -195,7 +198,7 @@ class SingleObjectDataLoaderTest {
     private PersistedResourceEvent setupExistingNviIndexDocumentAndCreateUpsertEvent(TestData testData)
         throws IOException {
         var nviCandidate = testData.getNviTestData().getFirst();
-        var indexDocument = IndexDocument.from(NviIndexDocument.from(nviCandidate));
+        var indexDocument = NviIndexDocument.from(nviCandidate).toIndexDocument();
         var objectKey = setupExistingObjectInS3(indexDocument);
         return createUpsertEvent(objectKey);
     }

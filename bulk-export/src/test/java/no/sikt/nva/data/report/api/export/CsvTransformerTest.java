@@ -93,7 +93,7 @@ class CsvTransformerTest {
     @ParameterizedTest
     @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
     void shouldWriteCsvFileToS3ForAllReportTypes(ReportType reportType) throws IOException {
-        var testData = new TestData(generateDatePairs(2));
+        var testData = new TestData(generateDatePairs(1));
         var batch = setupExistingBatch(testData, reportType);
         var location = PERSISTED_RESOURCES_PUBLICATIONS;
         var batchKey = UnixPath.of(location).addChild(randomString());

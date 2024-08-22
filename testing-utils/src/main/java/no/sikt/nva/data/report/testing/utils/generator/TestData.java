@@ -53,7 +53,6 @@ public class TestData {
 
     public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";
     public static final String SOME_SUB_UNIT_IDENTIFIER = "10.1.1.2";
-    public static final int ONE = 1;
     private static final String DELIMITER = ",";
     private static final List<String> AFFILIATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
@@ -102,8 +101,8 @@ public class TestData {
     public TestData() {
         this.models = new ArrayList<>();
         var publication = generatePublication(new PublicationDate("2024", "02", "02"), Instant.now());
-        this.publicationTestData = List.of(publication);
-        this.nviTestData = List.of(generateNviCandidate(Instant.now(), publication));
+        publicationTestData = generatePublicationData(publication);
+        this.nviTestData = generateNviData(publication);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
@@ -122,7 +121,7 @@ public class TestData {
 
     public String getAffiliationResponseData() {
         var headers = String.join(DELIMITER, AFFILIATION_HEADERS) + CRLF.getString();
-        sortByPublicationId();
+        publicationTestData.sort(this::sortByPublicationUri);
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedAffiliationResponse)
                          .collect(Collectors.joining());
@@ -131,7 +130,7 @@ public class TestData {
 
     public String getContributorResponseData() {
         var headers = String.join(DELIMITER, CONTRIBUTOR_HEADERS) + CRLF.getString();
-        sortByPublicationId();
+        publicationTestData.sort(this::sortByPublicationUri);
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedContributorResponse)
                          .collect(Collectors.joining());
@@ -140,7 +139,7 @@ public class TestData {
 
     public String getFundingResponseData() {
         var headers = String.join(DELIMITER, FUNDING_HEADERS) + CRLF.getString();
-        sortByPublicationId();
+        publicationTestData.sort(this::sortByPublicationUri);
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedFundingResponse)
                          .collect(Collectors.joining());
@@ -149,7 +148,7 @@ public class TestData {
 
     public String getIdentifierResponseData() {
         var headers = String.join(DELIMITER, IDENTIFIER_HEADERS) + CRLF.getString();
-        sortByPublicationId();
+        publicationTestData.sort(this::sortByPublicationUri);
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedIdentifierResponse)
                          .collect(Collectors.joining());
@@ -158,7 +157,7 @@ public class TestData {
 
     public String getPublicationResponseData() {
         var headers = String.join(DELIMITER, PUBLICATION_HEADERS) + CRLF.getString();
-        sortByPublicationId();
+        publicationTestData.sort(this::sortByPublicationUri);
         var values = publicationTestData.stream()
                          .map(TestPublication::getExpectedPublicationResponse)
                          .collect(Collectors.joining());
@@ -167,9 +166,7 @@ public class TestData {
 
     public String getNviResponseData() {
         var headers = String.join(DELIMITER, NviTestData.NVI_HEADERS) + CRLF.getString();
-        if (nviTestData.size() > ONE) {
-            nviTestData.sort(this::sortByPublicationUri);
-        }
+        nviTestData.sort(this::sortByPublicationUri);
         sortContributors(nviTestData);
         var values = nviTestData.stream()
                          .map(TestNviCandidate::getExpectedResponse)
@@ -186,6 +183,12 @@ public class TestData {
                          .map(this::getExpectedNviInstitutionStatusResponse)
                          .collect(Collectors.joining());
         return headers + values;
+    }
+
+    private static ArrayList<TestNviCandidate> generateNviData(TestPublication publication) {
+        var nviDataSet = new ArrayList<TestNviCandidate>();
+        nviDataSet.add(generateNviCandidate(Instant.now(), publication));
+        return nviDataSet;
     }
 
     private static boolean isReportedInYear(String reportingYear, TestNviCandidate testNviCandidate) {
@@ -260,10 +263,10 @@ public class TestData {
         return new ViewCompiler(model).extractView(id);
     }
 
-    private void sortByPublicationId() {
-        if (publicationTestData.size() > ONE) {
-            publicationTestData.sort(this::sortByPublicationUri);
-        }
+    private List<TestPublication> generatePublicationData(TestPublication publication) {
+        var publicationDataSet = new ArrayList<TestPublication>();
+        publicationDataSet.add(publication);
+        return publicationDataSet;
     }
 
     private void sortContributors(List<TestNviCandidate> expectedCandidates) {
