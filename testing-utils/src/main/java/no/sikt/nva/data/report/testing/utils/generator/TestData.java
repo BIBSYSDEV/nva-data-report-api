@@ -185,7 +185,7 @@ public class TestData {
         return headers + values;
     }
 
-    private static ArrayList<TestNviCandidate> generateNviData(TestPublication publication) {
+    private static List<TestNviCandidate> generateNviData(TestPublication publication) {
         var nviDataSet = new ArrayList<TestNviCandidate>();
         nviDataSet.add(generateNviCandidate(Instant.now(), publication));
         return nviDataSet;
