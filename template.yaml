@@ -414,12 +414,6 @@ Resources:
     Properties:
       Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
       CodeUri: data-loading
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref LambdaSubnet1
-          - !Ref LambdaSubnet2
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt NeptuneManagedPolicy.PolicyArn
