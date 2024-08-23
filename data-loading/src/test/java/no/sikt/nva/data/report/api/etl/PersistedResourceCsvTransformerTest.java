@@ -49,7 +49,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-class SingleObjectDataLoaderTest {
+class PersistedResourceCsvTransformerTest {
 
     public static final String EXPORT_BUCKET = "exportBucket";
     private static final String GZIP_ENDING = ".gz";
@@ -57,7 +57,7 @@ class SingleObjectDataLoaderTest {
     private static final String RESOURCES_PATH = "resources";
     private static final String BUCKET_NAME = "notRelevant";
     private static Context context;
-    private static SingleObjectDataLoader handler;
+    private static PersistedResourceCsvTransformer handler;
     private static S3Driver s3ResourcesDriver;
     private S3Driver s3OutputDriver;
     private S3Client fakeS3ResourcesClient;
@@ -69,8 +69,8 @@ class SingleObjectDataLoaderTest {
         s3ResourcesDriver = new S3Driver(fakeS3ResourcesClient, BUCKET_NAME);
         var fakeS3OutputClient = new FakeS3Client();
         s3OutputDriver = new S3Driver(fakeS3OutputClient, EXPORT_BUCKET);
-        handler = new SingleObjectDataLoader(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
-                                             new S3StorageWriter(fakeS3OutputClient, EXPORT_BUCKET));
+        handler = new PersistedResourceCsvTransformer(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
+                                                      new S3StorageWriter(fakeS3OutputClient, EXPORT_BUCKET));
     }
 
     @Test
@@ -128,8 +128,8 @@ class SingleObjectDataLoaderTest {
     void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
         var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(new TestData());
         var mockedS3OutputClient = mock(S3Client.class);
-        var handler = new SingleObjectDataLoader(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
-                                                 new S3StorageWriter(mockedS3OutputClient, EXPORT_BUCKET));
+        var handler = new PersistedResourceCsvTransformer(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
+                                                          new S3StorageWriter(mockedS3OutputClient, EXPORT_BUCKET));
         handler.handleRequest(event, context);
         var requestWithExpectedContentType = PutObjectRequest.builder()
                                                  .contentType("text/csv; charset=UTF-8")

@@ -416,10 +416,10 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
-  DataLoadingHandler:
+  PersistedResourceCsvTransformer:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
+      Handler: no.sikt.nva.data.report.api.etl.PersistedResourceCsvTransformer::handleRequest
       CodeUri: data-loading
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
