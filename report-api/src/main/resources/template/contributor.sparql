@@ -9,18 +9,19 @@ SELECT DISTINCT
   ?contributorName
   ?contributorSequenceNumber
   ?contributorRole
+  ?modifiedDate
   WHERE {
     GRAPH ?g {
       ?uri :status ?publicationStatus ;
-           :modifiedDate ?modifiedDate ;
+           :modifiedDate ?modifiedDateRaw ;
            :identifier ?publicationIdentifier ;
            :contributor ?contributor .
 
-      FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-      FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+      FILTER(?modifiedDateRaw >= "__AFTER__"^^xsd:dateTime)
+      FILTER(?modifiedDateRaw < "__BEFORE__"^^xsd:dateTime)
 
       BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
-
+      BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
       BIND(STR(?uri) AS ?publicationId)
 
       ?contributor :name ?contributorName ;

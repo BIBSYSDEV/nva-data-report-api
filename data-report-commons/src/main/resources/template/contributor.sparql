@@ -9,16 +9,18 @@ SELECT DISTINCT
   ?contributorName
   ?contributorSequenceNumber
   ?contributorRole
+  ?modifiedDate
   WHERE {
       ?uri a :Publication ;
            :status ?publicationStatus ;
-           :modifiedDate ?modifiedDate ;
+           :modifiedDate ?modifiedDateRaw ;
            :identifier ?publicationIdentifier .
 
       BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
 
       ?uri :entityDescription/:contributor ?contributor .
       BIND(STR(?uri) AS ?publicationId)
+      BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
       ?contributor :identity ?personId ;
                    :role ?roleRaw ;

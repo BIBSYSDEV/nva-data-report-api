@@ -14,13 +14,15 @@ SELECT DISTINCT
     ?channelPrintIssn
     ?channelLevel
     ?publicationIdentifier
+    ?modifiedDate
 WHERE {
     ?uri a :Publication ;
          :status ?publicationStatus ;
-         :modifiedDate ?modifiedDate ;
+         :modifiedDate ?modifiedDateRaw ;
          :identifier ?publicationIdentifier ;
          :entityDescription ?entityDescription .
 
+    BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
 

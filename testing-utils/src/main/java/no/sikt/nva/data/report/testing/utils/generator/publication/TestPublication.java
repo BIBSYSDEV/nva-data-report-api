@@ -146,7 +146,8 @@ public class TestPublication {
                     .append(institution.institution).append(DELIMITER)
                     .append(institution.faculty).append(DELIMITER)
                     .append(institution.department).append(DELIMITER)
-                    .append(institution.group).append(CRLF.getString());
+                    .append(institution.group).append(DELIMITER)
+                    .append(modifiedDate).append(CRLF.getString());
             }
         }
         return stringBuilder.toString();
@@ -161,8 +162,8 @@ public class TestPublication {
                 .append(getLocalName(contributor)).append(DELIMITER)
                 .append(contributor.getIdentity().name()).append(DELIMITER)
                 .append(contributor.getSequenceNumber()).append(DELIMITER)
-                .append(contributor.role())
-                .append(CRLF.getString());
+                .append(contributor.role()).append(DELIMITER)
+                .append(modifiedDate).append(CRLF.getString());
         }
         return stringBuilder.toString();
     }
@@ -175,8 +176,8 @@ public class TestPublication {
                 .append(identifier).append(DELIMITER)
                 .append(funding.getFundingSource()).append(DELIMITER)
                 .append(funding.getId()).append(DELIMITER)
-                .append(funding.getName())
-                .append(CRLF.getString());
+                .append(funding.getName()).append(DELIMITER)
+                .append(modifiedDate).append(CRLF.getString());
         }
         return stringBuilder.toString();
     }
@@ -188,8 +189,8 @@ public class TestPublication {
                 .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
                 .append(funding.getFundingSource()).append(DELIMITER)
-                .append(funding.getId())
-                .append(CRLF.getString());
+                .append(funding.getId()).append(DELIMITER)
+                .append(modifiedDate).append(CRLF.getString());
         }
         return stringBuilder.toString();
     }
@@ -207,8 +208,8 @@ public class TestPublication {
             .append(channel.getOnlineIssn()).append(DELIMITER)
             .append(channel.getPrintIssn()).append(DELIMITER)
             .append(channel.getScientificValue()).append(DELIMITER)
-            .append(identifier)
-            .append(CRLF.getString());
+            .append(identifier).append(DELIMITER)
+            .append(modifiedDate).append(CRLF.getString());
 
         return stringBuilder.toString();
     }

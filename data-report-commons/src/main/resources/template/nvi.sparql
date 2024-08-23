@@ -15,10 +15,11 @@ SELECT DISTINCT
   ?authorShareCount
   ?internationalCollaborationFactor
   ?isApplicable
+  ?modifiedDate
 WHERE {
     {
       ?candidate a :NviCandidate ;
-        :modifiedDate ?modifiedDate ;
+        :modifiedDate ?modifiedDateRaw ;
         :publicationDetails ?publicationUri ;
         :isApplicable ?isApplicableBoolean ;
         :points ?totalPoints ;
@@ -26,6 +27,8 @@ WHERE {
         :internationalCollaborationFactor ?internationalCollaborationFactor ;
         :creatorShareCount ?authorShareCount ;
         :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints .
+
+      BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
       OPTIONAL {
         ?candidate :reported ?reported ;
@@ -68,10 +71,11 @@ WHERE {
     UNION
     {
       ?candidate a :NviCandidate ;
-        :modifiedDate ?modifiedDate ;
+        :modifiedDate ?modifiedDateRaw ;
         :publicationDetails ?publicationUri ;
         :isApplicable ?isApplicableBoolean .
 
+      BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
       BIND(STR(?publicationUri) AS ?publicationId)
       BIND(STR(?isApplicableBoolean) AS ?isApplicable)
 

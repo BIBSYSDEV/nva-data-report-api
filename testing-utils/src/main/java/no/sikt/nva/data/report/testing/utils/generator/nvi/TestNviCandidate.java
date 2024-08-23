@@ -69,7 +69,7 @@ public record TestNviCandidate(String candidateUri,
         stringBuilder.append(publicationDetails().id())
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
-            .append(DELIMITER).append(isApplicable()).append(CRLF.getString());
+            .append(DELIMITER).append(isApplicable()).append(DELIMITER).append(modifiedDate).append(CRLF.getString());
     }
 
     private void addApprovals(CandidateGenerator nviCandidate) {
@@ -129,8 +129,8 @@ public record TestNviCandidate(String candidateUri,
             .append(publicationTypeChannelLevelPoints).append(DELIMITER)
             .append(creatorShareCount).append(DELIMITER)
             .append(internationalCollaborationFactor).append(DELIMITER)
-            .append(isApplicable())
-            .append(CRLF.getString());
+            .append(isApplicable()).append(DELIMITER)
+            .append(modifiedDate).append(CRLF.getString());
     }
 
     private TestApproval findExpectedApproval(TestNviOrganization affiliation) {

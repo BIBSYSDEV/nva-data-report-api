@@ -6,15 +6,17 @@ SELECT DISTINCT
     ?publicationIdentifier
     ?fundingSource
     ?fundingId
+    ?modifiedDate
 WHERE {
     ?uri a :Publication ;
                     :status ?publicationStatus ;
-                    :modifiedDate ?modifiedDate ;
+                    :modifiedDate ?modifiedDateRaw ;
                     :identifier ?publicationIdentifier ;
                     :funding ?funding .
 
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
+    BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
     ?funding :source ?source .
     ?source :identifier ?fundingSource .

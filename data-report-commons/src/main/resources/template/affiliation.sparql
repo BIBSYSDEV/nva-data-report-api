@@ -12,14 +12,16 @@ SELECT DISTINCT
     ?facultyId
     ?departmentId
     ?groupId
+    ?modifiedDate
 WHERE {
     ?uri a :Publication ;
          :identifier ?publicationIdentifier ;
          :status ?publicationStatus ;
-         :modifiedDate ?modifiedDate ;
+         :modifiedDate ?modifiedDateRaw ;
          :entityDescription/:contributor ?contributor .
 
     BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
+    BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
     ?contributor :identity ?personId ;
                  :affiliation ?affiliationUri .
