@@ -23,9 +23,6 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: The Api domain
     Default: /NVA/ApiDomain
-  NeptuneInstanceClass:
-    Type: String
-    Default: db.serverless
   CustomDomainBasePath:
     Type: String
     Description: Base path mapping
@@ -69,23 +66,6 @@ Parameters:
     Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
     Default: '*'
 
-Mappings:
-  SubnetConfig:
-    VPC:
-      CIDR: '10.0.0.0/16'
-    Public1:
-      CIDR: '10.0.0.0/24'
-    Public2:
-      CIDR: '10.0.1.0/24'
-    Private1:
-      CIDR: '10.0.2.0/24'
-    Private2:
-      CIDR: '10.0.3.0/24'
-    Lambda1:
-      CIDR: '10.0.4.0/24'
-    Lambda2:
-      CIDR: '10.0.5.0/24'
-
 Conditions:
   WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
 
@@ -95,11 +75,7 @@ Globals:
     MemorySize: 1536
     Environment:
       Variables:
-        NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
-        NEPTUNE_READ_ENDPOINT: !GetAtt NeptuneCluster.ReadEndpoint
         API_HOST: !Ref ApiDomain
-        QUERY_PATH: 'none'
-        NEPTUNE_PORT: 8182
 
 Resources:
 
@@ -192,17 +168,6 @@ Resources:
               - s3:PutObject
             Resource: !Sub '${NviReportsBucket.Arn}/*'
 
-  NeptuneManagedPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - neptune-db:*
-            Resource:
-              - !Sub 'arn:aws:neptune-db:${AWS::Region}:${AWS::AccountId}:cluster:${ProjectName}/*'
   SqsManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -219,20 +184,6 @@ Resources:
               - !GetAtt DataLoadingDLQ.Arn
               - !GetAtt GenerateNviInstitutionReportQueue.Arn
               - !GetAtt GenerateNviInstitutionReportDLQ.Arn
-  DeployToVpnPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - ec2:DescribeNetworkInterfaces
-              - ec2:CreateNetworkInterface
-              - ec2:DeleteNetworkInterface
-              - ec2:DescribeInstances
-              - ec2:AttachNetworkInterface
-            Resource: '*'
 
   InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -320,15 +271,6 @@ Resources:
     Properties:
       CodeUri: report-api
       Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref LambdaSubnet1
-          - !Ref LambdaSubnet2
-      Policies:
-        - !GetAtt NeptuneManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -348,15 +290,7 @@ Resources:
     Properties:
       Handler: no.sikt.nva.data.report.api.fetch.NviInstitutionReportGenerator::handleRequest
       CodeUri: report-api
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref LambdaSubnet1
-          - !Ref LambdaSubnet2
       Policies:
-        - !GetAtt NeptuneManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
         - !GetAtt S3NviReportsManagedPolicy.PolicyArn
       Timeout: 600
@@ -416,9 +350,7 @@ Resources:
       CodeUri: data-loading
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
-        - !GetAtt NeptuneManagedPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -434,46 +366,12 @@ Resources:
             Type: SQS
             Destination: !GetAtt DataLoadingDLQ.Arn
 
-  BulkDataLoader:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: bulk-load
-      Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref LambdaSubnet1
-          - !Ref LambdaSubnet2
-      Policies:
-        - !GetAtt S3ManagedPolicy.PolicyArn
-        - !GetAtt NeptuneManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          LOADER_BUCKET: !Sub s3://${LoaderBucket}
-          NEPTUNE_ENDPOINT: !GetAtt NeptuneCluster.Endpoint
-          NEPTUNE_PORT: 8182
-          LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
-
 
   ResetDatabaseButton:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: database-tools
       Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref LambdaSubnet1
-          - !Ref LambdaSubnet2
-      Policies:
-        - !GetAtt NeptuneManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -538,15 +436,6 @@ Resources:
     Properties:
       CodeUri: report-api
       Handler: no.sikt.nva.data.report.api.fetch.BulkReportGenerator::handleRequest
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref LambdaSubnet1
-          - !Ref LambdaSubnet2
-      Policies:
-        - !GetAtt NeptuneManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -576,217 +465,6 @@ Resources:
             Pattern:
               detail:
                 topic: [ 'ReportApi.Bulk.TransformKeyBatchCsv' ]
-
-  # ---- Amazon Neptune ----
-  # Two instance Amazon Neptune cluster, using default
-  # parameter groups
-  NeptuneCluster:
-    Type: AWS::Neptune::DBCluster
-    Properties:
-      AssociatedRoles:
-        - RoleArn: !GetAtt ReadAndListBucketPolicy.Arn
-      DBClusterIdentifier: !Ref ProjectName
-      DBSubnetGroupName: !Ref NeptuneSubnets
-      VpcSecurityGroupIds:
-        - !Ref NeptuneSecurityGroup
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-cluster"
-        - Key: Project
-          Value: !Ref ProjectName
-      ServerlessScalingConfiguration:
-        MaxCapacity: 128
-        MinCapacity: 2.5
-      EnableCloudwatchLogsExports:
-        - audit
-
-  NeptuneInstance1:
-    Type: AWS::Neptune::DBInstance
-    Properties:
-      DBClusterIdentifier: !Ref NeptuneCluster
-      DBInstanceClass: !Ref NeptuneInstanceClass
-      DBInstanceIdentifier: !Sub "${ProjectName}-neptune-1"
-      DBSubnetGroupName: !Ref NeptuneSubnets
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-instance-1"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  NeptuneInstance2:
-    Type: AWS::Neptune::DBInstance
-    Properties:
-      DBClusterIdentifier: !Ref NeptuneCluster
-      DBInstanceClass: !Ref NeptuneInstanceClass
-      DBInstanceIdentifier: !Sub "${ProjectName}-neptune-2"
-      DBSubnetGroupName: !Ref NeptuneSubnets
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-instance-2"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  NeptuneSubnets:
-    Type: AWS::Neptune::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: !Sub "${ProjectName} Subnet Group"
-      DBSubnetGroupName: !Sub "${ProjectName}-subnet-group"
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-neptune-subnet-group"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  NeptuneSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    # DependsOn: LambdaSecurityGroup
-    Properties:
-      GroupName: !Sub "${ProjectName}-neptune-security-group"
-      GroupDescription: Allow access to Amazon Neptune from Lambda
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 8182
-          ToPort: 8182
-          SourceSecurityGroupId: !Ref LambdaSecurityGroup
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Project
-          Value: !Ref ProjectName
-
-  # --- Lambda ----
-
-  LambdaSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: !Sub "${ProjectName}-lambda-security-group"
-      GroupDescription: Access from AWS Lambda to Amazon Neptune
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: '-1'
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Project
-          Value: !Ref ProjectName
-
-  # ---- Networking Resources ----
-  # A VPC with two public subnets and two private
-  # subnets along with an internet gateway.
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'VPC', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-vpc"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 0
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private1', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-private-subnet-1"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 1
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Private2', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-private-subnet-2"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  LambdaSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 0
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda1', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-lambda-subnet-1"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  LambdaSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-          - 1
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap [ 'SubnetConfig', 'Lambda2', 'CIDR' ]
-      Tags:
-        - Key: Name
-          Value: !Sub "${ProjectName}-lambda-subnet-2"
-        - Key: Project
-          Value: !Ref ProjectName
-
-  PrivateRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-
-  PrivateRouteTable1Association:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet1
-
-  PrivateRouteTable2Association:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet2
-
-  PrivateRouteTableLambdaAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref LambdaSubnet1
-
-  S3GatewayEndpoint:
-    Type: 'AWS::EC2::VPCEndpoint'
-    Properties:
-      VpcId: !Ref VPC
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
-      RouteTableIds:
-        - !Ref PrivateRouteTable
-      VpcEndpointType: Gateway
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal: '*'
-            Action:
-              - 's3:Get*'
-              - 's3:List*'
-              - 's3:PutObject'
-            Resource: '*'
 
   #---- EventBus ----
 
@@ -838,32 +516,6 @@ Resources:
             Status: Enabled
             ExpirationInDays: 3
 
-    #---- Role for Neptune load ----
-
-  ReadAndListBucketPolicy:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - rds.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: listGetS3
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:Get*
-                  - s3:List*
-                Resource:
-                  - !GetAtt LoaderBucket.Arn
-                  - !Sub '${LoaderBucket.Arn}/*'
-
 
   #============================= Alarms =========================================================
 
@@ -883,17 +535,3 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       AlarmActions:
         - !Ref SlackSnsArn
-
-#### OUTPUTS ####
-Outputs:
-  VpcId:
-    Description: VPC ID
-    Value: !Ref VPC
-
-  NeptuneClusterEndpoint:
-    Description: Endpoint for Neptune Cluster
-    Value: !GetAtt NeptuneCluster.Endpoint
-
-  NeptuneClusterReadEndpoint:
-    Description: Read endpoint for Neptune Cluster
-    Value: !GetAtt NeptuneCluster.ReadEndpoint
