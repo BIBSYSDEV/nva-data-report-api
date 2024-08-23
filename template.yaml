@@ -378,19 +378,6 @@ Resources:
             Type: SQS
             Destination: !GetAtt DataLoadingDLQ.Arn
 
-  BulkDataLoader:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: bulk-load
-      Handler: no.sikt.nva.data.report.api.etl.loader.BulkLoadHandler::handleRequest
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          LOADER_BUCKET: !Sub s3://${LoaderBucket}
-          LOADER_IAM_ROLE: !GetAtt ReadAndListBucketPolicy.Arn
-
 
   ResetDatabaseButton:
     Type: AWS::Serverless::Function
