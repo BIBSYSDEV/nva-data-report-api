@@ -184,20 +184,6 @@ Resources:
               - !GetAtt DataLoadingDLQ.Arn
               - !GetAtt GenerateNviInstitutionReportQueue.Arn
               - !GetAtt GenerateNviInstitutionReportDLQ.Arn
-  DeployToVpnPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - ec2:DescribeNetworkInterfaces
-              - ec2:CreateNetworkInterface
-              - ec2:DeleteNetworkInterface
-              - ec2:DescribeInstances
-              - ec2:AttachNetworkInterface
-            Resource: '*'
 
   InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -304,6 +290,9 @@ Resources:
     Properties:
       Handler: no.sikt.nva.data.report.api.fetch.NviInstitutionReportGenerator::handleRequest
       CodeUri: report-api
+      Policies:
+        - !GetAtt SqsManagedPolicy.PolicyArn
+        - !GetAtt S3NviReportsManagedPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -362,7 +351,6 @@ Resources:
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -384,15 +372,6 @@ Resources:
     Properties:
       CodeUri: database-tools
       Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref LambdaSubnet1
-          - !Ref LambdaSubnet2
-      Policies:
-        - !GetAtt NeptuneManagedPolicy.PolicyArn
-        - !GetAtt DeployToVpnPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
@@ -457,8 +436,6 @@ Resources:
     Properties:
       CodeUri: report-api
       Handler: no.sikt.nva.data.report.api.fetch.BulkReportGenerator::handleRequest
-      Policies:
-        - !GetAtt DeployToVpnPolicy.PolicyArn
       Timeout: 600
       MemorySize: 1536
       AutoPublishAlias: live
