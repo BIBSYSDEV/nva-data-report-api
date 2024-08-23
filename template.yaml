@@ -452,6 +452,17 @@ Resources:
               detail:
                 topic: [ 'ReportApi.Bulk.TransformKeyBatchNquads' ]
 
+  BulkReportGenerator:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: report-api
+      Handler: no.sikt.nva.data.report.api.fetch.BulkReportGenerator::handleRequest
+      Policies:
+        - !GetAtt DeployToVpnPolicy.PolicyArn
+      Timeout: 600
+      MemorySize: 1536
+      AutoPublishAlias: live
+
   CsvBulkTransformerHandler:
     Type: AWS::Serverless::Function
     Properties:
