@@ -87,6 +87,13 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt GenerateNviInstitutionReportDLQ.Arn
         maxReceiveCount: 5
+
+  TransformPersistedResourceQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt TransformPersistedResourceDLQ.Arn
+        maxReceiveCount: 5
       # ---- DLQs ----
   GenerateNviInstitutionReportDLQ:
     Type: AWS::SQS::Queue
@@ -96,7 +103,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       MessageRetentionPeriod: 1209600 #14 days
-  DataLoadingDLQ:
+  TransformPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
       MessageRetentionPeriod: 1209600 #14 days
@@ -252,8 +259,8 @@ Resources:
               - prefix: !Ref NviCandidatesPrefix
       State: ENABLED
       Targets:
-        - Arn: !GetAtt DataLoadingHandler.Arn
-          Id: "DataLoadingHandler"
+        - Arn: !GetAtt TransformPersistedResourceQueue.Arn
+          Id: "TransformPersistedResourceQueue"
           InputTransformer:
             InputPathsMap:
               bucketName: "$.detail.bucket.name"
@@ -343,15 +350,15 @@ Resources:
             Method: get
             RestApiId: !Ref DataReportApi
 
-  DataLoadingHandler:
+  PersistedResourceCsvTransformer:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: no.sikt.nva.data.report.api.etl.SingleObjectDataLoader::handleRequest
+      Handler: no.sikt.nva.data.report.api.etl.PersistedResourceCsvTransformer::handleRequest
       CodeUri: data-loading
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
         - !GetAtt SqsManagedPolicy.PolicyArn
-      Timeout: 600
+      Timeout: 30
       MemorySize: 1536
       AutoPublishAlias: live
       Environment:
@@ -360,11 +367,16 @@ Resources:
           BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           EXPORT_BUCKET: !Ref ExportBucket
+      Events:
+        SqsEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt TransformPersistedResourceQueue.Arn
       EventInvokeConfig:
         DestinationConfig:
           OnFailure:
             Type: SQS
-            Destination: !GetAtt DataLoadingDLQ.Arn
+            Destination: !GetAtt TransformPersistedResourceDLQ.Arn
 
 
   ResetDatabaseButton:

@@ -31,9 +31,9 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SingleObjectDataLoader implements RequestHandler<PersistedResourceEvent, Void> {
+public class PersistedResourceCsvTransformer implements RequestHandler<PersistedResourceEvent, Void> {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(SingleObjectDataLoader.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(PersistedResourceCsvTransformer.class);
     public static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
     public static final String API_HOST = "API_HOST";
     public static final String EXPORT_BUCKET = "EXPORT_BUCKET";
@@ -43,12 +43,12 @@ public class SingleObjectDataLoader implements RequestHandler<PersistedResourceE
     private final StorageWriter storageWriter;
 
     @JacocoGenerated
-    public SingleObjectDataLoader() {
+    public PersistedResourceCsvTransformer() {
         this(new S3StorageReader(new Environment().readEnv(EXPANDED_RESOURCES_BUCKET)),
              new S3StorageWriter(new Environment().readEnv(EXPORT_BUCKET)));
     }
 
-    public SingleObjectDataLoader(StorageReader<UnixPath> storageReader, StorageWriter storageWriter) {
+    public PersistedResourceCsvTransformer(StorageReader<UnixPath> storageReader, StorageWriter storageWriter) {
         LOGGER.info("Initializing SingleObjectDataLoader");
         this.storageReader = storageReader;
         this.storageWriter = storageWriter;
