@@ -14,22 +14,24 @@ SELECT DISTINCT
     ?channelPrintIssn
     ?channelLevel
     ?publicationIdentifier
+    ?modifiedDate
 WHERE {
   GRAPH ?g {
     ?uri a ?instanceType ;
          :status ?publicationStatus ;
-         :modifiedDate ?modifiedDate ;
+         :modifiedDate ?modifiedDateRaw ;
          :identifier ?publicationIdentifier ;
          :year ?year ;
          :mainTitle ?publicationTitle ;
          :publicationContext ?publicationContext .
 
-    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+    FILTER(?modifiedDateRaw >= "__AFTER__"^^xsd:dateTime)
+    FILTER(?modifiedDateRaw < "__BEFORE__"^^xsd:dateTime)
 
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
+    BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
     OPTIONAL {
         ?uri :month ?month .

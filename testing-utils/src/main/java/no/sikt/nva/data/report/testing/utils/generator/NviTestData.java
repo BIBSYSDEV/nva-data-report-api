@@ -14,6 +14,7 @@ import static no.sikt.nva.data.report.testing.utils.generator.NviHeaders.TOTAL_P
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.INSTITUTION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.MODIFIED_DATE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.TestData.SOME_SUB_UNIT_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
@@ -55,7 +56,8 @@ public final class NviTestData {
                                                            PUBLICATION_TYPE_CHANNEL_LEVEL_POINTS,
                                                            AUTHOR_SHARE_COUNT,
                                                            INTERNATIONAL_COLLABORATION_FACTOR,
-                                                           IS_APPLICABLE);
+                                                           IS_APPLICABLE,
+                                                           MODIFIED_DATE);
     public static final String SOME_YEAR = "2023";
     private static final BigDecimal MIN_BIG_DECIMAL = BigDecimal.ZERO;
     private static final BigDecimal MAX_BIG_DECIMAL = BigDecimal.TEN;
