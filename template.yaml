@@ -116,10 +116,10 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${FetchDataReportHandler}'
       RetentionInDays: 5
 
-  DataLoadingLogGroup:
+  PersistedResourceCsvTransformerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${DataLoadingHandler}'
+      LogGroupName: !Sub '/aws/lambda/${PersistedResourceCsvTransformer}'
       RetentionInDays: 5
 
   # ---- Policies ----
@@ -188,14 +188,13 @@ Resources:
               - sqs:SendMessage
               - sqs:GetQueueAttributes
             Resource:
-              - !GetAtt DataLoadingDLQ.Arn
               - !GetAtt GenerateNviInstitutionReportQueue.Arn
               - !GetAtt GenerateNviInstitutionReportDLQ.Arn
 
   InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !GetAtt DataLoadingHandler.Arn
+      FunctionName: !GetAtt PersistedResourceCsvTransformer.Arn
       Action: 'lambda:InvokeFunction'
       Principal: 'events.amazonaws.com'
       SourceArn: !GetAtt PersistedResourcesEventRule.Arn
