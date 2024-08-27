@@ -23,10 +23,6 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: The Api domain
     Default: /NVA/ApiDomain
-  CustomDomainBasePath:
-    Type: String
-    Description: Base path mapping
-    Default: report
   Suffix:
     Type: String
     Default: ''
@@ -50,17 +46,10 @@ Parameters:
     Type: 'String'
     Default: "data-report-key-batches"
     Description: Name of bucket for key batch files
-  NviReportsBucketName:
-    Type: 'String'
-    Default: "nvi-reports"
-    Description: Name of bucket for nvi reports
   ExportBucketName:
     Type: 'String'
     Default: "data-report-csv-export"
     Description: Name of bucket for csv export files
-  SlackSnsArn:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/NVA/Monitoring/SlackSnsArn'
   AllowedOrigins:
     Type: String
     Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
@@ -78,16 +67,7 @@ Globals:
         API_HOST: !Ref ApiDomain
 
 Resources:
-
   # ---- SQS ----
-  GenerateNviInstitutionReportQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      VisibilityTimeout: 600
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt GenerateNviInstitutionReportDLQ.Arn
-        maxReceiveCount: 5
-
   TransformPersistedResourceQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -95,10 +75,6 @@ Resources:
         deadLetterTargetArn: !GetAtt TransformPersistedResourceDLQ.Arn
         maxReceiveCount: 5
       # ---- DLQs ----
-  GenerateNviInstitutionReportDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
   DataReportPersistedResourceDLQ:
     Type: AWS::SQS::Queue
     Properties:
@@ -110,12 +86,6 @@ Resources:
 
   # ---- Logging ----
 
-  ApiAccessLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/lambda/${FetchDataReportHandler}'
-      RetentionInDays: 5
-
   PersistedResourceCsvTransformerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -123,18 +93,6 @@ Resources:
       RetentionInDays: 5
 
   # ---- Policies ----
-
-  SecretsManagerPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-            Resource:
-              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials-*"
 
   DeleteS3ObjectPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -162,35 +120,6 @@ Resources:
               - events:*
             Resource: '*'
 
-  S3NviReportsManagedPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - s3:Get*
-              - s3:List*
-              - s3:PutObject
-            Resource: !Sub '${NviReportsBucket.Arn}/*'
-
-  SqsManagedPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - sqs:ReceiveMessage
-              - sqs:DeleteMessage
-              - sqs:SendMessage
-              - sqs:GetQueueAttributes
-            Resource:
-              - !GetAtt GenerateNviInstitutionReportQueue.Arn
-              - !GetAtt GenerateNviInstitutionReportDLQ.Arn
-
   InvokeLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -198,45 +127,6 @@ Resources:
       Action: 'lambda:InvokeFunction'
       Principal: 'events.amazonaws.com'
       SourceArn: !GetAtt PersistedResourcesEventRule.Arn
-
-  #============================= Roles ==========================================================
-  DataReportApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
-      StageName: Prod
-      EndpointConfiguration:
-        Type: REGIONAL
-      DefinitionBody:
-        'Fn::Transform':
-          Name: AWS::Include
-          Parameters:
-            Location: ./docs/openapi.yaml
-      BinaryMediaTypes:
-        - application/vnd.ms-excel
-        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-
-  ApiPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref FetchDataReportHandler
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${DataReportApi}/prod/GET/report"
-
-  #===========================BasePathMappings========================================================
-  BasePathMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath: !If
-        - WithSuffix
-        - !Sub ${CustomDomainBasePath}-${Suffix}
-        - !Sub ${CustomDomainBasePath}
-      DomainName: !Ref ApiDomain
-      RestApiId: !Ref DataReportApi
-      Stage: !Ref DataReportApi.Stage
 
   #===========================EventBridge Rule========================================================
   PersistedResourcesEventRule:
@@ -272,82 +162,6 @@ Resources:
             MaximumRetryAttempts: 3
 
   # ---- Handler ----
-  FetchDataReportHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: report-api
-      Handler: no.sikt.nva.data.report.api.fetch.FetchDataReport::handleRequest
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: !Ref AllowedOrigins
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /{type}
-            Method: get
-            RestApiId: !Ref DataReportApi
-
-  NviInstitutionReportGenerator:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: no.sikt.nva.data.report.api.fetch.NviInstitutionReportGenerator::handleRequest
-      CodeUri: report-api
-      Policies:
-        - !GetAtt SqsManagedPolicy.PolicyArn
-        - !GetAtt S3NviReportsManagedPolicy.PolicyArn
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: !Ref AllowedOrigins
-          NVI_REPORTS_BUCKET: !Ref NviReportsBucket
-          GRAPH_DATABASE_PAGE_SIZE: 500
-      Events:
-        SqsEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt GenerateNviInstitutionReportQueue.Arn
-            BatchSize: 1
-            #Note: NviInstitutionReportGenerator is implemented to handle only batch size 1.
-            #Don't change the batch size value, unless you change the implementation.
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt GenerateNviInstitutionReportDLQ.Arn
-
-  FetchNviInstitutionReportPresignerHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: report-api
-      Handler: no.sikt.nva.data.report.api.fetch.FetchNviInstitutionReportPresigner::handleRequest
-      Policies:
-        - !GetAtt SecretsManagerPolicy.PolicyArn
-        - !GetAtt SqsManagedPolicy.PolicyArn
-        - !GetAtt S3NviReportsManagedPolicy.PolicyArn
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: !Ref AllowedOrigins
-          COGNITO_HOST: !Ref CognitoAuthorizationUri
-          BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
-          NVI_REPORTS_BUCKET: !Ref NviReportsBucket
-          REPORT_QUEUE_URL: !Ref GenerateNviInstitutionReportQueue
-          SIGN_DURATION_IN_MINUTES: 60
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /institution/nvi-approval/{reportingYear}
-            Method: get
-            RestApiId: !Ref DataReportApi
 
   PersistedResourceCsvTransformer:
     Type: AWS::Serverless::Function
@@ -356,7 +170,6 @@ Resources:
       CodeUri: data-loading
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
-        - !GetAtt SqsManagedPolicy.PolicyArn
       Timeout: 30
       MemorySize: 1536
       AutoPublishAlias: live
@@ -442,15 +255,6 @@ Resources:
               detail:
                 topic: [ 'ReportApi.Bulk.TransformKeyBatchNquads' ]
 
-  BulkReportGenerator:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: report-api
-      Handler: no.sikt.nva.data.report.api.fetch.BulkReportGenerator::handleRequest
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-
   CsvBulkTransformerHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -516,33 +320,3 @@ Resources:
       AccessControl: Private
       BucketName: !Sub "${ExportBucketName}-${AWS::AccountId}"
 
-  NviReportsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: Private
-      BucketName: !Sub "${NviReportsBucketName}-${AWS::AccountId}"
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteContentAfter3Days
-            Status: Enabled
-            ExpirationInDays: 3
-
-
-  #============================= Alarms =========================================================
-
-  NviInstitutionReportDLQAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: report-api-nvi-institution-report-dlq-alarm
-      MetricName: ApproximateNumberOfMessagesVisible
-      Namespace: AWS/SQS
-      Statistic: Sum
-      Dimensions:
-        - Name: QueueName
-          Value: !GetAtt GenerateNviInstitutionReportDLQ.QueueName
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      AlarmActions:
-        - !Ref SlackSnsArn
