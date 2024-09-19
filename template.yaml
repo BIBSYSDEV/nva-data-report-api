@@ -31,13 +31,6 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: External ID to assume DataWarehouseRole
     Default: /NVA/IAM/DataWarehouse/ExternalId
-  NeptuneInstanceClass:
-    Type: String
-    Default: db.serverless
-  CustomDomainBasePath:
-    Type: String
-    Description: Base path mapping
-    Default: report
   Suffix:
     Type: String
     Default: ''
