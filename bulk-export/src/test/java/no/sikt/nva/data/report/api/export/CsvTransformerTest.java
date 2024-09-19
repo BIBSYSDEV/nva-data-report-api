@@ -39,6 +39,8 @@ import no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDa
 import no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication;
 import no.sikt.nva.data.report.testing.utils.model.EventConsumptionAttributes;
 import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
+import no.sikt.nva.data.report.testing.utils.model.NviIndexDocument;
+import no.sikt.nva.data.report.testing.utils.model.PublicationIndexDocument;
 import no.sikt.nva.data.report.testing.utils.stubs.StubEventBridgeClient;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.identifiers.SortableIdentifier;
@@ -72,7 +74,7 @@ class CsvTransformerTest {
     private S3Client s3ResourcesClient;
 
     public static EventConsumptionAttributes randomConsumptionAttribute() {
-        return new EventConsumptionAttributes(PERSISTED_RESOURCES_PUBLICATIONS, SortableIdentifier.next());
+        return new EventConsumptionAttributes(PERSISTED_RESOURCES_PUBLICATIONS, SortableIdentifier.next().toString());
     }
 
     @BeforeEach
@@ -91,7 +93,7 @@ class CsvTransformerTest {
     @ParameterizedTest
     @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
     void shouldWriteCsvFileToS3ForAllReportTypes(ReportType reportType) throws IOException {
-        var testData = new TestData(generateDatePairs(2));
+        var testData = new TestData(generateDatePairs(1));
         var batch = setupExistingBatch(testData, reportType);
         var location = PERSISTED_RESOURCES_PUBLICATIONS;
         var batchKey = UnixPath.of(location).addChild(randomString());
@@ -212,7 +214,7 @@ class CsvTransformerTest {
         var indexDocuments = createAndPersistIndexDocuments(testData, ReportType.PUBLICATION);
         removeOneResourceFromPersistedResourcesBucket(indexDocuments);
         var batch = indexDocuments.stream()
-                        .map(IndexDocument::getDocumentIdentifier)
+                        .map(IndexDocument::getIdentifier)
                         .collect(Collectors.joining(System.lineSeparator()));
         var location = PERSISTED_RESOURCES_PUBLICATIONS;
         var batchKey = UnixPath.of(location).addChild(randomString());
@@ -260,8 +262,7 @@ class CsvTransformerTest {
     }
 
     private static IndexDocument toIndexDocument(TestPublication publication) {
-        return new IndexDocument(randomConsumptionAttribute(),
-                                 PublicationIndexDocument.from(publication).asJsonNode());
+        return new IndexDocument(randomConsumptionAttribute(), PublicationIndexDocument.from(publication).asJsonNode());
     }
 
     private static IndexDocument toIndexDocument(TestNviCandidate nviCandidate) {
@@ -282,13 +283,13 @@ class CsvTransformerTest {
     private String setupExistingBatch(TestData testData, ReportType type) {
         var indexDocuments = createAndPersistIndexDocuments(testData, type);
         return indexDocuments.stream()
-                   .map(IndexDocument::getDocumentIdentifier)
+                   .map(IndexDocument::getIdentifier)
                    .collect(Collectors.joining(System.lineSeparator()));
     }
 
     private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
         var document = expectedDocuments.getFirst();
-        s3ResourcesDriver.deleteFile(UnixPath.of(document.getDocumentIdentifier()));
+        s3ResourcesDriver.deleteFile(UnixPath.of(document.getIdentifier()));
     }
 
     private List<IndexDocument> createAndPersistIndexDocuments(TestData testData, ReportType type) {

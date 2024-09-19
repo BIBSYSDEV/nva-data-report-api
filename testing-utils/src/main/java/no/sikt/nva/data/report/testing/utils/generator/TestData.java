@@ -2,6 +2,7 @@ package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.testing.utils.generator.NviInstitutionStatusTestData.generateExpectedNviInstitutionResponse;
+import static no.sikt.nva.data.report.testing.utils.generator.NviTestData.generateNviCandidate;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
@@ -22,6 +23,7 @@ import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.FUNDING_SOURCE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.GROUP_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.INSTITUTION_ID;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.MODIFIED_DATE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_CATEGORY;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_DATE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
@@ -60,11 +62,13 @@ public class TestData {
                                                                     AFFILIATION_ID,
                                                                     AFFILIATION_NAME,
                                                                     INSTITUTION_ID, FACULTY_ID,
-                                                                    DEPARTMENT_ID, GROUP_ID);
+                                                                    DEPARTMENT_ID, GROUP_ID,
+                                                                    MODIFIED_DATE);
     private static final List<String> FUNDING_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                 PUBLICATION_IDENTIFIER,
                                                                 FUNDING_SOURCE,
-                                                                FUNDING_ID, FUNDING_NAME);
+                                                                FUNDING_ID, FUNDING_NAME,
+                                                                MODIFIED_DATE);
     private static final List<String> PUBLICATION_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_TITLE,
                                                                     PUBLICATION_CATEGORY,
@@ -75,16 +79,19 @@ public class TestData {
                                                                     CHANNEL_ONLINE_ISSN,
                                                                     CHANNEL_PRINT_ISSN,
                                                                     CHANNEL_LEVEL,
-                                                                    PUBLICATION_IDENTIFIER);
+                                                                    PUBLICATION_IDENTIFIER,
+                                                                    MODIFIED_DATE);
     private static final List<String> CONTRIBUTOR_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                     PUBLICATION_IDENTIFIER,
                                                                     CONTRIBUTOR_IDENTIFIER,
                                                                     CONTRIBUTOR_NAME,
                                                                     CONTRIBUTOR_SEQUENCE_NUMBER,
-                                                                    CONTRIBUTOR_ROLE);
+                                                                    CONTRIBUTOR_ROLE,
+                                                                    MODIFIED_DATE);
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
-                                                                   FUNDING_SOURCE, FUNDING_ID);
+                                                                   FUNDING_SOURCE, FUNDING_ID,
+                                                                   MODIFIED_DATE);
     private final List<TestPublication> publicationTestData;
     private final List<TestNviCandidate> nviTestData;
     private final List<Model> models;
@@ -93,6 +100,15 @@ public class TestData {
         this.models = new ArrayList<>();
         this.publicationTestData = generatePublicationData(dates);
         this.nviTestData = NviTestData.generateNviData(publicationTestData);
+        addPublicationDataToModel(publicationTestData);
+        addNviDataToModel(nviTestData);
+    }
+
+    public TestData() {
+        this.models = new ArrayList<>();
+        var publication = generatePublication(new PublicationDate("2024", "02", "02"), Instant.now());
+        publicationTestData = generatePublicationData(publication);
+        this.nviTestData = generateNviData(publication);
         addPublicationDataToModel(publicationTestData);
         addNviDataToModel(nviTestData);
     }
@@ -159,7 +175,7 @@ public class TestData {
         nviTestData.sort(this::sortByPublicationUri);
         sortContributors(nviTestData);
         var values = nviTestData.stream()
-                         .map(TestNviCandidate::getExpectedNviResponse)
+                         .map(TestNviCandidate::getExpectedResponse)
                          .collect(Collectors.joining());
         return headers + values;
     }
@@ -173,6 +189,12 @@ public class TestData {
                          .map(this::getExpectedNviInstitutionStatusResponse)
                          .collect(Collectors.joining());
         return headers + values;
+    }
+
+    private static List<TestNviCandidate> generateNviData(TestPublication publication) {
+        var nviDataSet = new ArrayList<TestNviCandidate>();
+        nviDataSet.add(generateNviCandidate(Instant.now(), publication));
+        return nviDataSet;
     }
 
     private static boolean isReportedInYear(String reportingYear, TestNviCandidate testNviCandidate) {
@@ -245,6 +267,12 @@ public class TestData {
         var id = URI.create(candidate.candidateUri());
         var model = candidate.generateModel();
         return new ViewCompiler(model).extractView(id);
+    }
+
+    private List<TestPublication> generatePublicationData(TestPublication publication) {
+        var publicationDataSet = new ArrayList<TestPublication>();
+        publicationDataSet.add(publication);
+        return publicationDataSet;
     }
 
     private void sortContributors(List<TestNviCandidate> expectedCandidates) {

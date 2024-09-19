@@ -2,30 +2,21 @@ package no.sikt.nva.data.report.testing.utils.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
-import no.unit.nva.identifiers.SortableIdentifier;
 import nva.commons.core.JacocoGenerated;
 
-public class EventConsumptionAttributes {
+public record EventConsumptionAttributes(@JsonProperty(INDEX_FIELD) String index,
+                                         @JsonProperty(DOCUMENT_IDENTIFIER) String documentIdentifier) {
 
     public static final String INDEX_FIELD = "index";
     public static final String DOCUMENT_IDENTIFIER = "documentIdentifier";
 
-    @JsonProperty(INDEX_FIELD)
-    private final String index;
-    @JsonProperty(DOCUMENT_IDENTIFIER)
-    private final SortableIdentifier documentIdentifier;
-
-    public EventConsumptionAttributes(@JsonProperty(INDEX_FIELD) String index,
-                                      @JsonProperty(DOCUMENT_IDENTIFIER) SortableIdentifier documentIdentifier) {
-        this.index = index;
-        this.documentIdentifier = documentIdentifier;
-    }
-
-    public String getIndex() {
+    @Override
+    public String index() {
         return index;
     }
 
-    public SortableIdentifier getDocumentIdentifier() {
+    @Override
+    public String documentIdentifier() {
         return documentIdentifier;
     }
 
@@ -35,17 +26,15 @@ public class EventConsumptionAttributes {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof EventConsumptionAttributes)) {
+        if (!(o instanceof EventConsumptionAttributes that)) {
             return false;
         }
-        EventConsumptionAttributes that = (EventConsumptionAttributes) o;
-        return Objects.equals(getIndex(), that.getIndex()) && Objects.equals(getDocumentIdentifier(),
-                                                                             that.getDocumentIdentifier());
+        return Objects.equals(index, that.index) && Objects.equals(documentIdentifier, that.documentIdentifier);
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getIndex(), getDocumentIdentifier());
+        return Objects.hash(index, documentIdentifier);
     }
 }

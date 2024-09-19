@@ -1,0 +1,24 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT DISTINCT
+    ?publicationId
+    ?status
+    ?publicationIdentifier
+    ?fundingSource
+    ?fundingId
+    ?modifiedDate
+WHERE {
+    ?uri a :Publication ;
+                    :status ?publicationStatus ;
+                    :modifiedDate ?modifiedDateRaw ;
+                    :identifier ?publicationIdentifier ;
+                    :funding ?funding .
+
+    BIND(STR(?uri) AS ?publicationId)
+    BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
+    BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
+
+    ?funding :source ?source .
+    ?source :identifier ?fundingSource .
+    BIND(STR(?funding) AS ?fundingId)
+}

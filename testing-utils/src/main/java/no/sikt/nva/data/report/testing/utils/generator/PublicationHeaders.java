@@ -28,6 +28,7 @@ public final class PublicationHeaders {
     public static final String CHANNEL_LEVEL = "channelLevel";
     public static final String STATUS = "status";
     public static final String PUBLICATION_DATE = "publicationDate";
+    public static final String MODIFIED_DATE = "modifiedDate";
 
     private PublicationHeaders() {
         // NO-OP

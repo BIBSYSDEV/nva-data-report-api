@@ -1,0 +1,62 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT
+    ?publicationId
+    ?status
+    ?publicationTitle
+    ?publicationCategory
+    ?publicationDate
+    ?channelType
+    ?channelIdentifier
+    ?channelName
+    ?channelOnlineIssn
+    ?channelPrintIssn
+    ?channelLevel
+    ?publicationIdentifier
+    ?modifiedDate
+WHERE {
+    ?uri a :Publication ;
+         :status ?publicationStatus ;
+         :modifiedDate ?modifiedDateRaw ;
+         :identifier ?publicationIdentifier ;
+         :entityDescription ?entityDescription .
+
+    BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
+    BIND(STR(?uri) AS ?publicationId)
+    BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
+
+    ?entityDescription :mainTitle ?publicationTitle ;
+                       :publicationDate ?date .
+    ?date :year ?year ;
+
+    OPTIONAL {
+        ?date :month ?month .
+    }
+    OPTIONAL {
+        ?date :day ?day .
+    }
+
+    BIND(IF(BOUND(?month), CONCAT("-", ?month), "") AS ?monthPart)
+    BIND(IF(BOUND(?day), CONCAT("-", ?day), "") AS ?dayPart)
+    BIND(CONCAT(?year, CONCAT(?monthPart, ?dayPart)) AS ?publicationDate)
+
+    ?entityDescription :reference ?reference .
+    ?reference :publicationContext ?publicationContext .
+    ?publicationContext a ?channelTypeId ;
+                        :name ?channelName ;
+                        :scientificValue ?channelLevel ;
+                        :identifier ?channelIdentifier .
+
+    BIND(STR(?channelTypeId) AS ?channelType)
+    ?reference :publicationInstance ?instance .
+    ?instance a ?instanceType .
+    BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
+
+    OPTIONAL {
+        ?publicationContext :onlineIssn ?channelOnlineIssn
+    }
+    OPTIONAL {
+        ?publicationContext :printIssn ?channelPrintIssn
+    }
+}

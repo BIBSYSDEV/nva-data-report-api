@@ -1,0 +1,33 @@
+PREFIX : <https://nva.sikt.no/ontology/publication#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT
+  ?publicationId
+  ?status
+  ?publicationIdentifier
+  ?contributorIdentifier
+  ?contributorName
+  ?contributorSequenceNumber
+  ?contributorRole
+  ?modifiedDate
+  WHERE {
+      ?uri a :Publication ;
+           :status ?publicationStatus ;
+           :modifiedDate ?modifiedDateRaw ;
+           :identifier ?publicationIdentifier .
+
+      BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
+
+      ?uri :entityDescription/:contributor ?contributor .
+      BIND(STR(?uri) AS ?publicationId)
+      BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
+
+      ?contributor :identity ?personId ;
+                   :role ?roleRaw ;
+                   :sequence ?contributorSequenceNumber .
+      ?personId :name ?contributorName .
+      BIND(REPLACE(STR(?personId), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
+      ?roleRaw a ?roleType
+      FILTER(!ISBLANK(?personId))
+      BIND(REPLACE(STR(?roleType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?contributorRole)
+}
