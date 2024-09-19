@@ -25,7 +25,7 @@ Parameters:
     Default: /NVA/ApiDomain
   DataWarehouseDataBricksArn:
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Description: AWS Account ID of the data warehouse account
+    Description: Data warehouse Databricks Unity Catalog ARN
     Default: /NVA/IAM/DataWarehouse/DataBricksArn
   DataWarehouseExternalId:
     Type: 'AWS::SSM::Parameter::Value<String>'
