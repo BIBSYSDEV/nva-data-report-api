@@ -23,10 +23,10 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: The Api domain
     Default: /NVA/ApiDomain
-  DataWarehouseAccountId:
+  DataWarehouseDataBricksArn:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: AWS Account ID of the data warehouse account
-    Default: /NVA/IAM/DataWarehouse/AccountId
+    Default: /NVA/IAM/DataWarehouse/DataBricksArn
   DataWarehouseExternalId:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: External ID to assume DataWarehouseRole
@@ -154,7 +154,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: "arn:aws:iam::${DataWarehouseAccountId}:root"
+              AWS: !Ref DataWarehouseDataBricksArn
             Action: sts:AssumeRole
             Condition:
               StringEquals:
@@ -162,53 +162,16 @@ Resources:
       Policies:
         - PolicyName: S3ExportPolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: \'2012-10-17\'
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:Get*
-                  - s3:List*
-                  - s3:CopyObject
-                Resource: !Sub '${ExportBucket.Arn}/*'
-
-  #============================= API ==========================================================
-  DataReportApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
-      StageName: Prod
-      EndpointConfiguration:
-        Type: REGIONAL
-      DefinitionBody:
-        'Fn::Transform':
-          Name: AWS::Include
-          Parameters:
-            Location: ./docs/openapi.yaml
-      BinaryMediaTypes:
-        - application/vnd.ms-excel
-        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-
-  ApiPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref FetchDataReportHandler
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${DataReportApi}/prod/GET/report"
-
-  #===========================BasePathMappings========================================================
-  BasePathMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath: !If
-        - WithSuffix
-        - !Sub ${CustomDomainBasePath}-${Suffix}
-        - !Sub ${CustomDomainBasePath}
-      DomainName: !Ref ApiDomain
-      RestApiId: !Ref DataReportApi
-      Stage: !Ref DataReportApi.Stage
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource:
+                  - !Sub \'${ExportBucket.Arn}/*\'
+                  - !Sub \'${ExportBucket.Arn}\'
 
   #===========================EventBridge Rule========================================================
   PersistedResourcesEventRule:
