@@ -147,7 +147,9 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Ref DataWarehouseDataBricksArn
+              AWS:
+              - !Ref DataWarehouseDataBricksArn
+              - 'arn:aws:iam::${AWS::AccountId}:role/DataWarehouseRole'
             Action: sts:AssumeRole
             Condition:
               StringEquals:
