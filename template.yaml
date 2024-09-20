@@ -23,6 +23,14 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: The Api domain
     Default: /NVA/ApiDomain
+  DataWarehouseDataBricksArn:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: Data warehouse Databricks Unity Catalog ARN
+    Default: /NVA/IAM/DataWarehouse/DataBricksArn
+  DataWarehouseExternalId:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: External ID to assume DataWarehouseRole
+    Default: /NVA/IAM/DataWarehouse/ExternalId
   Suffix:
     Type: String
     Default: ''
@@ -127,6 +135,36 @@ Resources:
       Action: 'lambda:InvokeFunction'
       Principal: 'events.amazonaws.com'
       SourceArn: !GetAtt PersistedResourcesEventRule.Arn
+
+  #============================= Roles ==========================================================
+
+  DataWarehouseRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Provides external access when paired with known external account and id
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Ref DataWarehouseDataBricksArn
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref DataWarehouseExternalId
+      Policies:
+        - PolicyName: S3ExportPolicy
+          PolicyDocument:
+            Version: \'2012-10-17\'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource:
+                  - !Sub \'${ExportBucket.Arn}/*\'
+                  - !Sub \'${ExportBucket.Arn}\'
 
   #===========================EventBridge Rule========================================================
   PersistedResourcesEventRule:
