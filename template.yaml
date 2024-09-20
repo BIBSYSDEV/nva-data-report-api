@@ -155,7 +155,7 @@ Resources:
       Policies:
         - PolicyName: S3ExportPolicy
           PolicyDocument:
-            Version: \'2012-10-17\'
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
@@ -163,8 +163,8 @@ Resources:
                   - s3:ListBucket
                   - s3:GetBucketLocation
                 Resource:
-                  - !Sub \'${ExportBucket.Arn}/*\'
-                  - !Sub \'${ExportBucket.Arn}\'
+                  - !Sub '${ExportBucket.Arn}/*'
+                  - !Sub '${ExportBucket.Arn}'
 
   #===========================EventBridge Rule========================================================
   PersistedResourcesEventRule:
