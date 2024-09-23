@@ -1,5 +1,6 @@
 # Report: nvi
 
+### Description
 - `publicationId`
   - type: URI
   - description: The resource uri of the publication
@@ -14,7 +15,8 @@
   - example: <https://api.nva.unit.no/cristin/organization/10.10.0.0>
 - `institutionId`
   - type: URI
-  - description: The resource uri of the top level organization the contributor is affiliated with
+  - description: The resource uri of the top level organization the contributor
+  is affiliated with
   - example: <https://api.nva.unit.no/cristin/organization/10.0.0.0>
 - `institutionPoints`
   - type: double
@@ -36,8 +38,8 @@
   - example: Approved
 - `reportedPeriod`
   - type: string
-  - description: If the publication is not reported, the value is NotReported. If the
-    publication is reported, the value is the year of the reporting period
+  - description: If the publication is not reported, the value is NotReported.
+  If the publication is reported, the value is the year of the reporting period
   - example: 2023
 - `totalPoints`
   - type: double
@@ -45,20 +47,23 @@
   - example: 3.0923
 - `publicationTypeChannelLevelPoints`
   - type: double
-  - description: The number of points awarded for the publication type and channel level
+  - description: The number of points awarded for the publication type and
+  channel level
   - example: 1.000
 - `authorShareCount`
   - type: integer
-  - description: The number combinations of authors and affiliations for the publication
+  - description: The number combinations of authors and affiliations for the
+  publication
   - example: 3
 - `internationalCollaborationFactor`
   - type: double
-  - description: A factor that is part of the calculation of the points awarded for the
-    publication
+  - description: A factor that is part of the calculation of the points awarded
+  for the publication
   - example: 1.000
 - `isApplicable`
   - type: boolean
-  - description: A flag indicating if the publication is applicable for nvi candidacy or not
+  - description: A flag indicating if the publication is applicable for nvi
+  candidacy or not
   - example: true
 - `modifiedDate`
   - type: string
