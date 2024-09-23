@@ -29,7 +29,7 @@ Parameters:
     Default: /NVA/IAM/DataWarehouse/DataBricksArn
   DataWarehouseRoleName:
     Type: String
-    Default: DataWarehouseRole-${ProjectName}
+    Default: !Sub 'DataWarehouseRole-${ProjectName}'
   DataWarehouseExternalId:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: External ID to assume DataWarehouseRole
