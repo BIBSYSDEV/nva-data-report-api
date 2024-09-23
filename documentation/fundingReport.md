@@ -1,6 +1,7 @@
 # Report: funding
 
-### Description
+## Description
+
 - `publicationId`
   - type: URI
   - description: The resource uri of the publication
