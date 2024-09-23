@@ -7,6 +7,7 @@
     - example: <https://api.nva.unit.no/publication/{sortableIdentifier}>
   - status
     - type: string
+    - enum: [PUBLISHED, UNPUBLISHED, DELETED]
     - description: The status of the publication
     - example: PUBLISHED
   - publicationTitle
@@ -15,6 +16,7 @@
     - example: A publication title
   - publicationCategory
     - type: string
+    - enum: See [instanceTypes](https://github.com/BIBSYSDEV/nva-publication-api/tree/main/publication-model/src/main/java/no/unit/nva/model/instancetypes)
     - description: The instance type of the publication
     - example: AcademicArticle
   - publicationDate
@@ -24,6 +26,7 @@
     - example: 2015-5-24
   - channelType
     - type: string
+    - enum: [Journal, Series, Publisher]
     - description: The type of the publication channel
     - example: Journal
   - channelIdentifier
@@ -44,6 +47,7 @@
     - example: 1234-5678
   - channelLevel
     - type: string
+    - enum: [Unassigned, LevelZero, LevelOne, LevelTwo]
     - description: The scientific level of the publication channel
     - example: LevelOne
   - publicationIdentifier
