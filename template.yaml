@@ -161,8 +161,12 @@ Resources:
                 sts:ExternalId: !Ref DataWarehouseExternalId
           - Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/master-pipelines-NvaNvi-1LZJ4B13FNYPO-n-NvaNviRole-11DWC1W07BMJS'
+              AWS:
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
             Action: sts:AssumeRole
+            Condition:
+              ArnEquals:
+                aws:PrincipalArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRoleName}
       Policies:
         - PolicyName: S3ExportPolicy
           PolicyDocument:
