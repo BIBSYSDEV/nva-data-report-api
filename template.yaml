@@ -149,11 +149,18 @@ Resources:
             Principal:
               AWS:
               - !Ref DataWarehouseDataBricksArn
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRole}'
             Action: sts:AssumeRole
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref DataWarehouseExternalId
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+            Condition:
+              ArnEquals:
+                aws:PrincipalArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRole}'
       Policies:
         - PolicyName: S3ExportPolicy
           PolicyDocument:
