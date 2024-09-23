@@ -19,7 +19,8 @@
     - example: AcademicArticle
   - publicationDate
     - type: string
-    - description: The publication date of the publication. Might only include the year or the full date with format yyyy-mm-dd
+    - description: The publication date of the publication. Might only include
+    the year or the full date with format yyyy-mm-dd
     - example: 2015-5-24
   - channelType
     - type: string
