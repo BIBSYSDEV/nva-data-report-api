@@ -1,10 +1,10 @@
-## Report and data types
+# Report and data types
 
 - `publication`
   - publicationId
-    - type: string
+    - type: URI
     - description: The resource uri of the publication
-    - example: https://api.nva.unit.no/publication/{sortableIdentifier}
+    - example: <https://api.nva.unit.no/publication/{sortableIdentifier}>
   - status
     - type: string
     - description: The status of the publication
@@ -59,3 +59,4 @@
 - `affiliation`
 - `funding`
 - `nvi`
+- 
