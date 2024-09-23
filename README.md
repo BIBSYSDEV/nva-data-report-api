@@ -2,6 +2,8 @@
 
 This repository contains the NVA data report API.
 
+See [reportTypes](reportTypes.md) for a list of reports and data types.
+
 ## How to run a bulk upload
 
 The steps below can be outlined briefly as:
