@@ -1,8 +1,7 @@
-# Report and data types
+# Report: publication
 
-The following is a list of reports with their respective fields and data types.
+## Description
 
-### Report: `publication`
 - `publicationId`
   - type: URI
   - description: The resource uri of the publication
@@ -24,7 +23,7 @@ The following is a list of reports with their respective fields and data types.
 - `publicationDate`
   - type: string
   - description: The publication date of the publication. Might only include
-  the year or the full date with format yyyy-mm-dd
+    the year or the full date with format yyyy-mm-dd
   - example: 2015-5-24
 - `channelType`
   - type: string
@@ -60,8 +59,3 @@ The following is a list of reports with their respective fields and data types.
   - type: string
   - description: The last modified date of the publication. ISO 8601 format
   - example: 2023-09-12T11:41:57.112226Z
-### Report: `identifier`
-### Report: `contributor`
-### Report: `affiliation`
-### Report: `funding`
-### Report: `nvi`

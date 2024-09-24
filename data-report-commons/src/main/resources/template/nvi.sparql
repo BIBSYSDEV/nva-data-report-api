@@ -1,3 +1,5 @@
+# If the selected variables are changed, update the documentation in nviReport.md
+
 PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 SELECT DISTINCT
