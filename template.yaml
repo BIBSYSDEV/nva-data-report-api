@@ -128,13 +128,24 @@ Resources:
               - events:*
             Resource: '*'
 
-  InvokeLambdaPermission:
-    Type: AWS::Lambda::Permission
+  SendMessagePolicy:
+    Type: AWS::SQS::QueuePolicy
     Properties:
-      FunctionName: !GetAtt PersistedResourceCsvTransformer.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 'events.amazonaws.com'
-      SourceArn: !GetAtt PersistedResourcesEventRule.Arn
+      Queues:
+        - !Ref TransformPersistedResourceQueue
+        - !Ref TransformPersistedResourceDLQ
+      PolicyDocument:
+        Id: SendMessagePolicy
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Allow-SNS-SendMessage
+            Effect: Allow
+            Principal: '*'
+            Action: sqs:SendMessage
+            Resource: !GetAtt TransformPersistedResourceQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt PersistedResourcesEventRule.Arn
 
   #============================= Roles ==========================================================
 
