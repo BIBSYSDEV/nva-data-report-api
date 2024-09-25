@@ -5,6 +5,7 @@ import static no.sikt.nva.data.report.api.etl.model.EventType.UPSERT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.StorageReader;
 import commons.StorageWriter;
@@ -31,7 +32,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PersistedResourceCsvTransformer implements RequestHandler<PersistedResourceEvent, Void> {
+public class PersistedResourceCsvTransformer implements RequestHandler<SQSEvent, Void> {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(PersistedResourceCsvTransformer.class);
     public static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
@@ -55,14 +56,11 @@ public class PersistedResourceCsvTransformer implements RequestHandler<Persisted
     }
 
     @Override
-    public Void handleRequest(PersistedResourceEvent input, Context context) {
-        input.validate();
-        logInput(input);
-        var eventType = EventType.parse(input.eventType());
-        var documentType = DocumentType.fromLocation(input.getLocation());
-        if (UPSERT.equals(eventType)) {
-            transformAndPersistObject(documentType, UnixPath.of(input.key()));
-        }
+    public Void handleRequest(SQSEvent input, Context context) {
+        input.getRecords().stream()
+            .map(SQSEvent.SQSMessage::getBody)
+            .map(PersistedResourceEvent::fromJson)
+            .forEach(this::processInput);
         return null;
     }
 
@@ -85,6 +83,16 @@ public class PersistedResourceCsvTransformer implements RequestHandler<Persisted
         var model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, IoUtils.stringToStream(resource.toString()), Lang.JSONLD);
         return model;
+    }
+
+    private void processInput(PersistedResourceEvent input) {
+        input.validate();
+        logInput(input);
+        var eventType = EventType.parse(input.eventType());
+        var documentType = DocumentType.fromLocation(input.getLocation());
+        if (UPSERT.equals(eventType)) {
+            transformAndPersistObject(documentType, UnixPath.of(input.key()));
+        }
     }
 
     private void transformAndPersistObject(DocumentType documentType, UnixPath objectKey) {

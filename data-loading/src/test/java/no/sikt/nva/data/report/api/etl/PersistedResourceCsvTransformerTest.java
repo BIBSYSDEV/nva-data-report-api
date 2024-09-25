@@ -21,11 +21,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import commons.model.ReportType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
@@ -61,6 +62,14 @@ class PersistedResourceCsvTransformerTest {
     private static S3Driver s3ResourcesDriver;
     private S3Driver s3OutputDriver;
     private S3Client fakeS3ResourcesClient;
+
+    public static SQSEvent createSqsEvent(PersistedResourceEvent persistedResourceEvent) {
+        var sqsEvent = new SQSEvent();
+        var message = new SQSMessage();
+        message.setBody(persistedResourceEvent.toJsonString());
+        sqsEvent.setRecords(List.of(message));
+        return sqsEvent;
+    }
 
     @BeforeEach
     void setup() {
@@ -154,7 +163,7 @@ class PersistedResourceCsvTransformerTest {
     @ParameterizedTest
     @ValueSource(strings = {"someKeyWithOutParentFolder", ""})
     void shouldThrowIllegalArgumentExceptionWhenKeyIsInvalid(String key) {
-        var event = new PersistedResourceEvent(BUCKET_NAME, key, UPSERT_EVENT);
+        var event = createSqsEvent(new PersistedResourceEvent(BUCKET_NAME, key, UPSERT_EVENT));
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
 
@@ -162,12 +171,13 @@ class PersistedResourceCsvTransformerTest {
     @ValueSource(strings = {"someUnknownEventType", ""})
     void shouldThrowIllegalArgumentExceptionIfEventTypeIsUnknownOrBlank(String eventType) {
         var key = UnixPath.of(RESOURCES_PATH, randomString()).toString();
-        var event = new PersistedResourceEvent(BUCKET_NAME, key, eventType);
+        var event = createSqsEvent(new PersistedResourceEvent(BUCKET_NAME, key, eventType));
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
 
-    private static PersistedResourceEvent createUpsertEvent(UnixPath objectKey) {
-        return new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue());
+    private static SQSEvent createUpsertEvent(UnixPath objectKey) {
+        return createSqsEvent(
+            new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue()));
     }
 
     private static String constructCompressedFileIdentifier(UUID identifier) {
@@ -182,12 +192,10 @@ class PersistedResourceCsvTransformerTest {
             case IDENTIFIER -> testData.getIdentifierResponseData();
             case PUBLICATION -> testData.getPublicationResponseData();
             case NVI -> testData.getNviResponseData();
-            default -> throw new IllegalArgumentException("Unknown report type. Known report types are "
-                                                          + Arrays.toString(ReportType.values()));
         };
     }
 
-    private PersistedResourceEvent setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(TestData testData)
+    private SQSEvent setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(TestData testData)
         throws IOException {
         var publication = testData.getPublicationTestData().getFirst();
         var indexDocument = PublicationIndexDocument.from(publication).toIndexDocument();
@@ -195,7 +203,7 @@ class PersistedResourceCsvTransformerTest {
         return createUpsertEvent(objectKey);
     }
 
-    private PersistedResourceEvent setupExistingNviIndexDocumentAndCreateUpsertEvent(TestData testData)
+    private SQSEvent setupExistingNviIndexDocumentAndCreateUpsertEvent(TestData testData)
         throws IOException {
         var nviCandidate = testData.getNviTestData().getFirst();
         var indexDocument = NviIndexDocument.from(nviCandidate).toIndexDocument();
