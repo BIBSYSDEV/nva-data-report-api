@@ -132,16 +132,19 @@ Resources:
     Type: AWS::SQS::QueuePolicy
     Properties:
       Queues:
-          - !Ref TransformPersistedResourceQueue
-          - !Ref TransformPersistedResourceDLQ
+        - !Ref TransformPersistedResourceQueue
+        - !Ref TransformPersistedResourceDLQ
       PolicyDocument:
-        Id: PublishToQueuePolicy
+        Id: SendMessagePolicy
         Version: '2012-10-17'
         Statement:
           - Sid: Allow-SNS-SendMessage
             Effect: Allow
             Principal: '*'
             Action: sqs:SendMessage
+            Resource:
+              - !GetAtt TransformPersistedResourceQueue.Arn
+              - !GetAtt TransformPersistedResourceDLQ.Arn
             Condition:
               ArnEquals:
                 aws:SourceArn: !GetAtt PersistedResourcesEventRule.Arn
