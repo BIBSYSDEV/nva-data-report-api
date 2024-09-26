@@ -21,6 +21,7 @@ public class CreatorAffiliationPointsGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public CreatorAffiliationPointsGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = BlankNodeUtil.createRandom(model);
         model.add(subject, TYPE, CREATOR_AFFILIATION_POINTS);

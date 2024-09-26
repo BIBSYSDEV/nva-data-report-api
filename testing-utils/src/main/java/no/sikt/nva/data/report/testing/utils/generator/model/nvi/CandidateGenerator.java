@@ -35,6 +35,7 @@ public class CandidateGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public CandidateGenerator(String id, String identifier, String modifiedDate) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(id);
         model.add(subject, MODIFIED_DATE, model.createTypedLiteral(modifiedDate, XSDDateTimeType.XSDdateTime));

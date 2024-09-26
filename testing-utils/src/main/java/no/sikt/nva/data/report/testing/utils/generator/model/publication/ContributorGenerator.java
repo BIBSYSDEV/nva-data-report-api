@@ -19,6 +19,7 @@ public class ContributorGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public ContributorGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource();
         model.add(subject, TYPE, CONTRIBUTOR);

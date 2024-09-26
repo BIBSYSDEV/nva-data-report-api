@@ -22,6 +22,7 @@ public class ApprovalGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public ApprovalGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = BlankNodeUtil.createRandom(model);
         model.add(subject, TYPE, APPROVAL);

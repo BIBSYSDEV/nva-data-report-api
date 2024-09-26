@@ -20,6 +20,7 @@ public class OrganizationGenerator extends TripleBasedBuilder {
     public final Resource subject;
 
     public OrganizationGenerator(String id) {
+        super();
         model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(id);
         model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + "Organization"));

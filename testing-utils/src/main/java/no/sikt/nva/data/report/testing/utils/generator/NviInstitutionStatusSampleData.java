@@ -21,22 +21,22 @@ import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInsti
 import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.PUBLISHED_YEAR;
 import static no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviInstitutionStatusHeaders.REPORTING_YEAR;
-import static no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication.DELIMITER;
+import static no.sikt.nva.data.report.testing.utils.generator.publication.SamplePublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.util.List;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestApproval;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestApprovalStatus;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestGlobalApprovalStatus;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviCandidate;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviContributor;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviOrganization;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestContributor;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestIdentity;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestLevel;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleApproval;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleApprovalStatus;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleGlobalApprovalStatus;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviCandidate;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviContributor;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviOrganization;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleContributor;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleIdentity;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleLevel;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SamplePublication;
 import nva.commons.core.paths.UriWrapper;
 
-public final class NviInstitutionStatusTestData {
+public final class NviInstitutionStatusSampleData {
 
     public static final List<String> NVI_INSTITUTION_STATUS_HEADERS = List.of(REPORTING_YEAR,
                                                                               PUBLICATION_IDENTIFIER,
@@ -60,9 +60,9 @@ public final class NviInstitutionStatusTestData {
                                                                               INTERNATIONAL_COLLABORATION_FACTOR,
                                                                               POINTS_FOR_AFFILIATION);
 
-    public static String generateExpectedNviInstitutionResponse(TestNviContributor contributor,
-                                                                TestNviCandidate candidate,
-                                                                TestPublication publication) {
+    public static String generateExpectedNviInstitutionResponse(SampleNviContributor contributor,
+                                                                SampleNviCandidate candidate,
+                                                                SamplePublication publication) {
         var stringBuilder = new StringBuilder();
         contributor.affiliations()
             .forEach(affiliation -> generateExpectedNviInstitutionResponse(stringBuilder, contributor, affiliation,
@@ -71,10 +71,10 @@ public final class NviInstitutionStatusTestData {
     }
 
     private static void generateExpectedNviInstitutionResponse(StringBuilder stringBuilder,
-                                                               TestNviContributor contributor,
-                                                               TestNviOrganization affiliation,
-                                                               TestNviCandidate candidate,
-                                                               TestPublication publication) {
+                                                               SampleNviContributor contributor,
+                                                               SampleNviOrganization affiliation,
+                                                               SampleNviCandidate candidate,
+                                                               SamplePublication publication) {
         var approval = getExpectedApproval(affiliation, candidate);
         var identity = getExpectedContributorIdentity(contributor, publication);
         stringBuilder.append(candidate.reportingPeriod()).append(DELIMITER)
@@ -83,7 +83,7 @@ public final class NviInstitutionStatusTestData {
             .append(getExpectedApprovalStatusValue(approval.approvalStatus())).append(DELIMITER)
             .append(publication.getPublicationCategory()).append(DELIMITER)
             .append(publication.getChannel().getType()
-                        .substring(publication.getChannel().getType().indexOf("#") + 1)).append(DELIMITER)
+                        .substring(publication.getChannel().getType().indexOf('#') + 1)).append(DELIMITER)
             .append(publication.getChannel().getPrintIssn()).append(DELIMITER)
             .append(getExpectedPublicationChannelLevel(publication)).append(DELIMITER)
             .append(UriWrapper.fromUri(contributor.id()).getLastPathElement()).append(DELIMITER)
@@ -102,16 +102,16 @@ public final class NviInstitutionStatusTestData {
             .append(CRLF.getString());
     }
 
-    private static TestIdentity getExpectedContributorIdentity(TestNviContributor contributor,
-                                                               TestPublication publication) {
+    private static SampleIdentity getExpectedContributorIdentity(SampleNviContributor contributor,
+                                                                 SamplePublication publication) {
         return publication.getContributors().stream()
-                   .map(TestContributor::getIdentity)
+                   .map(SampleContributor::getIdentity)
                    .filter(identity -> identity.uri().equals(contributor.id()))
                    .findFirst()
                    .orElse(null);
     }
 
-    private static String getExpectedApprovalStatusValue(TestGlobalApprovalStatus approvalStatus) {
+    private static String getExpectedApprovalStatusValue(SampleGlobalApprovalStatus approvalStatus) {
         return switch (approvalStatus) {
             case PENDING -> "?";
             case APPROVED -> "J";
@@ -120,7 +120,7 @@ public final class NviInstitutionStatusTestData {
         };
     }
 
-    private static String getExpectedApprovalStatusValue(TestApprovalStatus approvalStatus) {
+    private static String getExpectedApprovalStatusValue(SampleApprovalStatus approvalStatus) {
         return switch (approvalStatus) {
             case NEW, PENDING -> "?";
             case APPROVED -> "J";
@@ -128,22 +128,22 @@ public final class NviInstitutionStatusTestData {
         };
     }
 
-    private static String getExpectedPublicationChannelLevel(TestPublication publication) {
-        var level = TestLevel.parse(publication.getChannel().getScientificValue());
+    private static String getExpectedPublicationChannelLevel(SamplePublication publication) {
+        var level = SampleLevel.parse(publication.getChannel().getScientificValue());
         return switch (level) {
             case LEVEL_ONE -> "1";
             case LEVEL_TWO -> "2";
         };
     }
 
-    private static TestApproval getExpectedApproval(TestNviOrganization affiliation, TestNviCandidate candidate) {
+    private static SampleApproval getExpectedApproval(SampleNviOrganization affiliation, SampleNviCandidate candidate) {
         return candidate.approvals().stream()
                    .filter(approval -> isApprovalForOrganization(approval, affiliation))
                    .findFirst()
                    .orElse(null);
     }
 
-    private static boolean isApprovalForOrganization(TestApproval approval, TestNviOrganization organization) {
+    private static boolean isApprovalForOrganization(SampleApproval approval, SampleNviOrganization organization) {
         return approval.institutionId()
                    .toString()
                    .equals(organization.getTopLevelOrganization());

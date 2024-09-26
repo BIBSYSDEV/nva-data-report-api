@@ -4,10 +4,10 @@ import java.net.URI;
 import java.util.Set;
 import no.sikt.nva.data.report.testing.utils.generator.model.nvi.ApprovalGenerator;
 
-public record TestApproval(URI institutionId,
-                           TestApprovalStatus approvalStatus,
-                           Set<String> involvedOrganizations,
-                           TestInstitutionPoints points) {
+public record SampleApproval(URI institutionId,
+                             SampleApprovalStatus approvalStatus,
+                             Set<String> involvedOrganizations,
+                             SampleInstitutionPoints points) {
 
     public static Builder builder() {
         return new Builder();
@@ -20,9 +20,9 @@ public record TestApproval(URI institutionId,
     public static final class Builder {
 
         private URI institutionId;
-        private TestApprovalStatus approvalStatus;
+        private SampleApprovalStatus approvalStatus;
         private Set<String> involvedOrganizations;
-        private TestInstitutionPoints points;
+        private SampleInstitutionPoints points;
 
         private Builder() {
         }
@@ -32,7 +32,7 @@ public record TestApproval(URI institutionId,
             return this;
         }
 
-        public Builder withApprovalStatus(TestApprovalStatus approvalStatus) {
+        public Builder withApprovalStatus(SampleApprovalStatus approvalStatus) {
             this.approvalStatus = approvalStatus;
             return this;
         }
@@ -42,13 +42,13 @@ public record TestApproval(URI institutionId,
             return this;
         }
 
-        public Builder withPoints(TestInstitutionPoints points) {
+        public Builder withPoints(SampleInstitutionPoints points) {
             this.points = points;
             return this;
         }
 
-        public TestApproval build() {
-            return new TestApproval(institutionId, approvalStatus, involvedOrganizations, points);
+        public SampleApproval build() {
+            return new SampleApproval(institutionId, approvalStatus, involvedOrganizations, points);
         }
     }
 }

@@ -5,7 +5,7 @@ import no.sikt.nva.data.report.testing.utils.generator.model.publication.Journal
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.PublicationContext;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.PublisherGenerator;
 
-public class TestChannel {
+public class SampleChannel {
 
     private String type;
     private UUID identifier;
@@ -14,36 +14,36 @@ public class TestChannel {
     private String printIssn;
     private String scientificValue;
 
-    public TestChannel() {
+    public SampleChannel() {
 
     }
 
-    public TestChannel withType(String channelType) {
+    public SampleChannel withType(String channelType) {
         this.type = channelType;
         return this;
     }
 
-    public TestChannel withIdentifier(UUID channelIdentifier) {
+    public SampleChannel withIdentifier(UUID channelIdentifier) {
         this.identifier = channelIdentifier;
         return this;
     }
 
-    public TestChannel withName(String channelName) {
+    public SampleChannel withName(String channelName) {
         this.name = channelName;
         return this;
     }
 
-    public TestChannel withOnlineIssn(String channelOnlineIssn) {
+    public SampleChannel withOnlineIssn(String channelOnlineIssn) {
         this.onlineIssn = channelOnlineIssn;
         return this;
     }
 
-    public TestChannel withPrintIssn(String channelPrintIssn) {
+    public SampleChannel withPrintIssn(String channelPrintIssn) {
         this.printIssn = channelPrintIssn;
         return this;
     }
 
-    public TestChannel withScientificValue(String value) {
+    public SampleChannel withScientificValue(String value) {
         this.scientificValue = value;
         return this;
     }

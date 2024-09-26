@@ -3,27 +3,27 @@ package no.sikt.nva.data.report.testing.utils.generator.publication;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.FundingGenerator;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.FundingSourceGenerator;
 
-public class TestFunding {
+public class SampleFunding {
 
     private String fundingSource;
     private String id;
     private String name;
 
-    public TestFunding() {
+    public SampleFunding() {
 
     }
 
-    public TestFunding withFundingSource(String fundingSource) {
+    public SampleFunding withFundingSource(String fundingSource) {
         this.fundingSource = fundingSource;
         return this;
     }
 
-    public TestFunding withId(String fundingIdentifier) {
+    public SampleFunding withId(String fundingIdentifier) {
         this.id = fundingIdentifier;
         return this;
     }
 
-    public TestFunding withName(String fundingName) {
+    public SampleFunding withName(String fundingName) {
         this.name = fundingName;
         return this;
     }

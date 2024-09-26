@@ -20,6 +20,7 @@ public class JournalGenerator extends TripleBasedBuilder implements PublicationC
     private final Resource subject;
 
     public JournalGenerator(UUID identifier) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(Constants.journalUri(identifier));
         model.add(subject, TYPE, JOURNAL);
@@ -31,6 +32,7 @@ public class JournalGenerator extends TripleBasedBuilder implements PublicationC
         return this;
     }
 
+    @Override
     public JournalGenerator withPrintIssn(String issn) {
         model.add(subject, PRINT_ISSN, model.createLiteral(issn));
         return this;

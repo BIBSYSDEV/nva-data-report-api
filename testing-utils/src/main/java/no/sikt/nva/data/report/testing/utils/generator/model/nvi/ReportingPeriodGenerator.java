@@ -18,6 +18,7 @@ public class ReportingPeriodGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public ReportingPeriodGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource();
         model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + REPORTING_PERIOD));

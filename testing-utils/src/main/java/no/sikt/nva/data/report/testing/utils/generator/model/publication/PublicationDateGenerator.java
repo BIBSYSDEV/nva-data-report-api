@@ -20,6 +20,7 @@ public class PublicationDateGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public PublicationDateGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource();
         model.add(subject, TYPE, PUBLICATION_DATE);
