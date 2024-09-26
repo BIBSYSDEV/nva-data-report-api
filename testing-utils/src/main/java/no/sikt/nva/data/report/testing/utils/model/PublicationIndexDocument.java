@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleContributor;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleFunding;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleIdentity;
@@ -234,10 +234,16 @@ public record PublicationIndexDocument(String type,
             return new Funding(
                 IRRELEVANT_HARDCODED_FUNDING_TYPE,
                 sampleFunding.getId(),
-                Objects.nonNull(sampleFunding.getId()) ?
-                    UriWrapper.fromUri(sampleFunding.getId()).getLastPathElement() : null,
+                Optional.ofNullable(sampleFunding.getId())
+                    .map(Funding::getLastPathElement)
+                    .map(Funding::getLastPathElement)
+                    .orElse(null),
                 FundingSource.from(sampleFunding)
             );
+        }
+
+        private static String getLastPathElement(String uri) {
+            return UriWrapper.fromUri(uri).getLastPathElement();
         }
 
         private record FundingSource(String identifier,
