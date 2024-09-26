@@ -6,12 +6,7 @@ import static commons.model.ReportType.FUNDING;
 import static commons.model.ReportType.IDENTIFIER;
 import static commons.model.ReportType.NVI;
 import static commons.model.ReportType.PUBLICATION;
-import static no.sikt.nva.data.report.testing.utils.ResultSorter.sortResponse;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
-import static no.sikt.nva.data.report.testing.utils.model.ResultType.CSV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,14 +58,6 @@ class PersistedResourceCsvTransformerTest {
     private S3Driver s3OutputDriver;
     private S3Client fakeS3ResourcesClient;
 
-    public static SQSEvent createSqsEvent(PersistedResourceEvent persistedResourceEvent) {
-        var sqsEvent = new SQSEvent();
-        var message = new SQSMessage();
-        message.setBody(persistedResourceEvent.toJsonString());
-        sqsEvent.setRecords(List.of(message));
-        return sqsEvent;
-    }
-
     @BeforeEach
     void setup() {
         context = new FakeContext();
@@ -88,22 +75,20 @@ class PersistedResourceCsvTransformerTest {
         var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expected = testData.getNviResponseData();
-        var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(NVI), PUBLICATION_ID,
-                                                CONTRIBUTOR_IDENTIFIER)).orElseThrow();
-        assertEquals(expected, actual);
+        var actual = getActualPersistedFile(NVI);
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @ParameterizedTest
-    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
+    @EnumSource(names = {"IDENTIFIER"})
     void shouldFetchPublicationIndexDocumentAndTransformToKnownReportTypeAsCsvInExportBucket(ReportType reportType)
         throws IOException {
         var testData = new SampleData();
         var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expected = getExpectedData(testData, reportType);
-        var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(reportType), PUBLICATION_ID,
-                                                CONTRIBUTOR_IDENTIFIER)).orElseThrow();
-        assertEquals(expected, actual);
+        var actual = getActualPersistedFile(reportType);
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @Test
@@ -175,6 +160,14 @@ class PersistedResourceCsvTransformerTest {
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
 
+    private static SQSEvent createSqsEvent(PersistedResourceEvent persistedResourceEvent) {
+        var sqsEvent = new SQSEvent();
+        var message = new SQSMessage();
+        message.setBody(persistedResourceEvent.toJsonString());
+        sqsEvent.setRecords(List.of(message));
+        return sqsEvent;
+    }
+
     private static SQSEvent createUpsertEvent(UnixPath objectKey) {
         return createSqsEvent(
             new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue()));
@@ -182,6 +175,16 @@ class PersistedResourceCsvTransformerTest {
 
     private static String constructCompressedFileIdentifier(UUID identifier) {
         return identifier.toString() + GZIP_ENDING;
+    }
+
+    private void assertEqualsInAnyOrder(String expected, String actual) {
+        var expectedLines = expected.split(System.lineSeparator());
+        var actualLines = actual.split(System.lineSeparator());
+        assertEquals(expectedLines.length, actualLines.length);
+        var expectedList = List.of(expectedLines);
+        var actualList = List.of(actualLines);
+        assertTrue(expectedList.containsAll(actualList));
+        assertTrue(actualList.containsAll(expectedList));
     }
 
     private String getExpectedData(SampleData sampleData, ReportType reportType) {

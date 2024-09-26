@@ -1,12 +1,7 @@
 package no.sikt.nva.data.report.api.export;
 
-import static no.sikt.nva.data.report.testing.utils.ResultSorter.sortResponse;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
-import static no.sikt.nva.data.report.testing.utils.model.ResultType.CSV;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -99,10 +94,9 @@ class CsvTransformerTest {
         var batchKey = UnixPath.of(location).addChild(randomString());
         s3KeyBatches3Driver.insertFile(batchKey, batch);
         handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var actualContent = attempt(() -> sortResponse(CSV, getActualPersistedFile(reportType), PUBLICATION_ID,
-                                                       CONTRIBUTOR_IDENTIFIER)).orElseThrow();
-        var expectedContent = getExpectedResponseData(reportType, testData);
-        assertEquals(expectedContent, actualContent);
+        var expected = getExpectedResponseData(reportType, testData);
+        var actual = getActualPersistedFile(reportType);
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @ParameterizedTest
@@ -128,10 +122,9 @@ class CsvTransformerTest {
         var batchKey = UnixPath.of(location).addChild(randomString());
         s3KeyBatches3Driver.insertFile(batchKey, batch);
         handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var actualContent = attempt(() -> sortResponse(CSV, getActualPersistedFile(reportType), PUBLICATION_ID,
-                                                       CONTRIBUTOR_IDENTIFIER)).orElseThrow();
-        var expectedContent = getExpectedResponseData(reportType, testData);
-        assertEquals(expectedContent, actualContent);
+        var expected = getExpectedResponseData(reportType, testData);
+        var actual = getActualPersistedFile(reportType);
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @Test
@@ -267,6 +260,16 @@ class CsvTransformerTest {
 
     private static IndexDocument toIndexDocument(SampleNviCandidate nviCandidate) {
         return new IndexDocument(randomConsumptionAttribute(), NviIndexDocument.from(nviCandidate).asJsonNode());
+    }
+
+    private void assertEqualsInAnyOrder(String expected, String actual) {
+        var expectedLines = expected.split(System.lineSeparator());
+        var actualLines = actual.split(System.lineSeparator());
+        assertEquals(expectedLines.length, actualLines.length);
+        var expectedList = List.of(expectedLines);
+        var actualList = List.of(actualLines);
+        assertTrue(expectedList.containsAll(actualList));
+        assertTrue(actualList.containsAll(expectedList));
     }
 
     private UnixPath getFirstFilePath(ReportType reportType) {

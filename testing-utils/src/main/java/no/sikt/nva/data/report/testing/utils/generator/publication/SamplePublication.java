@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.testing.utils.generator.publication;
 
+import static java.util.Objects.nonNull;
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.PERSON_BASE_URI;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.time.Instant;
@@ -8,12 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.sikt.nva.data.report.testing.utils.generator.model.publication.EntityDescriptionGenerator;
-import no.sikt.nva.data.report.testing.utils.generator.model.publication.PublicationDateGenerator;
-import no.sikt.nva.data.report.testing.utils.generator.model.publication.PublicationGenerator;
-import no.sikt.nva.data.report.testing.utils.generator.model.publication.PublicationInstanceGenerator;
-import no.sikt.nva.data.report.testing.utils.generator.model.publication.ReferenceGenerator;
-import org.apache.jena.rdf.model.Model;
 
 public class SamplePublication {
 
@@ -175,7 +170,7 @@ public class SamplePublication {
                 .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
                 .append(funding.getFundingSource()).append(DELIMITER)
-                .append(funding.getId()).append(DELIMITER)
+                .append(nonNull(funding.getId()) ? funding.getId() : EMPTY_STRING).append(DELIMITER)
                 .append(funding.getName()).append(DELIMITER)
                 .append(modifiedDate).append(CRLF.getString());
         }
@@ -189,7 +184,7 @@ public class SamplePublication {
                 .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
                 .append(funding.getFundingSource()).append(DELIMITER)
-                .append(funding.getId()).append(DELIMITER)
+                .append(nonNull(funding.getId()) ? funding.getId() : EMPTY_STRING).append(DELIMITER)
                 .append(modifiedDate).append(CRLF.getString());
         }
         return stringBuilder.toString();
@@ -212,29 +207,6 @@ public class SamplePublication {
             .append(modifiedDate).append(CRLF.getString());
 
         return stringBuilder.toString();
-    }
-
-    public Model generateModel() {
-        var publicationDate = new PublicationDateGenerator()
-                                  .withYear(date.year())
-                                  .withMonth(date.month())
-                                  .withDay(date.day());
-        var reference = new ReferenceGenerator()
-                            .withPublicationContext(channel.toModel())
-                            .withPublicationInstance(new PublicationInstanceGenerator(publicationCategory));
-        var entityDescription = new EntityDescriptionGenerator()
-                                    .withPublicationDate(publicationDate)
-                                    .withMainTitle(mainTitle)
-                                    .withReference(reference);
-        contributors.stream()
-            .map(SampleContributor::toModel)
-            .forEach(entityDescription::withContributor);
-        var publication = new PublicationGenerator(identifier, modifiedDate.toString())
-                              .withPublicationStatus(publicationStatus)
-                              .withEntityDescription(entityDescription);
-        fundings.stream().map(SampleFunding::toModel).forEach(publication::withFunding);
-
-        return publication.build();
     }
 
     private static String getLocalName(SampleContributor contributor) {

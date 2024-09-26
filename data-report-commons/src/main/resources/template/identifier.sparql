@@ -22,5 +22,5 @@ WHERE {
 
     ?funding :source ?source .
     ?source :identifier ?fundingSource .
-    BIND(STR(?funding) AS ?fundingId)
+    BIND(IF(isBlank(?funding), "", STR(?funding)) AS ?fundingId)
 }
