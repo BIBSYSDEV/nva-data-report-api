@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.etl.transformer;
+package no.sikt.nva.data.report.api.export;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
@@ -21,6 +21,7 @@ import no.unit.nva.identifiers.SortableIdentifier;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Try;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.core.paths.UriWrapper;
@@ -174,7 +175,7 @@ class GenerateKeyBatchesHandlerTest {
             PutEventsRequestEntry eventEntry = putEventsRequest.entries()
                                                    .stream()
                                                    .collect(SingletonCollector.collect());
-            return attempt(eventEntry::detail).map(
+            return Try.attempt(eventEntry::detail).map(
                 jsonString -> objectMapperWithEmpty.readValue(jsonString, KeyBatchRequestEvent.class)).orElseThrow();
         }
     }

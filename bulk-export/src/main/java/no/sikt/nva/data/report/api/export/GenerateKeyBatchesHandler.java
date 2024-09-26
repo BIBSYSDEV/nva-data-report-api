@@ -1,4 +1,4 @@
-package no.sikt.nva.data.report.api.etl.transformer;
+package no.sikt.nva.data.report.api.export;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.nonNull;

@@ -2,7 +2,5 @@ rootProject.name = 'nva-data-report-api'
 include 'data-loading'
 include 'data-report-commons'
 include 'testing-utils'
-include 'database-tools'
-include 'bulk-load'
 include 'bulk-export'
 
