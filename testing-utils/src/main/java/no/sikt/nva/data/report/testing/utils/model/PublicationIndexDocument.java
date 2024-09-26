@@ -234,9 +234,7 @@ public record PublicationIndexDocument(String type,
             return new Funding(
                 IRRELEVANT_HARDCODED_FUNDING_TYPE,
                 sampleFunding.getId(),
-                Optional.ofNullable(sampleFunding.getId())
-                    .map(Funding::getLastPathElement)
-                    .orElse(null),
+                Optional.ofNullable(sampleFunding.getId()).map(Funding::getLastPathElement).orElse(null),
                 FundingSource.from(sampleFunding)
             );
         }
