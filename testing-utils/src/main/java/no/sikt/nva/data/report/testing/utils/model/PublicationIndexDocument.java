@@ -236,7 +236,6 @@ public record PublicationIndexDocument(String type,
                 sampleFunding.getId(),
                 Optional.ofNullable(sampleFunding.getId())
                     .map(Funding::getLastPathElement)
-                    .map(Funding::getLastPathElement)
                     .orElse(null),
                 FundingSource.from(sampleFunding)
             );
