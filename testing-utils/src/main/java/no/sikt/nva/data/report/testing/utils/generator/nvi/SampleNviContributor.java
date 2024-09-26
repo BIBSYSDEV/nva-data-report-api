@@ -3,22 +3,22 @@ package no.sikt.nva.data.report.testing.utils.generator.nvi;
 import java.util.List;
 import no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviContributorGenerator;
 
-public record TestNviContributor(String id,
-                                 List<TestNviOrganization> affiliations) {
+public record SampleNviContributor(String id,
+                                   List<SampleNviOrganization> affiliations) {
 
-    public List<TestNviOrganization> filterAffiliationsWithTopLevelOrg(String institutionId) {
+    public List<SampleNviOrganization> filterAffiliationsWithTopLevelOrg(String institutionId) {
         return affiliations.stream()
                    .filter(affiliation -> hasTopLevelOrg(affiliation, institutionId))
                    .toList();
     }
 
-    private static boolean hasTopLevelOrg(TestNviOrganization organization, String topLevelOrgId) {
+    private static boolean hasTopLevelOrg(SampleNviOrganization organization, String topLevelOrgId) {
         return organization.getTopLevelOrganization().equals(topLevelOrgId);
     }
 
     public NviContributorGenerator toModel() {
         var contributor = new NviContributorGenerator(id);
-        affiliations.stream().map(TestNviOrganization::toModel)
+        affiliations.stream().map(SampleNviOrganization::toModel)
             .forEach(contributor::withAffiliation);
         return contributor;
     }
@@ -30,7 +30,7 @@ public record TestNviContributor(String id,
     public static final class Builder {
 
         private String id;
-        private List<TestNviOrganization> affiliations;
+        private List<SampleNviOrganization> affiliations;
 
         private Builder() {
         }
@@ -40,13 +40,13 @@ public record TestNviContributor(String id,
             return this;
         }
 
-        public Builder withAffiliations(List<TestNviOrganization> affiliations) {
+        public Builder withAffiliations(List<SampleNviOrganization> affiliations) {
             this.affiliations = affiliations;
             return this;
         }
 
-        public TestNviContributor build() {
-            return new TestNviContributor(id, affiliations);
+        public SampleNviContributor build() {
+            return new SampleNviContributor(id, affiliations);
         }
     }
 }

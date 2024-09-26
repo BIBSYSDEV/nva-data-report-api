@@ -15,19 +15,19 @@ import no.sikt.nva.data.report.testing.utils.generator.model.publication.Organiz
 import nva.commons.core.paths.UriWrapper;
 import org.apache.jena.rdf.model.Model;
 
-public record TestNviCandidate(String candidateUri,
-                               String identifier,
-                               boolean isApplicable,
-                               Instant modifiedDate,
-                               TestPublicationDetails publicationDetails,
-                               List<TestApproval> approvals,
-                               BigDecimal totalPoints,
-                               BigDecimal publicationTypeChannelLevelPoints,
-                               int creatorShareCount,
-                               BigDecimal internationalCollaborationFactor,
-                               boolean reported,
-                               String reportingPeriod,
-                               TestGlobalApprovalStatus globalApprovalStatus) {
+public record SampleNviCandidate(String candidateUri,
+                                 String identifier,
+                                 boolean isApplicable,
+                                 Instant modifiedDate,
+                                 SamplePublicationDetails publicationDetails,
+                                 List<SampleApproval> approvals,
+                                 BigDecimal totalPoints,
+                                 BigDecimal publicationTypeChannelLevelPoints,
+                                 int creatorShareCount,
+                                 BigDecimal internationalCollaborationFactor,
+                                 boolean reported,
+                                 String reportingPeriod,
+                                 SampleGlobalApprovalStatus globalApprovalStatus) {
 
     private static final String DELIMITER = ",";
 
@@ -54,15 +54,15 @@ public record TestNviCandidate(String candidateUri,
         return nviCandidate.build();
     }
 
-    private ApprovalGenerator getApprovalGenerator(TestApproval testApproval) {
+    private ApprovalGenerator getApprovalGenerator(SampleApproval sampleApproval) {
         var institutionPointsGenerator = new InstitutionPointsGenerator()
-                                             .withPoints(testApproval.points().institutionPoints().toString());
-        addCreatorAffiliationPoints(testApproval, institutionPointsGenerator);
+                                             .withPoints(sampleApproval.points().institutionPoints().toString());
+        addCreatorAffiliationPoints(sampleApproval, institutionPointsGenerator);
         return new ApprovalGenerator()
-                   .withApprovalStatus(testApproval.approvalStatus().getValue())
-                   .withInstitutionId(new OrganizationGenerator(testApproval.institutionId().toString()))
+                   .withApprovalStatus(sampleApproval.approvalStatus().getValue())
+                   .withInstitutionId(new OrganizationGenerator(sampleApproval.institutionId().toString()))
                    .withPoints(institutionPointsGenerator)
-                   .withInvolvedOrganizations(testApproval.involvedOrganizations());
+                   .withInvolvedOrganizations(sampleApproval.involvedOrganizations());
     }
 
     private void generateExpectedLinesForNonApplicableCandidate(StringBuilder stringBuilder) {
@@ -80,11 +80,11 @@ public record TestNviCandidate(String candidateUri,
 
     private void addContributors(PublicationDetailsGenerator publicationDetails) {
         publicationDetails().contributors().stream()
-            .map(TestNviContributor::toModel)
+            .map(SampleNviContributor::toModel)
             .forEach(publicationDetails::withNviContributor);
     }
 
-    private void addCreatorAffiliationPoints(TestApproval approval,
+    private void addCreatorAffiliationPoints(SampleApproval approval,
                                              InstitutionPointsGenerator institutionPointsGenerator) {
         approval.points().creatorAffiliationPoints().forEach(
             creatorAffiliationPoints -> institutionPointsGenerator.withCreatorAffiliationPoints(
@@ -108,13 +108,13 @@ public record TestNviCandidate(String candidateUri,
                    .withGlobalApprovalStatus(globalApprovalStatus.getValue());
     }
 
-    private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor) {
+    private void generateExpectedNviResponse(StringBuilder stringBuilder, SampleNviContributor contributor) {
         contributor.affiliations()
             .forEach(affiliation -> generateExpectedNviResponse(stringBuilder, contributor, affiliation));
     }
 
-    private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
-                                             TestNviOrganization affiliation) {
+    private void generateExpectedNviResponse(StringBuilder stringBuilder, SampleNviContributor contributor,
+                                             SampleNviOrganization affiliation) {
         var approval = findExpectedApproval(affiliation);
         stringBuilder.append(publicationDetails().id()).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
@@ -133,7 +133,7 @@ public record TestNviCandidate(String candidateUri,
             .append(modifiedDate).append(CRLF.getString());
     }
 
-    private TestApproval findExpectedApproval(TestNviOrganization affiliation) {
+    private SampleApproval findExpectedApproval(SampleNviOrganization affiliation) {
         return approvals().stream()
                    .filter(testApproval -> testApproval.institutionId()
                                                .toString()
@@ -152,15 +152,15 @@ public record TestNviCandidate(String candidateUri,
         private String identifier;
         private boolean isApplicable;
         private Instant modifiedDate;
-        private TestPublicationDetails publicationDetails;
-        private List<TestApproval> approvals;
+        private SamplePublicationDetails publicationDetails;
+        private List<SampleApproval> approvals;
         private BigDecimal totalPoints;
         private BigDecimal publicationTypeChannelLevelPoints;
         private int creatorShareCount;
         private BigDecimal internationalCollaborationFactor;
         private boolean reported;
         private String reportingPeriod;
-        private TestGlobalApprovalStatus globalApprovalStatus;
+        private SampleGlobalApprovalStatus globalApprovalStatus;
 
         private Builder() {
         }
@@ -185,12 +185,12 @@ public record TestNviCandidate(String candidateUri,
             return this;
         }
 
-        public Builder withPublicationDetails(TestPublicationDetails publicationDetails) {
+        public Builder withPublicationDetails(SamplePublicationDetails publicationDetails) {
             this.publicationDetails = publicationDetails;
             return this;
         }
 
-        public Builder withApprovals(List<TestApproval> approvals) {
+        public Builder withApprovals(List<SampleApproval> approvals) {
             this.approvals = approvals;
             return this;
         }
@@ -225,17 +225,17 @@ public record TestNviCandidate(String candidateUri,
             return this;
         }
 
-        public Builder withGlobalApprovalStatus(TestGlobalApprovalStatus globalApprovalStatus) {
+        public Builder withGlobalApprovalStatus(SampleGlobalApprovalStatus globalApprovalStatus) {
             this.globalApprovalStatus = globalApprovalStatus;
             return this;
         }
 
-        public TestNviCandidate build() {
-            return new TestNviCandidate(candidateUri, identifier, isApplicable, modifiedDate, publicationDetails,
-                                        approvals,
-                                        totalPoints, publicationTypeChannelLevelPoints, creatorShareCount,
-                                        internationalCollaborationFactor, reported, reportingPeriod,
-                                        globalApprovalStatus);
+        public SampleNviCandidate build() {
+            return new SampleNviCandidate(candidateUri, identifier, isApplicable, modifiedDate, publicationDetails,
+                                          approvals,
+                                          totalPoints, publicationTypeChannelLevelPoints, creatorShareCount,
+                                          internationalCollaborationFactor, reported, reportingPeriod,
+                                          globalApprovalStatus);
         }
     }
 }

@@ -4,32 +4,32 @@ import java.util.List;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.ContributorGenerator;
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.RoleGenerator;
 
-public class TestContributor {
+public class SampleContributor {
     private String contributorRole;
-    private List<TestOrganization> affiliations;
+    private List<SampleOrganization> affiliations;
     private String contributorSequenceNumber;
-    private TestIdentity identity;
+    private SampleIdentity identity;
 
-    public TestContributor() {
+    public SampleContributor() {
 
     }
 
-    public TestContributor withAffiliations(List<TestOrganization> affiliations) {
+    public SampleContributor withAffiliations(List<SampleOrganization> affiliations) {
         this.affiliations = affiliations;
         return this;
     }
 
-    public TestContributor withContributorSequenceNo(String contributorSequenceNumber) {
+    public SampleContributor withContributorSequenceNo(String contributorSequenceNumber) {
         this.contributorSequenceNumber = contributorSequenceNumber;
         return this;
     }
 
-    public TestContributor withContributorRole(String contributorRole) {
+    public SampleContributor withContributorRole(String contributorRole) {
         this.contributorRole = contributorRole;
         return this;
     }
 
-    public List<TestOrganization> getAffiliations() {
+    public List<SampleOrganization> getAffiliations() {
         return affiliations;
     }
 
@@ -38,17 +38,17 @@ public class TestContributor {
                               .withIdentity(identity.toModel())
                               .withSequence(contributorSequenceNumber)
                               .withRole(new RoleGenerator(contributorRole));
-        affiliations.stream().map(TestOrganization::toModel)
+        affiliations.stream().map(SampleOrganization::toModel)
             .forEach(contributor::withAffiliation);
         return contributor;
     }
 
-    public TestContributor withIdentity(TestIdentity identity) {
+    public SampleContributor withIdentity(SampleIdentity identity) {
         this.identity = identity;
         return this;
     }
 
-    public TestIdentity getIdentity() {
+    public SampleIdentity getIdentity() {
         return identity;
     }
 

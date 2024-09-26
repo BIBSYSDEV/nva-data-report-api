@@ -13,6 +13,7 @@ public class PublicationInstanceGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public PublicationInstanceGenerator(String typeName) {
+        super();
         this.model =  ModelFactory.createDefaultModel();
         this.subject = model.createResource();
         var instanceType = model.createResource(Constants.ONTOLOGY_BASE_URI + typeName);

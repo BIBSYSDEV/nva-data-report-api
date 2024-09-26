@@ -16,6 +16,7 @@ public class NviContributorGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public NviContributorGenerator(String id) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(id);
         model.add(subject, TYPE, CONTRIBUTOR);

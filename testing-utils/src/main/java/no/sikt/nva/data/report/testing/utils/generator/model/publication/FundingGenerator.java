@@ -22,6 +22,7 @@ public class FundingGenerator extends TripleBasedBuilder {
     public final Resource subject;
 
     public FundingGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         var number = ThreadLocalRandom.current().nextInt(MIN, MAX);
         this.subject = model.createResource(Constants.verifiedFundingUri(number));

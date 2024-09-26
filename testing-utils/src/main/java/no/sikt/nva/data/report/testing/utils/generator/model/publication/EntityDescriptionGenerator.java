@@ -21,6 +21,7 @@ public class EntityDescriptionGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public EntityDescriptionGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource();
         model.add(subject, TYPE, ENTITY_DESCRIPTION);

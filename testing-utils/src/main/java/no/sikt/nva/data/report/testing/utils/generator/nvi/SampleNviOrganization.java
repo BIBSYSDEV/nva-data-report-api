@@ -8,9 +8,10 @@ import java.util.List;
 import no.sikt.nva.data.report.testing.utils.generator.model.nvi.NviOrganizationGenerator;
 import nva.commons.core.paths.UriWrapper;
 
-public record TestNviOrganization(String id, List<String> partOf) {
+public record SampleNviOrganization(String id, List<String> partOf) {
 
     public static final String IDENTIFIER_DELIMITER = ".";
+    public static final String TOP_LEVEL_SUFFIX = ".0.0.0";
 
     public static Builder builder() {
         return new Builder();
@@ -53,6 +54,8 @@ public record TestNviOrganization(String id, List<String> partOf) {
 
     public static final class Builder {
 
+        private static final int MAX_PARTS_SIZE = 4;
+        public static final String ZERO = "0";
         private String id;
 
         private Builder() {
@@ -63,34 +66,34 @@ public record TestNviOrganization(String id, List<String> partOf) {
             return this;
         }
 
-        public TestNviOrganization build() {
-            return new TestNviOrganization(id, generatePartOfList(id));
+        public SampleNviOrganization build() {
+            return new SampleNviOrganization(id, generatePartOfList(id));
         }
 
         private List<String> generatePartOfList(String id) {
             var partOfList = new ArrayList<String>();
 
-            if (isNull(id) || id.endsWith(".0.0.0")) {
+            if (isNull(id) || id.endsWith(TOP_LEVEL_SUFFIX)) {
                 return Collections.emptyList();
             }
 
             int lastIndexOfSlash = id.lastIndexOf('/') + 1;
             var identifier = id.substring(lastIndexOfSlash);
-            var baseUri = id.substring(0, lastIndexOfSlash);
             var parts = identifier.split("\\.");
-            if (parts.length != 4) {
+            if (parts.length != MAX_PARTS_SIZE) {
                 throw new RuntimeException(
                     "The last path element in the organization URI should be formatted as 10.0.0.0");
             }
-            if (parts[1].equals("0")) {
-                return null;
-            } else if (parts[2].equals("0")) {
-                partOfList.add(baseUri + parts[0] + ".0.0.0");
-            } else if (parts[3].equals("0")) {
-                partOfList.add(baseUri + parts[0] + ".0.0.0");
+            final var baseUri = id.substring(0, lastIndexOfSlash);
+            if (ZERO.equals(parts[1])) {
+                return Collections.emptyList();
+            } else if (ZERO.equals(parts[2])) {
+                partOfList.add(baseUri + parts[0] + TOP_LEVEL_SUFFIX);
+            } else if (ZERO.equals(parts[3])) {
+                partOfList.add(baseUri + parts[0] + TOP_LEVEL_SUFFIX);
                 partOfList.add(baseUri + parts[0] + "." + parts[1] + ".0.0");
             } else {
-                partOfList.add(baseUri + parts[0] + ".0.0.0");
+                partOfList.add(baseUri + parts[0] + TOP_LEVEL_SUFFIX);
                 partOfList.add(baseUri + parts[0] + "." + parts[1] + ".0.0");
                 partOfList.add(baseUri + parts[0] + "." + parts[1] + "." + parts[2] + ".0");
             }

@@ -15,7 +15,7 @@ import no.sikt.nva.data.report.testing.utils.generator.model.publication.Publica
 import no.sikt.nva.data.report.testing.utils.generator.model.publication.ReferenceGenerator;
 import org.apache.jena.rdf.model.Model;
 
-public class TestPublication {
+public class SamplePublication {
 
     public static final String DELIMITER = ",";
     public static final String EMPTY_STRING = "";
@@ -24,16 +24,16 @@ public class TestPublication {
     private String identifier;
     private String mainTitle;
     private String publicationCategory;
-    private TestChannel channel;
-    private List<TestContributor> contributors;
-    private List<TestFunding> fundings;
+    private SampleChannel channel;
+    private List<SampleContributor> contributors;
+    private List<SampleFunding> fundings;
     private String publicationUri;
     private String publicationStatus;
 
-    public TestPublication() {
+    public SamplePublication() {
     }
 
-    public List<TestFunding> getFundings() {
+    public List<SampleFunding> getFundings() {
         return fundings;
     }
 
@@ -45,7 +45,7 @@ public class TestPublication {
         return modifiedDate;
     }
 
-    public List<TestContributor> getContributors() {
+    public List<SampleContributor> getContributors() {
         return contributors;
     }
 
@@ -61,7 +61,7 @@ public class TestPublication {
         return publicationCategory;
     }
 
-    public TestChannel getChannel() {
+    public SampleChannel getChannel() {
         return channel;
     }
 
@@ -69,58 +69,58 @@ public class TestPublication {
         return publicationUri;
     }
 
-    public Set<TestOrganization> getContributorAffiliations() {
+    public Set<SampleOrganization> getContributorAffiliations() {
         return getContributors().stream()
                    .flatMap(contributor -> contributor.getAffiliations().stream())
                    .collect(Collectors.toSet());
     }
 
-    public TestPublication withModifiedDate(Instant modifiedDate) {
+    public SamplePublication withModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
         return this;
     }
 
-    public TestPublication withPublicationUri(String publicationUri) {
+    public SamplePublication withPublicationUri(String publicationUri) {
         this.publicationUri = publicationUri;
         return this;
     }
 
-    public TestPublication withPublicationStatus(String status) {
+    public SamplePublication withPublicationStatus(String status) {
         this.publicationStatus = status;
         return this;
     }
 
-    public TestPublication withPublicationIdentifier(String publicationIdentifier) {
+    public SamplePublication withPublicationIdentifier(String publicationIdentifier) {
         this.identifier = publicationIdentifier;
         return this;
     }
 
-    public TestPublication withPublicationTitle(String publicationTitle) {
+    public SamplePublication withPublicationTitle(String publicationTitle) {
         this.mainTitle = publicationTitle;
         return this;
     }
 
-    public TestPublication withPublicationCategory(String publicationCategory) {
+    public SamplePublication withPublicationCategory(String publicationCategory) {
         this.publicationCategory = publicationCategory;
         return this;
     }
 
-    public TestPublication withPublicationDate(PublicationDate publicationDate) {
+    public SamplePublication withPublicationDate(PublicationDate publicationDate) {
         this.date = publicationDate;
         return this;
     }
 
-    public TestPublication withContributors(List<TestContributor> contributors) {
+    public SamplePublication withContributors(List<SampleContributor> contributors) {
         this.contributors = contributors;
         return this;
     }
 
-    public TestPublication withFundings(List<TestFunding> fundings) {
+    public SamplePublication withFundings(List<SampleFunding> fundings) {
         this.fundings = fundings;
         return this;
     }
 
-    public TestPublication withChannel(TestChannel channel) {
+    public SamplePublication withChannel(SampleChannel channel) {
         this.channel = channel;
         return this;
     }
@@ -131,8 +131,8 @@ public class TestPublication {
 
     public String getExpectedAffiliationResponse() {
         var stringBuilder = new StringBuilder();
-        for (TestContributor contributor : contributors) {
-            for (TestOrganization affiliation : contributor.getAffiliations()) {
+        for (SampleContributor contributor : contributors) {
+            for (SampleOrganization affiliation : contributor.getAffiliations()) {
 
                 var institution = extractStructuredAffiliationList(affiliation);
 
@@ -155,7 +155,7 @@ public class TestPublication {
 
     public String getExpectedContributorResponse() {
         var stringBuilder = new StringBuilder();
-        for (TestContributor contributor : contributors) {
+        for (SampleContributor contributor : contributors) {
             stringBuilder.append(publicationUri).append(DELIMITER)
                 .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
@@ -170,7 +170,7 @@ public class TestPublication {
 
     public String getExpectedFundingResponse() {
         var stringBuilder = new StringBuilder();
-        for (TestFunding funding : fundings) {
+        for (SampleFunding funding : fundings) {
             stringBuilder.append(publicationUri).append(DELIMITER)
                 .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
@@ -184,7 +184,7 @@ public class TestPublication {
 
     public String getExpectedIdentifierResponse() {
         var stringBuilder = new StringBuilder();
-        for (TestFunding funding : fundings) {
+        for (SampleFunding funding : fundings) {
             stringBuilder.append(publicationUri).append(DELIMITER)
                 .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
@@ -227,31 +227,31 @@ public class TestPublication {
                                     .withMainTitle(mainTitle)
                                     .withReference(reference);
         contributors.stream()
-            .map(TestContributor::toModel)
+            .map(SampleContributor::toModel)
             .forEach(entityDescription::withContributor);
         var publication = new PublicationGenerator(identifier, modifiedDate.toString())
                               .withPublicationStatus(publicationStatus)
                               .withEntityDescription(entityDescription);
-        fundings.stream().map(TestFunding::toModel).forEach(publication::withFunding);
+        fundings.stream().map(SampleFunding::toModel).forEach(publication::withFunding);
 
         return publication.build();
     }
 
-    private static String getLocalName(TestContributor contributor) {
+    private static String getLocalName(SampleContributor contributor) {
         return contributor.getIdentity().uri().replace(PERSON_BASE_URI, EMPTY_STRING);
     }
 
-    private static String getItemAt(ArrayList<String> affiliations, int offset) {
+    private static String getItemAt(List<String> affiliations, int offset) {
         int size = affiliations.size();
         return (size >= offset) ? affiliations.get(size - offset) : EMPTY_STRING;
     }
 
-    private static Optional<TestOrganization> getPartOf(ArrayList<String> affiliations, TestOrganization partOf) {
+    private static Optional<SampleOrganization> getPartOf(List<String> affiliations, SampleOrganization partOf) {
         affiliations.add(partOf.getId());
         return partOf.getPartOf();
     }
 
-    private University extractStructuredAffiliationList(TestOrganization affiliation) {
+    private University extractStructuredAffiliationList(SampleOrganization affiliation) {
         var affiliations = new ArrayList<String>();
         affiliations.add(affiliation.getId());
         var partOf = affiliation.getPartOf();

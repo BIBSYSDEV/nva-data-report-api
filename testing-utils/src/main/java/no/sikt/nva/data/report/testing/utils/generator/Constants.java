@@ -2,7 +2,7 @@ package no.sikt.nva.data.report.testing.utils.generator;
 
 import java.util.UUID;
 
-public class Constants {
+public final class Constants {
 
     public static final String ONTOLOGY_BASE_URI = "https://nva.sikt.no/ontology/publication#";
     private static final String BASE_URI = "https://example.org/";
@@ -17,6 +17,7 @@ public class Constants {
     private static final String YEAR_PATH = "/2023";
 
     private Constants() {
+        // NO-OP
     }
 
     public static String organizationUri(String localName) {

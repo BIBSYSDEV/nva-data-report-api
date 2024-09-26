@@ -17,7 +17,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-public class ResultSorter {
+public final class ResultSorter {
 
     public static final String TARGET = "\"";
     private static final int RESULT_HEADER_LAST_INDEX = 1;
@@ -65,11 +65,13 @@ public class ResultSorter {
     }
 
     private static String sortCsv(String data, String sortByHeader1, String sortByHeader2) throws IOException {
-        var stringReader = new StringReader(data);
-        var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
-        var csvParser = format.parse(stringReader);
-        var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, sortByHeader2);
-        return printAsString(format, csvParser, sortedCsvRecords);
+        try (var stringReader = new StringReader(data)) {
+            var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
+            try (var csvParser = format.parse(stringReader)) {
+                var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, sortByHeader2);
+                return printAsString(format, csvParser, sortedCsvRecords);
+            }
+        }
     }
 
     private static String sortTextPlain(String data, int primaryIndex, int secondaryIndex) {
@@ -78,12 +80,12 @@ public class ResultSorter {
         return buildString(scanningResult, dataLines);
     }
 
-    private static ArrayList<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1,
+    private static List<CSVRecord> sortCsvRecords(CSVParser csvParser, String sortByHeader1,
                                                        String sortByHeader2) {
         var csvRecords = new ArrayList<CSVRecord>();
         csvParser.forEach(csvRecords::add);
-        csvRecords.sort(Comparator.comparing((CSVRecord record) -> record.get(sortByHeader1))
-                            .thenComparing((CSVRecord record) -> record.get(sortByHeader2)));
+        csvRecords.sort(Comparator.comparing((CSVRecord csvRecord) -> csvRecord.get(sortByHeader1))
+                            .thenComparing((CSVRecord csvRecord) -> csvRecord.get(sortByHeader2)));
         return csvRecords;
     }
 }

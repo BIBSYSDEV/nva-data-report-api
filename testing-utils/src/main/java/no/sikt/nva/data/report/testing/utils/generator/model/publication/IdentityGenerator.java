@@ -17,6 +17,7 @@ public class IdentityGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public IdentityGenerator(String id, String name) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(id);
         model.add(this.subject, TYPE, IDENTITY);

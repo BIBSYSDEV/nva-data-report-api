@@ -18,6 +18,7 @@ public class FundingSourceGenerator extends TripleBasedBuilder {
     public final Resource subject;
 
     public FundingSourceGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(Constants.fundingSourceUri("NFR"));
         model.add(subject, TYPE, FUNDING_SOURCE);
