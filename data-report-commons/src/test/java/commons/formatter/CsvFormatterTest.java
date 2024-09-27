@@ -27,4 +27,22 @@ class CsvFormatterTest {
             assertEquals(expected, actual);
         }
     }
+
+    @Test
+    void shouldQuoteNewLineValues() {
+        var model = ModelFactory.createDefaultModel();
+        var inputWithNewLine = "<http://example.org/subject> <http://example.org/predicate> "
+                               + "\"value\\r\\nwith\\r\\nnewLine\" .";
+        RDFDataMgr.read(model, IoUtils.stringToStream(inputWithNewLine), Lang.NTRIPLES);
+        var query = "SELECT * WHERE { ?s ?p ?o }";
+        try (var queryExecution = QueryExecutionFactory.create(query, model)) {
+            var resultSet = queryExecution.execSelect();
+            var actual = new CsvFormatter().format(resultSet);
+            var expected = "s,p,o"
+                           + CRLF.getString()
+                           + "http://example.org/subject,http://example.org/predicate,\"value\r\nwith\r\nnewLine\""
+                           + CRLF.getString();
+            assertEquals(expected, actual);
+        }
+    }
 }
