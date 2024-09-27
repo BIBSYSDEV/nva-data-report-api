@@ -190,7 +190,7 @@ public class SampleData {
 
     private static SampleChannel generateChannel() {
         return new SampleChannel()
-                   .withType(Constants.ontologyUri("Journal"))
+                   .withType("Journal")
                    .withIdentifier(UUID.randomUUID())
                    .withName("Journal of Studies")
                    .withOnlineIssn("1111-1111")
