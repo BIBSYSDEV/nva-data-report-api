@@ -244,7 +244,7 @@ Resources:
   GenerateKeyBatchesHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: bulk-load
+      CodeUri: bulk-export
       Handler: no.sikt.nva.data.report.api.export.GenerateKeyBatchesHandler::handleRequest
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
