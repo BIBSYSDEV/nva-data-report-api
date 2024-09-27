@@ -27,5 +27,5 @@ WHERE {
     ?source :identifier ?fundingSource .
     FILTER(LANG(?label) = "en")
     BIND(STR(?label) AS ?fundingName)
-    BIND(STR(?funding) AS ?fundingId)
+    BIND(IF(isBlank(?funding), "", STR(?funding)) AS ?fundingId)
 }
