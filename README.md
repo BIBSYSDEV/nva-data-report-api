@@ -3,11 +3,11 @@
 This repository contains functions for generating csv reports of data from NVA.
 See [reportTypes](documentation/reportTypes.md) for a list of reports and data types.
 
-## Architectural overview:
+## Architectural overview
 
-![Architecture](documentation/images/data_export_overview.png))
+![Architecture](documentation/images/data_export_overview.png)
 
-## Integration overview:
+## Integration overview
 
 The s3 bucket `data-report-csv-export-{accountName}` (defined in template) is set up as a data
 source in Databricks (in another AWS account) following
@@ -16,6 +16,6 @@ This is how the data platform accesses files from `data-report-csv-export-{accou
 
 ![Databricks integration](documentation/images/data_report_aws_databricks_storage_credential.png)
 
-## How-to guides:
+## How-to guides
 
 - [Run bulk export](documentation/bulkExport.md)

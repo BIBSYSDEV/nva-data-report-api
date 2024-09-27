@@ -1,3 +1,4 @@
+
 ### How to run a bulk export
 
 This process is intended as an "initial export"/database dump for the first export to the data
@@ -7,12 +8,12 @@ It can also be used if changes in the data model require a full re-import of the
 The steps below can be outlined briefly as:
 
 - Pre-run
-    - Stop incoming live-update events
+  - Stop incoming live-update events
 - Bulk export
-    - Generate batches of document keys for export
-    - Transform the key batches to csv files
+  - Generate batches of document keys for export
+  - Transform the key batches to csv files
 - Post-run
-    - Start incoming live-update events
+  - Start incoming live-update events
 
 ### Pre-run steps
 
@@ -33,12 +34,14 @@ The steps below can be outlined briefly as:
       }
    }
    ```
+
 2. Verify that `GenerateKeyBatchesHandler` is done processing (i.e. check logs
    and that key batches have been generated S3 bucket
    `data-report-key-batches-{accountName}`
 3. Process the key batches and generate csv files for both locations: `resources`
    and `nvi-candidates`.
    Manually trigger `CsvBulkTransformerHandler` with the following input:
+
    ```json
    {
       "detail": {
@@ -46,8 +49,10 @@ The steps below can be outlined briefly as:
       }
    }
    ```
-4. Verify that `CsvBulkTransformerHandler` is done processing (i.e. check logs) and that csv files
-   have been generated S3 bucket `data-report-csv-export-{accountName}`
+   
+4. Verify that `CsvBulkTransformerHandler` is done processing (i.e. check logs)
+and that csv files have been generated S3 bucket
+`data-report-csv-export-{accountName}`
 
 ### Post-run steps
 
