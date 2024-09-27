@@ -50,7 +50,7 @@ WHERE {
                         :scientificValue ?channelLevel ;
                         :identifier ?channelIdentifier .
 
-    BIND(STR(?channelTypeId) AS ?channelType)
+    BIND(REPLACE(STR(?channelTypeId), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?channelType)
     ?reference :publicationInstance ?instance .
     ?instance a ?instanceType .
     BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
