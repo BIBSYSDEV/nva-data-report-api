@@ -1,4 +1,3 @@
-
 # How to run a bulk export
 
 This process is intended as an "initial export"/database dump for the first
@@ -16,7 +15,7 @@ The steps below can be outlined briefly as:
 - Post-run
   - Start incoming live-update events
 
-### Pre-run steps
+## Pre-run steps
 
 1. Turn off S3 event notifications for bucket `persisted-resources-{accountName}`
    In aws console, go
@@ -26,7 +25,7 @@ The steps below can be outlined briefly as:
     _Amazon EventBridge_ -> _Edit_ -> _Off_
 2. Remove all objects from S3 bucket `data-report-csv-export-{accountName}`
 
-### Bulk upload steps
+## Bulk upload steps
 
 1. Generate key batches for both locations: `resources` and `nvi-candidates`.
 Manually trigger `GenerateKeyBatchesHandler` with the following input:
@@ -58,7 +57,7 @@ Manually trigger `GenerateKeyBatchesHandler` with the following input:
 and that csv files have been generated S3 bucket
 `data-report-csv-export-{accountName}`
 
-### Post-run steps
+## Post-run steps
 
 1. Turn on S3 event notifications for bucket `persisted-resources-{accountName}`.
    In aws console, go
