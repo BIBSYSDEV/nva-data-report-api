@@ -25,7 +25,7 @@ The steps below can be outlined briefly as:
     _Amazon EventBridge_ -> _Edit_ -> _Off_
 2. Remove all objects from S3 bucket `data-report-csv-export-{accountName}`
 
-## Bulk upload steps
+## Bulk export steps
 
 1. Generate key batches for both locations: `resources` and `nvi-candidates`.
 Manually trigger `GenerateKeyBatchesHandler` with the following input:
