@@ -9,6 +9,7 @@ The steps below can be outlined briefly as:
 
 - Pre-run
   - Stop incoming live-update events
+  - Delete data from previous runs
 - Bulk export
   - Generate batches of document keys for export
   - Transform the key batches to csv files
@@ -23,6 +24,7 @@ The steps below can be outlined briefly as:
 
     _S3_ -> _persisted-resources-{accountName}_ -> _Properties_ ->
     _Amazon EventBridge_ -> _Edit_ -> _Off_
+2. Remove all objects from S3 bucket `data-report-csv-export-{accountName}`
 
 ### Bulk upload steps
 
