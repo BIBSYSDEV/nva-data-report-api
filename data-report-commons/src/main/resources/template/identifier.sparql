@@ -8,6 +8,7 @@ SELECT DISTINCT
     ?publicationIdentifier
     ?additionalIdentifierSource
     ?additionalIdentifier
+    ?additionalIdentifierType
     ?modifiedDate
 WHERE {
     ?uri a :Publication ;
@@ -20,6 +21,8 @@ WHERE {
     BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
     BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
+    ?additionalIdentifierNode a ?additionalIdentifierTypeRaw .
     ?additionalIdentifierNode :sourceName ?additionalIdentifierSource .
     ?additionalIdentifierNode :value ?additionalIdentifier .
+    BIND(REPLACE(STR(?additionalIdentifierTypeRaw), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?additionalIdentifierType)
 }
