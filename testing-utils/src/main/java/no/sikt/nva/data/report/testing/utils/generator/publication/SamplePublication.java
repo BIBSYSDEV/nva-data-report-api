@@ -195,6 +195,7 @@ public class SamplePublication {
                 .append(identifier).append(DELIMITER)
                 .append(additionalIdentifier.getSourceName()).append(DELIMITER)
                 .append(additionalIdentifier.getValue()).append(DELIMITER)
+                .append(additionalIdentifier.getType()).append(DELIMITER)
                 .append(modifiedDate).append(CRLF.getString());
         }
         return stringBuilder.toString();

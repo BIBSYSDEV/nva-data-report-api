@@ -266,11 +266,9 @@ public record PublicationIndexDocument(String type,
                                         String value,
                                         String type) {
 
-        private static final String TYPE = "AdditionalIdentifier";
-
         public static AdditionalIdentifier from(SampleAdditionalIdentifier additionalIdentifier) {
             return new AdditionalIdentifier(additionalIdentifier.getSourceName(), additionalIdentifier.getValue(),
-                                            TYPE);
+                                            additionalIdentifier.getType());
         }
     }
 }

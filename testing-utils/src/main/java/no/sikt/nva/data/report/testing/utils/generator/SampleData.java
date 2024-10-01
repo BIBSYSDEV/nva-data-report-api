@@ -4,6 +4,7 @@ import static no.sikt.nva.data.report.testing.utils.generator.Constants.organiza
 import static no.sikt.nva.data.report.testing.utils.generator.NviSampleData.generateNviCandidate;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.ADDITIONAL_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.ADDITIONAL_IDENTIFIER_SOURCE;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.ADDITIONAL_IDENTIFIER_TYPE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
@@ -92,6 +93,7 @@ public class SampleData {
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
                                                                    ADDITIONAL_IDENTIFIER_SOURCE,
+                                                                   ADDITIONAL_IDENTIFIER_TYPE,
                                                                    ADDITIONAL_IDENTIFIER,
                                                                    MODIFIED_DATE);
     private final List<SamplePublication> publicationTestData;
@@ -197,7 +199,8 @@ public class SampleData {
     private static SampleAdditionalIdentifier generateAdditionalIdentifier() {
         return new SampleAdditionalIdentifier()
                    .withSourceName("Cristin")
-                   .withValue(randomString());
+                   .withValue(randomString())
+                   .withType("CristinIdentifier");
     }
 
     private static SampleChannel generateChannel() {
