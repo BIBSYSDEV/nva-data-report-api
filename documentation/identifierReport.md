@@ -23,6 +23,12 @@
   - type: string
   - description: The additional identifier value
   - example: 2-s2.0-80051784603
+- `additionalIdentifierType`
+  - type: string
+  - enum:
+    See [AdditionalIdentifierBase-subtypes](https://github.com/BIBSYSDEV/nva-publication-api/blob/main/publication-model/src/main/java/no/unit/nva/model/additionalidentifiers/AdditionalIdentifierBase.java)
+  - description: The type of the additional identifier
+  - example: ScopusIdentifier
 - `modifiedDate`
   - type: string
   - description: The last modified date of the publication. ISO 8601 format
