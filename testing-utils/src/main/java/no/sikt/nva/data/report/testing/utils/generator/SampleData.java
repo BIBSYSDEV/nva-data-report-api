@@ -93,8 +93,8 @@ public class SampleData {
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
                                                                    ADDITIONAL_IDENTIFIER_SOURCE,
-                                                                   ADDITIONAL_IDENTIFIER_TYPE,
                                                                    ADDITIONAL_IDENTIFIER,
+                                                                   ADDITIONAL_IDENTIFIER_TYPE,
                                                                    MODIFIED_DATE);
     private final List<SamplePublication> publicationTestData;
     private final List<SampleNviCandidate> nviTestData;
