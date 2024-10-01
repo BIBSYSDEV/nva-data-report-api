@@ -12,7 +12,7 @@ public final class PublicationHeaders {
     public static final String CONTRIBUTOR_ID = "contributorId";
     public static final String CONTRIBUTOR_NAME = "contributorName";
     public static final String ADDITIONAL_IDENTIFIER = "additionalIdentifier";
-    public static final String ADDITIONAL_IDENTIFIER_SOURCE = "additionalIdentifierSource";
+    public static final String ADDITIONAL_IDENTIFIER_SOURCE = "additionalIdentifierSourceName";
     public static final String ADDITIONAL_IDENTIFIER_TYPE = "additionalIdentifierType";
     public static final String AFFILIATION_ID = "affiliationId";
     public static final String AFFILIATION_NAME = "affiliationName";

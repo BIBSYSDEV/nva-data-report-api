@@ -15,7 +15,7 @@
   - type: string
   - description: The sortable identifier of the publication
   - example: 018a8931a9d8-910a8ae0-77fd-4dba-ab12-efe82279b44e
-- `additionalIdentifierSource`
+- `additionalIdentifierSourceName`
   - type: string
   - description: The source of the additional identifier
   - example: Cristin
