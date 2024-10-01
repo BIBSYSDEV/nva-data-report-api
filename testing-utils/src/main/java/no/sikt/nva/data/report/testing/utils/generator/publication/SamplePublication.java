@@ -71,6 +71,10 @@ public class SamplePublication {
                    .collect(Collectors.toSet());
     }
 
+    public List<SampleAdditionalIdentifier> getAdditionalIdentifiers() {
+        return additionalIdentifiers;
+    }
+
     public SamplePublication withModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
         return this;
