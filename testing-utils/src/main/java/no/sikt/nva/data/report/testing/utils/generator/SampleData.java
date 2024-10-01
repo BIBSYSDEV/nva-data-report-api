@@ -2,6 +2,8 @@ package no.sikt.nva.data.report.testing.utils.generator;
 
 import static no.sikt.nva.data.report.testing.utils.generator.Constants.organizationUri;
 import static no.sikt.nva.data.report.testing.utils.generator.NviSampleData.generateNviCandidate;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.ADDITIONAL_IDENTIFIER;
+import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.ADDITIONAL_IDENTIFIER_SOURCE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_ID;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.AFFILIATION_NAME;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CHANNEL_IDENTIFIER;
@@ -29,6 +31,7 @@ import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.STATUS;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.time.Instant;
@@ -39,6 +42,7 @@ import java.util.stream.Collectors;
 import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviCandidate;
 import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviContributor;
 import no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDate;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleAdditionalIdentifier;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleChannel;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleContributor;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleFunding;
@@ -87,7 +91,8 @@ public class SampleData {
                                                                     MODIFIED_DATE);
     private static final List<String> IDENTIFIER_HEADERS = List.of(PUBLICATION_ID, STATUS,
                                                                    PUBLICATION_IDENTIFIER,
-                                                                   FUNDING_SOURCE, FUNDING_ID,
+                                                                   ADDITIONAL_IDENTIFIER_SOURCE,
+                                                                   ADDITIONAL_IDENTIFIER,
                                                                    MODIFIED_DATE);
     private final List<SamplePublication> publicationTestData;
     private final List<SampleNviCandidate> nviTestData;
@@ -185,7 +190,14 @@ public class SampleData {
                    .withPublicationTitle("My study")
                    .withPublicationCategory("AcademicArticle")
                    .withPublicationDate(date)
-                   .withChannel(generateChannel());
+                   .withChannel(generateChannel())
+                   .withAdditionalIdentifiers(List.of(generateAdditionalIdentifier()));
+    }
+
+    private static SampleAdditionalIdentifier generateAdditionalIdentifier() {
+        return new SampleAdditionalIdentifier()
+                   .withSourceName("Cristin")
+                   .withValue(randomString());
     }
 
     private static SampleChannel generateChannel() {

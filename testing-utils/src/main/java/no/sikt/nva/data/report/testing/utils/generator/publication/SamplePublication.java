@@ -22,6 +22,7 @@ public class SamplePublication {
     private SampleChannel channel;
     private List<SampleContributor> contributors;
     private List<SampleFunding> fundings;
+    private List<SampleAdditionalIdentifier> additionalIdentifiers;
     private String publicationUri;
     private String publicationStatus;
 
@@ -120,6 +121,11 @@ public class SamplePublication {
         return this;
     }
 
+    public SamplePublication withAdditionalIdentifiers(List<SampleAdditionalIdentifier> additionalIdentifiers) {
+        this.additionalIdentifiers = additionalIdentifiers;
+        return this;
+    }
+
     public String getPublicationStatus() {
         return publicationStatus;
     }
@@ -179,12 +185,12 @@ public class SamplePublication {
 
     public String getExpectedIdentifierResponse() {
         var stringBuilder = new StringBuilder();
-        for (SampleFunding funding : fundings) {
+        for (SampleAdditionalIdentifier additionalIdentifier : additionalIdentifiers) {
             stringBuilder.append(publicationUri).append(DELIMITER)
                 .append(publicationStatus).append(DELIMITER)
                 .append(identifier).append(DELIMITER)
-                .append(funding.getFundingSource()).append(DELIMITER)
-                .append(nonNull(funding.getId()) ? funding.getId() : EMPTY_STRING).append(DELIMITER)
+                .append(additionalIdentifier.getSourceName()).append(DELIMITER)
+                .append(additionalIdentifier.getValue()).append(DELIMITER)
                 .append(modifiedDate).append(CRLF.getString());
         }
         return stringBuilder.toString();

@@ -80,7 +80,7 @@ class PersistedResourceCsvTransformerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(names = {"IDENTIFIER"})
+    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
     void shouldFetchPublicationIndexDocumentAndTransformToKnownReportTypeAsCsvInExportBucket(ReportType reportType)
         throws IOException {
         var testData = new SampleData();
