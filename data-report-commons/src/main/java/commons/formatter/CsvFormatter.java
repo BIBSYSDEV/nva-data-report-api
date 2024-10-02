@@ -11,6 +11,7 @@ import java.util.List;
 import nva.commons.core.JacocoGenerated;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Literal;
@@ -22,12 +23,15 @@ public final class CsvFormatter implements ResponseFormatter {
     private static final String DECIMAL_PATTERN = "0.0000";
     private static final String TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
     private static final String TYPE_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
+    private static final CSVFormat CSV_FORMAT = CSVFormat.Builder.create()
+                                                    .setQuoteMode(QuoteMode.MINIMAL)
+                                                    .build();
 
     @Override
     public String format(ResultSet resultSet) {
         var headers = resultSet.getResultVars();
         var stringWriter = new StringWriter();
-        try (CSVPrinter csvPrinter = new CSVPrinter(stringWriter, CSVFormat.DEFAULT)) {
+        try (CSVPrinter csvPrinter = new CSVPrinter(stringWriter, CSV_FORMAT)) {
             printHeaders(csvPrinter, headers);
             printRows(csvPrinter, resultSet, headers);
         } catch (IOException ioException) {

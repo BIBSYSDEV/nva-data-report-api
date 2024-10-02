@@ -63,6 +63,11 @@ public class CsvTransformer extends BulkTransformerHandler {
         transformedData.forEach(this::persist);
     }
 
+    private void persist(ContentWithLocation transformation) {
+        var request = buildRequest(transformation.location());
+        s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
+    }
+
     private static Model createModelAndLoadInput(Stream<JsonNode> jsonNodeStream) {
         var model = ModelFactory.createDefaultModel();
         jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
@@ -84,11 +89,6 @@ public class CsvTransformer extends BulkTransformerHandler {
                    .stream()
                    .map(reportType -> transform(model, reportType))
                    .toList();
-    }
-
-    private void persist(ContentWithLocation transformation) {
-        var request = buildRequest(transformation.location());
-        s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
     }
 
     private ContentWithLocation transform(Model model, ReportType reportType) {

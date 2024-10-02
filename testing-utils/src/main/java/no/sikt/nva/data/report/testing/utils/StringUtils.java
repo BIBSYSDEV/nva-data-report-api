@@ -4,6 +4,7 @@ import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 import org.apache.commons.csv.CSVFormat;
@@ -28,34 +29,36 @@ public final class StringUtils {
         for (String line : dataLines) {
             sortedData.append(LINE_BREAK).append(line);
         }
-        sortedData.append(LINE_BREAK).append(scanningResult.lines().getLast());
-        sortedData.append(LINE_BREAK);
-        return sortedData.toString();
+        return sortedData.append(LINE_BREAK)
+            .append(scanningResult.lines().getLast())
+            .append(LINE_BREAK)
+            .toString();
     }
 
     public static ScanningResult scanData(String data) {
-        var scanner = new Scanner(data);
-        var header = scanner.nextLine();
-        var separator = scanner.nextLine();
-        var lines = new ArrayList<String>();
+        try (var scanner = new Scanner(data)) {
+            var header = scanner.nextLine();
+            var separator = scanner.nextLine();
+            var lines = new ArrayList<String>();
 
-        while (scanner.hasNextLine()) {
-            lines.add(scanner.nextLine());
+            while (scanner.hasNextLine()) {
+                lines.add(scanner.nextLine());
+            }
+            return new ScanningResult(header, separator, lines);
         }
-        return new ScanningResult(header, separator, lines);
     }
 
-    public static String printAsString(CSVFormat format, CSVParser csvParser, ArrayList<CSVRecord> recordList)
+    public static String printAsString(CSVFormat format, CSVParser csvParser, Collection<CSVRecord> recordList)
         throws IOException {
         var stringBuilder = new StringBuilder();
         try (var printer = new CSVPrinter(stringBuilder, format)) {
             printer.printRecord(csvParser.getHeaderMap().keySet());
-            for (CSVRecord record : recordList) {
-                if (Arrays.stream(record.values()).allMatch(EMPTY_STRING::equals)) {
-                    addNumberOfDelimiters(stringBuilder, record.size() - 1);
+            for (var csvRecord : recordList) {
+                if (Arrays.stream(csvRecord.values()).allMatch(EMPTY_STRING::equals)) {
+                    addNumberOfDelimiters(stringBuilder, csvRecord.size() - 1);
                     break;
                 }
-                printer.printRecord(record);
+                printer.printRecord(csvRecord);
             }
         }
         return stringBuilder.toString();
@@ -65,7 +68,7 @@ public final class StringUtils {
         return stringBuilder.append(DELIMITER.repeat(Math.max(0, numberOfDelimiters)));
     }
 
-    public record ScanningResult(String header, String separator, ArrayList<String> lines) {
+    public record ScanningResult(String header, String separator, List<String> lines) {
 
     }
 }

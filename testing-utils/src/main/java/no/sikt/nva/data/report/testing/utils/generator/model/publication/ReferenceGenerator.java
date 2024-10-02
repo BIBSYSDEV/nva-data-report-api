@@ -20,6 +20,7 @@ public class ReferenceGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public ReferenceGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource();
         model.add(subject, TYPE, REFERENCE);

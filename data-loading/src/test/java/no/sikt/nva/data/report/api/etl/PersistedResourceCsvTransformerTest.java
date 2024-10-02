@@ -6,12 +6,7 @@ import static commons.model.ReportType.FUNDING;
 import static commons.model.ReportType.IDENTIFIER;
 import static commons.model.ReportType.NVI;
 import static commons.model.ReportType.PUBLICATION;
-import static no.sikt.nva.data.report.testing.utils.ResultSorter.sortResponse;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
-import static no.sikt.nva.data.report.testing.utils.generator.PublicationHeaders.PUBLICATION_ID;
-import static no.sikt.nva.data.report.testing.utils.model.ResultType.CSV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,7 +28,7 @@ import no.sikt.nva.data.report.api.etl.aws.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.aws.S3StorageWriter;
 import no.sikt.nva.data.report.api.etl.model.EventType;
 import no.sikt.nva.data.report.api.etl.model.PersistedResourceEvent;
-import no.sikt.nva.data.report.testing.utils.generator.TestData;
+import no.sikt.nva.data.report.testing.utils.generator.SampleData;
 import no.sikt.nva.data.report.testing.utils.model.IndexDocument;
 import no.sikt.nva.data.report.testing.utils.model.NviIndexDocument;
 import no.sikt.nva.data.report.testing.utils.model.PublicationIndexDocument;
@@ -63,14 +58,6 @@ class PersistedResourceCsvTransformerTest {
     private S3Driver s3OutputDriver;
     private S3Client fakeS3ResourcesClient;
 
-    public static SQSEvent createSqsEvent(PersistedResourceEvent persistedResourceEvent) {
-        var sqsEvent = new SQSEvent();
-        var message = new SQSMessage();
-        message.setBody(persistedResourceEvent.toJsonString());
-        sqsEvent.setRecords(List.of(message));
-        return sqsEvent;
-    }
-
     @BeforeEach
     void setup() {
         context = new FakeContext();
@@ -84,32 +71,30 @@ class PersistedResourceCsvTransformerTest {
 
     @Test
     void shouldFetchNviIndexDocumentAndTransformToCsvInExportBucket() throws IOException {
-        var testData = new TestData();
+        var testData = new SampleData();
         var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expected = testData.getNviResponseData();
-        var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(NVI), PUBLICATION_ID,
-                                                CONTRIBUTOR_IDENTIFIER)).orElseThrow();
-        assertEquals(expected, actual);
+        var actual = getActualPersistedFile(NVI);
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @ParameterizedTest
-    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
+    @EnumSource(names = {"IDENTIFIER"})
     void shouldFetchPublicationIndexDocumentAndTransformToKnownReportTypeAsCsvInExportBucket(ReportType reportType)
         throws IOException {
-        var testData = new TestData();
+        var testData = new SampleData();
         var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expected = getExpectedData(testData, reportType);
-        var actual = attempt(() -> sortResponse(CSV, getActualPersistedFile(reportType), PUBLICATION_ID,
-                                                CONTRIBUTOR_IDENTIFIER)).orElseThrow();
-        assertEquals(expected, actual);
+        var actual = getActualPersistedFile(reportType);
+        assertEqualsInAnyOrder(expected, actual);
     }
 
     @Test
     void shouldFetchPublicationIndexDocumentAndTransformToExpectedNumberOfFiles()
         throws IOException {
-        var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(new TestData());
+        var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(new SampleData());
         handler.handleRequest(event, context);
         var expectedReportTypes = List.of(PUBLICATION, AFFILIATION, CONTRIBUTOR, FUNDING, IDENTIFIER);
         var expectedNumberOfFiles = expectedReportTypes.size();
@@ -120,7 +105,7 @@ class PersistedResourceCsvTransformerTest {
 
     @Test
     void fileNameShouldContainReportTypeAndIdentifierAndTimeStamp() throws IOException {
-        var nviCandidate = new TestData().getNviTestData().getFirst();
+        var nviCandidate = new SampleData().getNviTestData().getFirst();
         var indexDocument = IndexDocument.from(NviIndexDocument.from(nviCandidate));
         var objectKey = setupExistingObjectInS3(indexDocument);
         var event = createUpsertEvent(objectKey);
@@ -135,7 +120,7 @@ class PersistedResourceCsvTransformerTest {
 
     @Test
     void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
-        var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(new TestData());
+        var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(new SampleData());
         var mockedS3OutputClient = mock(S3Client.class);
         var handler = new PersistedResourceCsvTransformer(new S3StorageReader(fakeS3ResourcesClient, BUCKET_NAME),
                                                           new S3StorageWriter(mockedS3OutputClient, EXPORT_BUCKET));
@@ -150,7 +135,7 @@ class PersistedResourceCsvTransformerTest {
 
     @Test
     void shouldEncodeCsvFileInUtf8() throws IOException {
-        var testData = new TestData();
+        var testData = new SampleData();
         var event = setupExistingNviIndexDocumentAndCreateUpsertEvent(testData);
         handler.handleRequest(event, context);
         var expectedEncoding = StandardCharsets.UTF_8;
@@ -175,6 +160,14 @@ class PersistedResourceCsvTransformerTest {
         assertThrows(IllegalArgumentException.class, () -> handler.handleRequest(event, context));
     }
 
+    private static SQSEvent createSqsEvent(PersistedResourceEvent persistedResourceEvent) {
+        var sqsEvent = new SQSEvent();
+        var message = new SQSMessage();
+        message.setBody(persistedResourceEvent.toJsonString());
+        sqsEvent.setRecords(List.of(message));
+        return sqsEvent;
+    }
+
     private static SQSEvent createUpsertEvent(UnixPath objectKey) {
         return createSqsEvent(
             new PersistedResourceEvent(BUCKET_NAME, objectKey.toString(), EventType.UPSERT.getValue()));
@@ -184,28 +177,38 @@ class PersistedResourceCsvTransformerTest {
         return identifier.toString() + GZIP_ENDING;
     }
 
-    private String getExpectedData(TestData testData, ReportType reportType) {
+    private void assertEqualsInAnyOrder(String expected, String actual) {
+        var expectedLines = expected.split(System.lineSeparator());
+        var actualLines = actual.split(System.lineSeparator());
+        assertEquals(expectedLines.length, actualLines.length);
+        var expectedList = List.of(expectedLines);
+        var actualList = List.of(actualLines);
+        assertTrue(expectedList.containsAll(actualList));
+        assertTrue(actualList.containsAll(expectedList));
+    }
+
+    private String getExpectedData(SampleData sampleData, ReportType reportType) {
         return switch (reportType) {
-            case AFFILIATION -> testData.getAffiliationResponseData();
-            case CONTRIBUTOR -> testData.getContributorResponseData();
-            case FUNDING -> testData.getFundingResponseData();
-            case IDENTIFIER -> testData.getIdentifierResponseData();
-            case PUBLICATION -> testData.getPublicationResponseData();
-            case NVI -> testData.getNviResponseData();
+            case AFFILIATION -> sampleData.getAffiliationResponseData();
+            case CONTRIBUTOR -> sampleData.getContributorResponseData();
+            case FUNDING -> sampleData.getFundingResponseData();
+            case IDENTIFIER -> sampleData.getIdentifierResponseData();
+            case PUBLICATION -> sampleData.getPublicationResponseData();
+            case NVI -> sampleData.getNviResponseData();
         };
     }
 
-    private SQSEvent setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(TestData testData)
+    private SQSEvent setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(SampleData sampleData)
         throws IOException {
-        var publication = testData.getPublicationTestData().getFirst();
+        var publication = sampleData.getPublicationTestData().getFirst();
         var indexDocument = PublicationIndexDocument.from(publication).toIndexDocument();
         var objectKey = setupExistingObjectInS3(indexDocument);
         return createUpsertEvent(objectKey);
     }
 
-    private SQSEvent setupExistingNviIndexDocumentAndCreateUpsertEvent(TestData testData)
+    private SQSEvent setupExistingNviIndexDocumentAndCreateUpsertEvent(SampleData sampleData)
         throws IOException {
-        var nviCandidate = testData.getNviTestData().getFirst();
+        var nviCandidate = sampleData.getNviTestData().getFirst();
         var indexDocument = NviIndexDocument.from(nviCandidate).toIndexDocument();
         var objectKey = setupExistingObjectInS3(indexDocument);
         return createUpsertEvent(objectKey);

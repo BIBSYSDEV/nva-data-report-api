@@ -18,6 +18,7 @@ public class NviOrganizationGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public NviOrganizationGenerator(String id) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(id);
         model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + NVI_ORGANIZATION));
