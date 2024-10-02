@@ -160,7 +160,7 @@ Resources:
             Principal:
               AWS:
                 - !Ref DataWarehouseDataBricksArn
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRole}'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
             Action: sts:AssumeRole
             Condition:
               StringEquals:
