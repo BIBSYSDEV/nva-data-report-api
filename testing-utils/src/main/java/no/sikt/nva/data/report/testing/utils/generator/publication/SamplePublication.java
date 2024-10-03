@@ -204,7 +204,7 @@ public class SamplePublication {
     }
 
     private static Predicate<SampleAdditionalIdentifier> isNotHandleIdentifier() {
-        return additionalIdentifier -> additionalIdentifier.getType().equals("HandleIdentifier");
+        return additionalIdentifier -> !additionalIdentifier.getType().equals("HandleIdentifier");
     }
 
     public String getExpectedPublicationResponse() {
