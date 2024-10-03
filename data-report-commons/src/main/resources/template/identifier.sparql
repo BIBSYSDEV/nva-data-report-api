@@ -24,5 +24,8 @@ WHERE {
     ?additionalIdentifierNode a ?additionalIdentifierTypeRaw .
     ?additionalIdentifierNode :sourceName ?additionalIdentifierSourceName .
     ?additionalIdentifierNode :value ?additionalIdentifier .
+
+    FILTER(?additionalIdentifierTypeRaw != "HandleIdentifier")
+    FILTER(?additionalIdentifierSourceName != "handle")
     BIND(REPLACE(STR(?additionalIdentifierTypeRaw), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?additionalIdentifierType)
 }
