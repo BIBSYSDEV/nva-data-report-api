@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SamplePublication {
@@ -189,16 +190,21 @@ public class SamplePublication {
 
     public String getExpectedIdentifierResponse() {
         var stringBuilder = new StringBuilder();
-        for (SampleAdditionalIdentifier additionalIdentifier : additionalIdentifiers) {
-            stringBuilder.append(publicationUri).append(DELIMITER)
-                .append(publicationStatus).append(DELIMITER)
-                .append(identifier).append(DELIMITER)
-                .append(additionalIdentifier.getSourceName()).append(DELIMITER)
-                .append(additionalIdentifier.getValue()).append(DELIMITER)
-                .append(additionalIdentifier.getType()).append(DELIMITER)
-                .append(modifiedDate).append(CRLF.getString());
-        }
+        additionalIdentifiers.stream()
+            .filter(isNotHandleIdentifier())
+            .forEach(additionalIdentifier ->
+                         stringBuilder.append(publicationUri).append(DELIMITER)
+                             .append(publicationStatus).append(DELIMITER)
+                             .append(identifier).append(DELIMITER)
+                             .append(additionalIdentifier.getSourceName()).append(DELIMITER)
+                             .append(additionalIdentifier.getValue()).append(DELIMITER)
+                             .append(additionalIdentifier.getType()).append(DELIMITER)
+                             .append(modifiedDate).append(CRLF.getString()));
         return stringBuilder.toString();
+    }
+
+    private static Predicate<SampleAdditionalIdentifier> isNotHandleIdentifier() {
+        return additionalIdentifier -> additionalIdentifier.getType().equals("HandleIdentifier");
     }
 
     public String getExpectedPublicationResponse() {

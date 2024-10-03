@@ -193,7 +193,14 @@ public class SampleData {
                    .withPublicationCategory("AcademicArticle")
                    .withPublicationDate(date)
                    .withChannel(generateChannel())
-                   .withAdditionalIdentifiers(List.of(generateAdditionalIdentifier()));
+                   .withAdditionalIdentifiers(List.of(generateAdditionalIdentifier(), generateHandleIdentifier()));
+    }
+
+    private static SampleAdditionalIdentifier generateHandleIdentifier() {
+        return new SampleAdditionalIdentifier()
+                   .withSourceName("handle")
+                   .withValue(randomUri().toString())
+                   .withType("HandleIdentifier");
     }
 
     private static SampleAdditionalIdentifier generateAdditionalIdentifier() {

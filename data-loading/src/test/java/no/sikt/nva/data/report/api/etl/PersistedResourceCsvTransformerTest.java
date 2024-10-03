@@ -92,6 +92,16 @@ class PersistedResourceCsvTransformerTest {
     }
 
     @Test
+    void shouldNotExportHandleIdentifiers() throws IOException {
+        var testData = new SampleData();
+        var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(testData);
+        handler.handleRequest(event, context);
+        var expected = testData.getIdentifierResponseData();
+        var actual = getActualPersistedFile(IDENTIFIER);
+        assertEqualsInAnyOrder(expected, actual);
+    }
+
+    @Test
     void shouldFetchPublicationIndexDocumentAndTransformToExpectedNumberOfFiles()
         throws IOException {
         var event = setUpExistingPublicationIndexDocumentAndCreateUpsertEvent(new SampleData());
