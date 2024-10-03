@@ -6,21 +6,26 @@ SELECT DISTINCT
     ?publicationId
     ?status
     ?publicationIdentifier
-    ?fundingSource
-    ?fundingId
+    ?additionalIdentifierSourceName
+    ?additionalIdentifier
+    ?additionalIdentifierType
     ?modifiedDate
 WHERE {
     ?uri a :Publication ;
                     :status ?publicationStatus ;
                     :modifiedDate ?modifiedDateRaw ;
                     :identifier ?publicationIdentifier ;
-                    :funding ?funding .
+                    :additionalIdentifier ?additionalIdentifierNode .
 
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?publicationStatus), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?status)
     BIND(STR(?modifiedDateRaw) AS ?modifiedDate)
 
-    ?funding :source ?source .
-    ?source :identifier ?fundingSource .
-    BIND(IF(isBlank(?funding), "", STR(?funding)) AS ?fundingId)
+    ?additionalIdentifierNode a ?additionalIdentifierTypeRaw .
+    ?additionalIdentifierNode :sourceName ?additionalIdentifierSourceName .
+    ?additionalIdentifierNode :value ?additionalIdentifier .
+
+    FILTER(?additionalIdentifierTypeRaw != "HandleIdentifier")
+    FILTER(?additionalIdentifierSourceName != "handle")
+    BIND(REPLACE(STR(?additionalIdentifierTypeRaw), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?additionalIdentifierType)
 }

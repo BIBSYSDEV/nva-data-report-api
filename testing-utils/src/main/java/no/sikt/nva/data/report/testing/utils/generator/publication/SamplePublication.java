@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SamplePublication {
@@ -22,6 +23,7 @@ public class SamplePublication {
     private SampleChannel channel;
     private List<SampleContributor> contributors;
     private List<SampleFunding> fundings;
+    private List<SampleAdditionalIdentifier> additionalIdentifiers;
     private String publicationUri;
     private String publicationStatus;
 
@@ -68,6 +70,10 @@ public class SamplePublication {
         return getContributors().stream()
                    .flatMap(contributor -> contributor.getAffiliations().stream())
                    .collect(Collectors.toSet());
+    }
+
+    public List<SampleAdditionalIdentifier> getAdditionalIdentifiers() {
+        return additionalIdentifiers;
     }
 
     public SamplePublication withModifiedDate(Instant modifiedDate) {
@@ -117,6 +123,11 @@ public class SamplePublication {
 
     public SamplePublication withChannel(SampleChannel channel) {
         this.channel = channel;
+        return this;
+    }
+
+    public SamplePublication withAdditionalIdentifiers(List<SampleAdditionalIdentifier> additionalIdentifiers) {
+        this.additionalIdentifiers = additionalIdentifiers;
         return this;
     }
 
@@ -179,15 +190,21 @@ public class SamplePublication {
 
     public String getExpectedIdentifierResponse() {
         var stringBuilder = new StringBuilder();
-        for (SampleFunding funding : fundings) {
-            stringBuilder.append(publicationUri).append(DELIMITER)
-                .append(publicationStatus).append(DELIMITER)
-                .append(identifier).append(DELIMITER)
-                .append(funding.getFundingSource()).append(DELIMITER)
-                .append(nonNull(funding.getId()) ? funding.getId() : EMPTY_STRING).append(DELIMITER)
-                .append(modifiedDate).append(CRLF.getString());
-        }
+        additionalIdentifiers.stream()
+            .filter(isNotHandleIdentifier())
+            .forEach(additionalIdentifier ->
+                         stringBuilder.append(publicationUri).append(DELIMITER)
+                             .append(publicationStatus).append(DELIMITER)
+                             .append(identifier).append(DELIMITER)
+                             .append(additionalIdentifier.getSourceName()).append(DELIMITER)
+                             .append(additionalIdentifier.getValue()).append(DELIMITER)
+                             .append(additionalIdentifier.getType()).append(DELIMITER)
+                             .append(modifiedDate).append(CRLF.getString()));
         return stringBuilder.toString();
+    }
+
+    private static Predicate<SampleAdditionalIdentifier> isNotHandleIdentifier() {
+        return additionalIdentifier -> !"HandleIdentifier".equals(additionalIdentifier.getType());
     }
 
     public String getExpectedPublicationResponse() {

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleAdditionalIdentifier;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleContributor;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleFunding;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleIdentity;
@@ -24,6 +25,7 @@ public record PublicationIndexDocument(String type,
                                        String modifiedDate,
                                        String status,
                                        List<Funding> fundings,
+                                       List<AdditionalIdentifier> additionalIdentifiers,
                                        List<TestOrganization> topLevelOrganizations) implements JsonSerializable {
 
     public static final String EN = "en";
@@ -40,6 +42,7 @@ public record PublicationIndexDocument(String type,
             publication.getModifiedDate().toString(),
             publication.getPublicationStatus(),
             publication.getFundings().stream().map(Funding::from).toList(),
+            publication.getAdditionalIdentifiers().stream().map(AdditionalIdentifier::from).toList(),
             generateTopLevelOrganizations(publication)
         );
     }
@@ -256,6 +259,16 @@ public record PublicationIndexDocument(String type,
                     Map.of(EN, sampleFunding.getName())
                 );
             }
+        }
+    }
+
+    private record AdditionalIdentifier(String sourceName,
+                                        String value,
+                                        String type) {
+
+        public static AdditionalIdentifier from(SampleAdditionalIdentifier additionalIdentifier) {
+            return new AdditionalIdentifier(additionalIdentifier.getSourceName(), additionalIdentifier.getValue(),
+                                            additionalIdentifier.getType());
         }
     }
 }
