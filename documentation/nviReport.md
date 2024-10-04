@@ -1,5 +1,9 @@
 # Report: nvi
 
+## Unique identifier
+
+Combination of `publicationId`, `contributorIdentifier` and `affiliationId`
+
 ## Description
 
 - `publicationId`

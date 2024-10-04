@@ -1,5 +1,9 @@
 # Report: contributor
 
+## Unique identifier
+
+Combination of `publicationId` and `contributorId`
+
 ## Description
 
 - `publicationId`
