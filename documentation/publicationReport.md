@@ -1,5 +1,13 @@
 # Report: publication
 
+## Unique identifier
+Combination of `publicationId` and `channelIdentifier`.
+
+NB! We have noticed deviations where `channelIdentifier` is not unique.
+We are working to fix this.
+In the meantime, the unique identifier is the combination
+of `publicationId` and `channelType`.
+
 ## Description
 
 - `publicationId`

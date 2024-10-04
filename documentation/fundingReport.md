@@ -1,5 +1,8 @@
 # Report: funding
 
+## Unique identifier
+Combination of `publicationId` and `fundingId`
+
 ## Description
 
 - `publicationId`
