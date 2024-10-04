@@ -1,6 +1,7 @@
 # Report: identifier
 
 ## Unique identifier
+
 Combination of `publicationId` and `additionalIdentifier`
 
 ## Description

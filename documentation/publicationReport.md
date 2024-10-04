@@ -1,6 +1,7 @@
 # Report: publication
 
 ## Unique identifier
+
 Combination of `publicationId` and `channelIdentifier`.
 
 NB! We have noticed deviations where `channelIdentifier` is not unique.

@@ -1,6 +1,7 @@
 # Report: affiliation
 
 ## Unique identifier
+
 Combination of `publicationId`, `contributorId` and `affiliationId`
 
 ## Description
