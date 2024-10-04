@@ -193,12 +193,20 @@ public class SampleData {
                    .withPublicationCategory("AcademicArticle")
                    .withPublicationDate(date)
                    .withChannel(generateChannel())
-                   .withAdditionalIdentifiers(List.of(generateAdditionalIdentifier(), generateHandleIdentifier()));
+                   .withAdditionalIdentifiers(List.of(generateAdditionalIdentifier(), generateHandleIdentifier(),
+                                                      generateDeprecatedHandleIdentifier()));
+    }
+
+    private static SampleAdditionalIdentifier generateDeprecatedHandleIdentifier() {
+        return new SampleAdditionalIdentifier()
+                   .withSourceName("handle")
+                   .withValue(randomUri().toString())
+                   .withType("AdditionalIdentifier");
     }
 
     private static SampleAdditionalIdentifier generateHandleIdentifier() {
         return new SampleAdditionalIdentifier()
-                   .withSourceName("handle")
+                   .withSourceName("someSource")
                    .withValue(randomUri().toString())
                    .withType("HandleIdentifier");
     }
