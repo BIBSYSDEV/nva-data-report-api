@@ -203,10 +203,6 @@ public class SamplePublication {
         return stringBuilder.toString();
     }
 
-    private static Predicate<SampleAdditionalIdentifier> isNotHandleIdentifier() {
-        return additionalIdentifier -> !"HandleIdentifier".equals(additionalIdentifier.getType());
-    }
-
     public String getExpectedPublicationResponse() {
         var stringBuilder = new StringBuilder();
         stringBuilder.append(publicationUri).append(DELIMITER)
@@ -224,6 +220,11 @@ public class SamplePublication {
             .append(modifiedDate).append(CRLF.getString());
 
         return stringBuilder.toString();
+    }
+
+    private static Predicate<SampleAdditionalIdentifier> isNotHandleIdentifier() {
+        return additionalIdentifier -> !("HandleIdentifier".equals(additionalIdentifier.getType())
+                                         || "handle".equals(additionalIdentifier.getSourceName()));
     }
 
     private static String getLocalName(SampleContributor contributor) {
