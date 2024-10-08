@@ -18,6 +18,7 @@ public class InstitutionPointsGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public InstitutionPointsGenerator() {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = BlankNodeUtil.createRandom(model);
         model.add(subject, TYPE, INSTITUTION_POINTS);

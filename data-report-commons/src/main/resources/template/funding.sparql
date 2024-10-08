@@ -1,3 +1,5 @@
+# If the selected variables are changed, update the documentation in fundingReport.md
+
 PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
@@ -25,5 +27,5 @@ WHERE {
     ?source :identifier ?fundingSource .
     FILTER(LANG(?label) = "en")
     BIND(STR(?label) AS ?fundingName)
-    BIND(STR(?funding) AS ?fundingId)
+    BIND(IF(isBlank(?funding), "", STR(?funding)) AS ?fundingId)
 }

@@ -7,10 +7,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestContributor;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestFunding;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestIdentity;
-import no.sikt.nva.data.report.testing.utils.generator.publication.TestPublication;
+import java.util.Optional;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleAdditionalIdentifier;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleContributor;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleFunding;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleIdentity;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SampleOrganization;
+import no.sikt.nva.data.report.testing.utils.generator.publication.SamplePublication;
 import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.paths.UriWrapper;
 
@@ -22,13 +25,14 @@ public record PublicationIndexDocument(String type,
                                        String modifiedDate,
                                        String status,
                                        List<Funding> fundings,
+                                       List<AdditionalIdentifier> additionalIdentifiers,
                                        List<TestOrganization> topLevelOrganizations) implements JsonSerializable {
 
     public static final String EN = "en";
     private static final String TYPE = "Publication";
     private static final String CONTEXT = "https://api.dev.nva.aws.unit.no/publication/context";
 
-    public static PublicationIndexDocument from(TestPublication publication) {
+    public static PublicationIndexDocument from(SamplePublication publication) {
         return new PublicationIndexDocument(
             TYPE,
             CONTEXT,
@@ -38,6 +42,7 @@ public record PublicationIndexDocument(String type,
             publication.getModifiedDate().toString(),
             publication.getPublicationStatus(),
             publication.getFundings().stream().map(Funding::from).toList(),
+            publication.getAdditionalIdentifiers().stream().map(AdditionalIdentifier::from).toList(),
             generateTopLevelOrganizations(publication)
         );
     }
@@ -50,7 +55,7 @@ public record PublicationIndexDocument(String type,
         return IndexDocument.from(this);
     }
 
-    private static List<TestOrganization> generateTopLevelOrganizations(TestPublication publication) {
+    private static List<TestOrganization> generateTopLevelOrganizations(SamplePublication publication) {
         return publication.getContributorAffiliations()
                    .stream()
                    .map(PublicationIndexDocument::generateTopLevelOrganization)
@@ -59,7 +64,7 @@ public record PublicationIndexDocument(String type,
     }
 
     private static String generateTopLevelOrganization(
-        no.sikt.nva.data.report.testing.utils.generator.publication.TestOrganization affiliation) {
+        SampleOrganization affiliation) {
         // Struggled to recreate the nested structure for top level organization based on affiliation, therefore
         // hardcoded
         return String.format("""
@@ -101,7 +106,7 @@ public record PublicationIndexDocument(String type,
 
         public static final String TYPE = "EntityDescription";
 
-        public static EntityDescription from(TestPublication publication) {
+        public static EntityDescription from(SamplePublication publication) {
             return new EntityDescription(TYPE,
                                          publication.getContributors().stream().map(Contributor::from).toList(),
                                          publication.getMainTitle(),
@@ -117,13 +122,13 @@ public record PublicationIndexDocument(String type,
 
             public static final String TYPE = "Contributor";
 
-            public static Contributor from(TestContributor testContributor) {
+            public static Contributor from(SampleContributor sampleContributor) {
                 return new Contributor(
                     TYPE,
-                    Identity.from(testContributor.getIdentity()),
-                    new Role(testContributor.role()),
-                    testContributor.getSequenceNumber(),
-                    testContributor.getAffiliations().stream().map(Affiliation::from).toList()
+                    Identity.from(sampleContributor.getIdentity()),
+                    new Role(sampleContributor.role()),
+                    sampleContributor.getSequenceNumber(),
+                    sampleContributor.getAffiliations().stream().map(Affiliation::from).toList()
                 );
             }
 
@@ -133,7 +138,7 @@ public record PublicationIndexDocument(String type,
 
                 public static final String TYPE = "Identity";
 
-                public static Identity from(TestIdentity identity) {
+                public static Identity from(SampleIdentity identity) {
                     return new Identity(
                         TYPE,
                         identity.name(),
@@ -154,12 +159,12 @@ public record PublicationIndexDocument(String type,
                 public static final String TYPE = "Organization";
 
                 public static Affiliation from(
-                    no.sikt.nva.data.report.testing.utils.generator.publication.TestOrganization testOrganization) {
+                    SampleOrganization sampleOrganization) {
                     return new Affiliation(
-                        testOrganization.getId(),
+                        sampleOrganization.getId(),
                         TYPE,
-                        isNull(testOrganization.getName()) ? null : Map.of(EN, testOrganization.getName()),
-                        testOrganization.getPartOf().map(Affiliation::from).orElse(null)
+                        isNull(sampleOrganization.getName()) ? null : Map.of(EN, sampleOrganization.getName()),
+                        sampleOrganization.getPartOf().map(Affiliation::from).orElse(null)
                     );
                 }
             }
@@ -187,7 +192,7 @@ public record PublicationIndexDocument(String type,
 
             public static final String TYPE = "Reference";
 
-            public static Reference from(TestPublication publication) {
+            public static Reference from(SamplePublication publication) {
                 return new Reference(TYPE,
                                      PublicationContext.from(publication),
                                      PublicationInstance.from(publication));
@@ -200,7 +205,7 @@ public record PublicationIndexDocument(String type,
                                               String printIssn,
                                               String scientificValue) {
 
-                public static PublicationContext from(TestPublication publication) {
+                public static PublicationContext from(SamplePublication publication) {
                     return new PublicationContext(
                         publication.getChannel().getType(),
                         publication.getChannel().getIdentifier(),
@@ -214,7 +219,7 @@ public record PublicationIndexDocument(String type,
 
             private record PublicationInstance(String type) {
 
-                public static PublicationInstance from(TestPublication publication) {
+                public static PublicationInstance from(SamplePublication publication) {
                     return new PublicationInstance(publication.getPublicationCategory());
                 }
             }
@@ -228,13 +233,17 @@ public record PublicationIndexDocument(String type,
 
         public static final String IRRELEVANT_HARDCODED_FUNDING_TYPE = "ConfirmedFunding";
 
-        public static Funding from(TestFunding testFunding) {
+        public static Funding from(SampleFunding sampleFunding) {
             return new Funding(
                 IRRELEVANT_HARDCODED_FUNDING_TYPE,
-                testFunding.getId(),
-                UriWrapper.fromUri(testFunding.getId()).getLastPathElement(),
-                FundingSource.from(testFunding)
+                sampleFunding.getId(),
+                Optional.ofNullable(sampleFunding.getId()).map(Funding::getLastPathElement).orElse(null),
+                FundingSource.from(sampleFunding)
             );
+        }
+
+        private static String getLastPathElement(String uri) {
+            return UriWrapper.fromUri(uri).getLastPathElement();
         }
 
         private record FundingSource(String identifier,
@@ -243,13 +252,23 @@ public record PublicationIndexDocument(String type,
 
             public static final String TYPE = "FundingSource";
 
-            public static FundingSource from(TestFunding testFunding) {
+            public static FundingSource from(SampleFunding sampleFunding) {
                 return new FundingSource(
-                    testFunding.getFundingSource(),
+                    sampleFunding.getFundingSource(),
                     TYPE,
-                    Map.of(EN, testFunding.getName())
+                    Map.of(EN, sampleFunding.getName())
                 );
             }
+        }
+    }
+
+    private record AdditionalIdentifier(String sourceName,
+                                        String value,
+                                        String type) {
+
+        public static AdditionalIdentifier from(SampleAdditionalIdentifier additionalIdentifier) {
+            return new AdditionalIdentifier(additionalIdentifier.getSourceName(), additionalIdentifier.getValue(),
+                                            additionalIdentifier.getType());
         }
     }
 }

@@ -16,6 +16,7 @@ public class StubEventBridgeClient implements EventBridgeClient {
         return latestEvent;
     }
 
+    @Override
     public PutEventsResponse putEvents(PutEventsRequest putEventsRequest) {
         this.latestEvent = saveContainedEvent(putEventsRequest);
         return PutEventsResponse.builder().failedEntryCount(0).build();

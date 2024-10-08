@@ -131,13 +131,24 @@ Resources:
               - events:*
             Resource: '*'
 
-  InvokeLambdaPermission:
-    Type: AWS::Lambda::Permission
+  SendMessagePolicy:
+    Type: AWS::SQS::QueuePolicy
     Properties:
-      FunctionName: !GetAtt PersistedResourceCsvTransformer.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 'events.amazonaws.com'
-      SourceArn: !GetAtt PersistedResourcesEventRule.Arn
+      Queues:
+        - !Ref TransformPersistedResourceQueue
+        - !Ref TransformPersistedResourceDLQ
+      PolicyDocument:
+        Id: SendMessagePolicy
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Allow-SNS-SendMessage
+            Effect: Allow
+            Principal: '*'
+            Action: sqs:SendMessage
+            Resource: !GetAtt TransformPersistedResourceQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt PersistedResourcesEventRule.Arn
 
   #============================= Roles ==========================================================
 
@@ -243,23 +254,13 @@ Resources:
             Type: SQS
             Destination: !GetAtt TransformPersistedResourceDLQ.Arn
 
-
-  ResetDatabaseButton:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: database-tools
-      Handler: no.sikt.nva.data.report.dbtools.DatabaseResetHandler::handleRequest
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-
   #---- Generates key batches in bucket ----
 
   GenerateKeyBatchesHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: bulk-load
-      Handler: no.sikt.nva.data.report.api.etl.transformer.GenerateKeyBatchesHandler::handleRequest
+      CodeUri: bulk-export
+      Handler: no.sikt.nva.data.report.api.export.GenerateKeyBatchesHandler::handleRequest
       Policies:
         - !GetAtt S3ManagedPolicy.PolicyArn
       Timeout: 600
@@ -279,34 +280,6 @@ Resources:
             Pattern:
               detail:
                 topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
-
-  NquadsBulkTransformerHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: bulk-load
-      Handler: no.sikt.nva.data.report.api.etl.transformer.NquadsTransformer::handleRequest
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Policies:
-        - !GetAtt S3ManagedPolicy.PolicyArn
-        - !GetAtt DeleteS3ObjectPolicy.PolicyArn
-      Environment:
-        Variables:
-          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
-          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
-          KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
-          LOADER_BUCKET: !Ref LoaderBucket
-          TOPIC: 'ReportApi.Bulk.TransformKeyBatchNquads'
-          API_HOST: !Ref ApiDomain
-      Events:
-        BatchIndexEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !GetAtt BatchLoadEventBus.Name
-            Pattern:
-              detail:
-                topic: [ 'ReportApi.Bulk.TransformKeyBatchNquads' ]
 
   CsvBulkTransformerHandler:
     Type: AWS::Serverless::Function

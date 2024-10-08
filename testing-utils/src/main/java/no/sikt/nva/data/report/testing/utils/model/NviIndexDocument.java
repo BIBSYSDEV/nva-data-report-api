@@ -7,13 +7,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestApproval;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestCreatorAffiliationPoints;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestInstitutionPoints;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviCandidate;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviContributor;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestNviOrganization;
-import no.sikt.nva.data.report.testing.utils.generator.nvi.TestPublicationDetails;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleApproval;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleCreatorAffiliationPoints;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleInstitutionPoints;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviCandidate;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviContributor;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviOrganization;
+import no.sikt.nva.data.report.testing.utils.generator.nvi.SamplePublicationDetails;
 import no.unit.nva.commons.json.JsonSerializable;
 
 public record NviIndexDocument(@JsonProperty("@context") String context,
@@ -35,7 +35,7 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
     public static final String CONTEXT = "https://api.dev.nva.aws.unit.no/scientific-index/context";
     public static final String TYPE = "NviCandidate";
 
-    public static NviIndexDocument from(TestNviCandidate nviCandidate) {
+    public static NviIndexDocument from(SampleNviCandidate nviCandidate) {
         return new NviIndexDocument(CONTEXT,
                                     nviCandidate.candidateUri(),
                                     nviCandidate.isApplicable(),
@@ -61,7 +61,7 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
         return IndexDocument.from(this);
     }
 
-    private static List<Approval> generateApprovals(TestNviCandidate nviCandidate) {
+    private static List<Approval> generateApprovals(SampleNviCandidate nviCandidate) {
         return nviCandidate.approvals()
                    .stream()
                    .map(testApproval -> Approval.from(testApproval, nviCandidate.globalApprovalStatus().getValue()))
@@ -86,12 +86,12 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
 
         public static final String TYPE = "Approval";
 
-        public static Approval from(TestApproval testApproval, String globalApprovalStatus) {
+        public static Approval from(SampleApproval sampleApproval, String globalApprovalStatus) {
             return new Approval(TYPE,
-                                testApproval.institutionId(),
-                                testApproval.approvalStatus().getValue(),
-                                Points.from(testApproval.points()),
-                                testApproval.involvedOrganizations(),
+                                sampleApproval.institutionId(),
+                                sampleApproval.approvalStatus().getValue(),
+                                Points.from(sampleApproval.points()),
+                                sampleApproval.involvedOrganizations(),
                                 globalApprovalStatus);
         }
 
@@ -101,7 +101,7 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
 
             public static final String TYPE = "InstitutionPoints";
 
-            public static Points from(TestInstitutionPoints points) {
+            public static Points from(SampleInstitutionPoints points) {
                 return new Points(TYPE,
                                   points.institutionPoints().doubleValue(),
                                   points.creatorAffiliationPoints()
@@ -117,11 +117,12 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
 
                 public static final String TYPE = "CreatorAffiliationPoints";
 
-                public static CreatorAffiliationPoints from(TestCreatorAffiliationPoints testCreatorAffiliationPoints) {
+                public static CreatorAffiliationPoints from(
+                    SampleCreatorAffiliationPoints sampleCreatorAffiliationPoints) {
                     return new CreatorAffiliationPoints(TYPE,
-                                                        testCreatorAffiliationPoints.nviCreator(),
-                                                        testCreatorAffiliationPoints.affiliationId(),
-                                                        testCreatorAffiliationPoints.points().doubleValue());
+                                                        sampleCreatorAffiliationPoints.nviCreator(),
+                                                        sampleCreatorAffiliationPoints.affiliationId(),
+                                                        sampleCreatorAffiliationPoints.points().doubleValue());
                 }
             }
         }
@@ -130,9 +131,9 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
     private record PublicationDetails(String id,
                                       List<NviContributor> contributors) {
 
-        public static PublicationDetails from(TestPublicationDetails testPublicationDetails) {
-            return new PublicationDetails(testPublicationDetails.id(),
-                                          testPublicationDetails.contributors().stream()
+        public static PublicationDetails from(SamplePublicationDetails samplePublicationDetails) {
+            return new PublicationDetails(samplePublicationDetails.id(),
+                                          samplePublicationDetails.contributors().stream()
                                               .map(NviContributor::from)
                                               .toList());
         }
@@ -143,10 +144,10 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
 
             public static final String TYPE = "NviContributor";
 
-            public static NviContributor from(TestNviContributor testNviContributor) {
+            public static NviContributor from(SampleNviContributor sampleNviContributor) {
                 return new NviContributor(TYPE,
-                                          testNviContributor.id(),
-                                          testNviContributor.affiliations()
+                                          sampleNviContributor.id(),
+                                          sampleNviContributor.affiliations()
                                               .stream()
                                               .map(NviOrganization::from)
                                               .toList());
@@ -158,10 +159,10 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
 
                 public static final String TYPE = "NviOrganization";
 
-                public static NviOrganization from(TestNviOrganization testNviOrganization) {
+                public static NviOrganization from(SampleNviOrganization sampleNviOrganization) {
                     return new NviOrganization(TYPE,
-                                               testNviOrganization.id(),
-                                               testNviOrganization.partOf());
+                                               sampleNviOrganization.id(),
+                                               sampleNviOrganization.partOf());
                 }
             }
         }

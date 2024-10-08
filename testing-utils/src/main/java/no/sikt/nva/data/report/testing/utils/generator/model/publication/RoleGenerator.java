@@ -12,6 +12,7 @@ public class RoleGenerator extends TripleBasedBuilder {
     public final Resource subject;
 
     public RoleGenerator(String role) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource();
         model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + role));

@@ -29,6 +29,7 @@ public class PublicationGenerator extends TripleBasedBuilder {
     private final Resource subject;
 
     public PublicationGenerator(String identifier, String modifiedDate) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(Constants.PUBLICATION_BASE_URI + identifier);
         model.add(subject, TYPE, PUBLICATION);

@@ -21,6 +21,7 @@ public class PublisherGenerator extends TripleBasedBuilder implements Publicatio
     private final Resource subject;
 
     public PublisherGenerator(UUID identifier) {
+        super();
         this.model = ModelFactory.createDefaultModel();
         this.subject =
             model.createResource(Constants.publisherUri(identifier));
