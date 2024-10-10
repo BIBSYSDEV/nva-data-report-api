@@ -152,8 +152,6 @@ Resources:
 
   #============================= Roles ==========================================================
 
-
-
   DataWarehouseRole:
     Type: AWS::IAM::Role
     Properties:
@@ -191,6 +189,9 @@ Resources:
                 Resource:
                   - !Sub '${ExportBucket.Arn}/*'
                   - !Sub '${ExportBucket.Arn}'
+              - Effect: Allow
+                Action: [ 'iam:GetRole', 'sts:AssumeRole' ]
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRoleName}
 
   #===========================EventBridge Rule========================================================
   PersistedResourcesEventRule:
