@@ -16,6 +16,9 @@ Parameters:
   CognitoAuthorizationUri:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Default: '/NVA/CognitoUri'
+  CognitoAuthorizerUrls:
+    Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
+    Default: CognitoAuthorizerUrls
   ProjectName:
     Type: String
     Default: nva-data-report
@@ -76,6 +79,7 @@ Globals:
     Environment:
       Variables:
         API_HOST: !Ref ApiDomain
+        COGNITO_AUTHORIZER_URLS: !Join [",", !Ref CognitoAuthorizerUrls]
 
 Resources:
   # ---- SQS ----
