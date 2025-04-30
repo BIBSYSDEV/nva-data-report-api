@@ -15,7 +15,7 @@ dependencies {
     implementation libs.nva.s3
     implementation libs.nva.commons.core
     implementation libs.nva.json
-    implementation libs.aws.sdk2.lambda.events
+    implementation libs.aws.lambda.events
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.lambda.java.core
     implementation libs.bundles.logging
