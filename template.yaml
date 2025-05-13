@@ -68,6 +68,10 @@ Parameters:
     Type: String
     Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
     Default: '*'
+  S3NoncurrentVersionExpirationDays:
+    Type: Number
+    Default: 60
+    Description: Number of days to retain non-current object versions in versioned S3 buckets
 
 Conditions:
   WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
@@ -354,4 +358,14 @@ Resources:
     Properties:
       AccessControl: Private
       BucketName: !Sub "${ExportBucketName}-${AWS::AccountId}"
-
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldObjectVersions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: !Ref S3NoncurrentVersionExpirationDays
+      Tags:
+          - Key: IncludedInBackup
+            Value: "true"
+      VersioningConfiguration:
+          Status: Enabled
