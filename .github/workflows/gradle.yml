@@ -6,8 +6,9 @@ permissions:
 
 on:
   push:
+    branches: [main]
   pull_request:
-    types: [ opened, reopened ]
+    types: [opened, reopened, synchronize]
 
 jobs:
   build:
