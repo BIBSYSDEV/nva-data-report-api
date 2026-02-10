@@ -12,7 +12,6 @@ import commons.ViewCompiler;
 import commons.db.DatabaseConnection;
 import commons.db.GraphStoreProtocolConnection;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.UUID;
 import no.sikt.nva.data.report.api.etl.model.EventType;
@@ -21,7 +20,7 @@ import no.sikt.nva.data.report.api.etl.service.GraphService;
 import no.sikt.nva.data.report.api.etl.service.S3StorageReader;
 import no.sikt.nva.data.report.api.etl.testutils.model.nvi.IndexDocumentWithConsumptionAttributes;
 import no.sikt.nva.data.report.testing.utils.FusekiTestingServer;
-import no.sikt.nva.data.report.testing.utils.TestFormatter;
+import no.sikt.nva.data.report.testing.utils.SampleFormatter;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeS3Client;
@@ -34,7 +33,6 @@ import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -129,7 +127,7 @@ class SingleObjectDataLoaderTest {
         var event = createUpsertEvent(objectKey);
         handler.handleRequest(event, context);
         var query = QueryFactory.create("SELECT * WHERE { GRAPH ?g { ?a ?b ?c } }");
-        var result = dbConnection.getResult(query, new TestFormatter());
+        var result = dbConnection.getResult(query, new SampleFormatter());
         var expected = "<" + uri + "> "
                        + "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
                        + "<https://nva.sikt.no/ontology/publication#AcademicArticle> "

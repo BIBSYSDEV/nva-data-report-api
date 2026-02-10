@@ -4,9 +4,9 @@ import commons.formatter.ResponseFormatter;
 import java.util.stream.Collectors;
 import org.apache.jena.query.ResultSet;
 
-public final class TestFormatter implements ResponseFormatter {
+public final class SampleFormatter implements ResponseFormatter {
 
-    public TestFormatter() {
+    public SampleFormatter() {
         // Simple object constructor.
     }
 
@@ -25,7 +25,7 @@ public final class TestFormatter implements ResponseFormatter {
                         .append(x.asLiteral().getLanguage())
                         .append(' ');
                 } else {
-                    triples.append("<").append(x).append("> ");
+                    triples.append('<').append(x).append("> ");
                 }
             }
             triples.append('.').append(System.lineSeparator());

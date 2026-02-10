@@ -1,23 +1,26 @@
 [versions]
-junit = { strictly = '5.10.0' }
-nva = { strictly = '1.40.6' }
+awsLambdaEvents = { strictly = '3.16.1' }
+awsLambdaJavaCore = { strictly = '1.4.0' }
+awsSdk2 = { strictly = '2.41.16' }
+awsSdk2Events = { strictly = '3.16.1' }
+guava = { require = '33.5.0-jre' }
+jackson = { require = '2.21.0' }
+jena = { require = '6.0.0' }
+jupiter = { strictly = '5.14.1' }
+jupiter-platform = { strictly = '1.14.1' }
+log4j = { strictly = '2.25.3' }
+mockito = { strictly = '5.21.0' }
+nva = { strictly = '2.4.11' }
+slf4j = { require = '2.0.17' }
 zalando = { strictly = '0.27.1' }
-awsLambdaJavaCore = { strictly = '1.2.3' }
-awsLambdaEvents = { strictly = '3.11.4' }
-log4j = { strictly = '2.23.0' }
-slf4j = { require = '2.0.12' }
-awsSdk2 = { strictly = '2.24.12' }
-awsSdk2Events = { strictly = '3.11.4' }
-jena = { require = '5.0.0' }
-jackson = { require = '2.16.1' }
-guava = { require = '32.1.2-jre' }
-mockito = { strictly = '5.10.0' }
 
 
 [libraries]
-junit-jupiter-api = { group = 'org.junit.jupiter', name = 'junit-jupiter-api', version.ref = 'junit' }
-junit-jupiter-params = { group = 'org.junit.jupiter', name = 'junit-jupiter-params', version.ref = 'junit' }
-junit-jupiter-engine = { group = 'org.junit.jupiter', name = 'junit-jupiter-engine', version.ref = 'junit' }
+junit-jupiter = { group = 'org.junit.jupiter', name = 'junit-jupiter', version.ref = 'jupiter' }
+junit-jupiter-api = { group = 'org.junit.jupiter', name = 'junit-jupiter-api', version.ref = 'jupiter' }
+junit-jupiter-params = { group = 'org.junit.jupiter', name = 'junit-jupiter-params', version.ref = 'jupiter' }
+junit-jupiter-engine = { group = 'org.junit.jupiter', name = 'junit-jupiter-engine', version.ref = 'jupiter' }
+junit-platform-launcher = { group = 'org.junit.platform', name = 'junit-platform-launcher', version.ref = 'jupiter-platform' }
 
 nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nva' }
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nva' }
@@ -65,5 +68,12 @@ mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mo
 [bundles]
 jena = ['jena-core', 'jena-arq', 'jena-rdfconnection']
 logging = ['log4j-core', 'log4j-api', 'log4j-slf4j2-impl', 'slf4j-api', 'nva-logutils']
-testing = ['junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'mockito-core', 'zalando']
+testing = [
+    'junit-jupiter',
+    'junit-jupiter-api',
+    'junit-jupiter-engine',
+    'junit-jupiter-params',
+    'junit-platform-launcher',
+    'mockito-core',
+    'zalando' ]
 jackson = ['jackson-core', 'jackson-databind']

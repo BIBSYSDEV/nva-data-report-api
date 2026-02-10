@@ -44,6 +44,7 @@ public class DatabaseResetHandler implements RequestStreamHandler {
         this.environment = new Environment();
     }
 
+    @SuppressWarnings("PMD.DoNotUseThreads")
     @Override
     public void handleRequest(InputStream inputStream,
                               OutputStream outputStream,

@@ -17,7 +17,7 @@ public record NviInstitutionReportRequest(String reportingYear,
     public static NviInstitutionReportRequest from(RequestInfo requestInfo, String fileName) {
         var reportingYear = requestInfo.getPathParameter(PATH_PARAMETER_REPORTING_YEAR);
         var topLevelOrganization = extractTopLevelOrganization(requestInfo);
-        var acceptHeader = requestInfo.getHeader(ACCEPT_HEADER);
+        var acceptHeader = requestInfo.getHeaderOptional(ACCEPT_HEADER).orElse("application/n-triples");
         return new NviInstitutionReportRequest(reportingYear, topLevelOrganization, acceptHeader, fileName);
     }
 

@@ -89,7 +89,7 @@ public enum PostProcessFunction {
         };
     }
 
-    private static class Constants {
+    private static final class Constants {
 
         public static final int INSTITUTION_ID_INDEX = 0;
         public static final int FACULTY_ID_INDEX = 1;

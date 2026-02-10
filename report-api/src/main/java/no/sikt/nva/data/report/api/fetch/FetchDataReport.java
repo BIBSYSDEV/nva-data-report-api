@@ -21,6 +21,7 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 public class FetchDataReport extends ApiGatewayHandler<Void, String> {
@@ -33,7 +34,7 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
     }
 
     public FetchDataReport(QueryService queryService) {
-        super(Void.class);
+        super(Void.class, new Environment());
         this.queryService = queryService;
     }
 
@@ -47,6 +48,7 @@ public class FetchDataReport extends ApiGatewayHandler<Void, String> {
         //no-op
     }
 
+    @Override
     protected String processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         var reportRequest = getReportRequest(requestInfo);
         var reportFormat = reportRequest.getReportFormat();

@@ -47,4 +47,5 @@ test {
     environment("NVI_REPORTS_BUCKET", "nvi-reports")
     environment("SIGN_DURATION_IN_MINUTES", "60")
     environment("GRAPH_DATABASE_PAGE_SIZE", "5")
+    environment "COGNITO_AUTHORIZER_URLS", "http://localhost:3000"
 }
