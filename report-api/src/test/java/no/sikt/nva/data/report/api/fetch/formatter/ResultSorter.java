@@ -18,7 +18,7 @@ import org.apache.commons.csv.CSVRecord;
 
 public class ResultSorter {
 
-    public static final String TARGET = "\"";
+    private static final String TARGET = "\"";
     private static final int RESULT_HEADER_LAST_INDEX = 1;
     private static final int RESULT_ENDING_FORMATTED_LINE = 1;
     private static final String COLUMN_SPLIT_REGEX = "\\|";
@@ -65,7 +65,7 @@ public class ResultSorter {
 
     private static String sortCsv(String data, String sortByHeader1, String sortByHeader2) throws IOException {
         var stringReader = new StringReader(data);
-        var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build();
+        var format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get();
         var csvParser = format.parse(stringReader);
         var sortedCsvRecords = sortCsvRecords(csvParser, sortByHeader1, sortByHeader2);
         return printAsString(format, csvParser, sortedCsvRecords);

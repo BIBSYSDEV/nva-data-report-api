@@ -22,7 +22,7 @@ dependencies {
     }
     testImplementation libs.jena.fuseki
     testImplementation(project(':testing-utils'))
-    testImplementation group: 'org.apache.jena', name: 'apache-jena-fuseki', version: '4.10.0'
+    testImplementation 'org.apache.jena:apache-jena-fuseki:4.10.0'
 }
 
 repositories {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 
 public class ValidExcelRequestSource implements ArgumentsProvider {
 
@@ -17,7 +18,8 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
     private static final String OFFSET = "0";
 
     @Override
-    public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+    public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameterDeclarations,
+                                                        ExtensionContext extensionContext) {
         return Stream.of(
             Arguments.of(
                 Named.of("affiliation — application/vnd.ms-excel", new FetchDataReportRequest(

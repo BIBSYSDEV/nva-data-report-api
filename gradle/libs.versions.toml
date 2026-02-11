@@ -64,6 +64,7 @@ zalando = { group = 'org.zalando', name = 'problem', version.ref = 'zalando' }
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mockito' }
+mcokito-junit = { group = 'org.mockito', name = 'mockito-junit-jupiter', version.ref = 'mockito' }
 
 [bundles]
 jena = ['jena-core', 'jena-arq', 'jena-rdfconnection']

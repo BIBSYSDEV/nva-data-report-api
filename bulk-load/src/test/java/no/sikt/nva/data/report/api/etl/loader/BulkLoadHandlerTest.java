@@ -20,12 +20,20 @@ import nva.commons.core.Environment;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class BulkLoadHandlerTest {
 
     private static final String NEPTUNE_ENDPOINT = "NEPTUNE_ENDPOINT";
     private static final String NEPTUNE_PORT = "NEPTUNE_PORT";
+
+    @Mock
+    HttpResponse<Object> httpResponse;
 
     @Test
     void shouldLogSuccessfulLoadingEvent() throws IOException, InterruptedException {
@@ -79,17 +87,15 @@ class BulkLoadHandlerTest {
     private HttpClient setUpFailingHttpResponse(Response response)
         throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
-        var httpResponse = mock(HttpResponse.class);
         when(httpResponse.statusCode()).thenReturn(response.status());
         when(httpResponse.body()).thenReturn(response.toString());
         when(httpClient.send(any(), any())).thenReturn(httpResponse);
         return httpClient;
     }
 
-    private static HttpClient setUpSuccessfulHttpResponse(Response response)
+    private HttpClient setUpSuccessfulHttpResponse(Response response)
         throws IOException, InterruptedException {
         var httpClient = mock(HttpClient.class);
-        var httpResponse = mock(HttpResponse.class);
         when(httpResponse.statusCode()).thenReturn(response.status);
         when(httpResponse.body()).thenReturn(response.toString());
         when(httpClient.send(any(), any())).thenReturn(httpResponse);
@@ -102,7 +108,6 @@ class BulkLoadHandlerTest {
         var host = environment.readEnv(NEPTUNE_ENDPOINT);
         var port = Integer.parseInt(environment.readEnv(NEPTUNE_PORT));
         var httpClient = mock(HttpClient.class);
-        var httpResponse = mock(HttpResponse.class);
         when(httpResponse.statusCode()).thenReturn(response.status());
         when(httpResponse.body()).thenReturn(response.toString());
         when(httpClient.send(matchErrorLogRequest(response, host, port), any()))
@@ -131,7 +136,7 @@ class BulkLoadHandlerTest {
     private record Response(int status, Payload payload) {
 
         @Override
-        public String toString() {
+        public @NonNull String toString() {
             return String.format("""
                                      {
                                          "status" : "%d",
@@ -153,7 +158,7 @@ class BulkLoadHandlerTest {
 
     private record ErrorPayload(UUID loadId) implements Payload {
         @Override
-        public String toString() {
+        public @NonNull String toString() {
             return """
             {
                 "status" : "200 OK",

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 
 public class ValidRequestSource implements ArgumentsProvider {
 
@@ -17,7 +18,8 @@ public class ValidRequestSource implements ArgumentsProvider {
     private static final String NOW = Instant.now().toString();
 
     @Override
-    public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+    public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameterDeclarations,
+                                                        ExtensionContext extensionContext) {
         return Stream.of(
             Arguments.of(
                 Named.of("Allows full datetime", new FetchDataReportRequest(

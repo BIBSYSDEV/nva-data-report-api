@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.apicatalog.jsonld.JsonLd;
 import com.apicatalog.jsonld.document.JsonDocument;
+import com.apicatalog.rdf.nquads.NQuadsWriter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 import nva.commons.core.Environment;
@@ -33,7 +35,9 @@ class DocumentUnwrapperTest {
     void shouldUnwrapContext(String json) throws JsonProcessingException {
         var actual = new DocumentUnwrapper(API_HOST).unwrap(json);
         assertTrue(actual.at(CONTEXT_POINTER).isObject());
-        assertDoesNotThrow(
-            () -> JsonLd.toRdf(JsonDocument.of(new ByteArrayInputStream(actual.toString().getBytes()))).get());
+        var quadConsumer = new NQuadsWriter(new StringWriter());
+
+        assertDoesNotThrow(() -> JsonLd.toRdf(JsonDocument.of(
+            new ByteArrayInputStream(actual.toString().getBytes()))).provide(quadConsumer));
     }
 }

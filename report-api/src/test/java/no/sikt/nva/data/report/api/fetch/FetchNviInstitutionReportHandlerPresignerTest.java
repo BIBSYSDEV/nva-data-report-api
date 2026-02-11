@@ -124,7 +124,7 @@ public class FetchNviInstitutionReportHandlerPresignerTest {
     private static PresignedGetObjectRequest mockPresignResponse(String filename) throws MalformedURLException {
         var presignRequest = mock(PresignedGetObjectRequest.class);
         var presignedUrl = "https://example.com/" + filename;
-        when(presignRequest.url()).thenReturn(new URL(presignedUrl));
+        when(presignRequest.url()).thenReturn(URI.create(presignedUrl).toURL());
         return presignRequest;
     }
 

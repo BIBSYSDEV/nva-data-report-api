@@ -30,6 +30,8 @@ dependencies {
         exclude group: 'org.wiremock', module: 'wiremock'
     }
     testImplementation(project(':testing-utils'))
+    testImplementation libs.mcokito.junit
+
 
     test {
         environment("API_HOST", "example.org")

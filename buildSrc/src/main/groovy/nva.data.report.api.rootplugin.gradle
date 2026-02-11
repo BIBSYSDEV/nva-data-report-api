@@ -2,6 +2,7 @@ plugins {
     id 'jacoco-report-aggregation'
     id 'base'
     id 'java-library'
+    id 'io.github.michael-nestler.spectral'
 }
 
 repositories {
@@ -28,4 +29,9 @@ tasks.named('check') {
 
 configurations {
     compile.exclude module: 'testing-utils'
+}
+
+spectral {
+    documents.from("docs/openapi.yaml")
+    ruleset.set(file('.spectral.yaml'))
 }

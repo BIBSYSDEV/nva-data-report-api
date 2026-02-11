@@ -3,14 +3,36 @@ info:
   title: NVA data report API
   version: 1.0.0
   description: API for generating simple data reports.
+  contact:
+    url: https://sikt.no/en/om-sikt/contact-us
 x-amazon-apigateway-request-validators:
   validate_body:
     validateRequestBody: true
     validateRequestParameters: false
+servers:
+  - url: https://api.nva.unit.no/nva-data-report-api
+    description: Production environment endpoint
+  - url: https://api.dev.nva.aws.unit.no/nva-data-report-api
+    description: Development environment endpoint
+  - url: https://api.sandbox.nva.aws.unit.no/nva-data-report-api
+    description: Sandbox environment endpoint
+  - url: https://api.test.nva.aws.unit.no/nva-data-report-api
+    description: Test environment endpoint
+tags:
+  - name: fetch
+    description: Operations that provide data
+  - name: reporting
+    description: Operations that provide reports
+  - name: parameterized
+    description: Operations that take a parameter
 paths:
   /{type}:
     get:
       description: Get report for a given report type, supporting text/csv download according to <https://www.rfc-editor.org/rfc/rfc4180>
+      tags:
+        - fetch
+        - reporting
+        - parameterized
       summary: Get report
       operationId: getDataReport
       parameters:
@@ -109,6 +131,10 @@ paths:
     get:
       description: Get institution report for nvi for given reporting year. Supporting text/csv download according to <https://www.rfc-editor.org/rfc/rfc4180>, application/vnd.ms-excel and application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.
       summary: Get nvi institution report
+      tags:
+        - fetch
+        - reporting
+        - parameterized
       operationId: getReportNviInstitution
       security:
         - CognitoUserPool: [
