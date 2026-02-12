@@ -749,6 +749,12 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref LambdaSubnet1
 
+  PrivateRouteTableLambda2Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref LambdaSubnet2
+
   S3GatewayEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Properties:
