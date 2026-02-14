@@ -42,13 +42,18 @@ WHERE {
     BIND(IF(BOUND(?day), CONCAT("-", ?day), "") AS ?dayPart)
     BIND(CONCAT(?year, CONCAT(?monthPart, ?dayPart)) AS ?publicationDate)
 
-    ?publicationContext a ?channelTypeId ;
-                        :name ?channelName ;
-                        :identifier ?channelIdentifier ;
-                        :scientificValue ?channelLevel .
-
+    ?publicationContext a ?channelTypeId .
     BIND(STR(?channelTypeId) AS ?channelType)
 
+    OPTIONAL {
+      ?publicationContext :name ?channelName
+    }
+    OPTIONAL {
+      ?publicationContext  :identifier ?channelIdentifier ;
+    }
+    OPTIONAL {
+      ?publicationContext :scientificValue ?channelLevel .
+    }
     OPTIONAL {
         ?publicationContext :onlineIssn ?channelOnlineIssn
     }
