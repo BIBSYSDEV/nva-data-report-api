@@ -11,8 +11,15 @@ WHERE {
   GRAPH ?g {
     ?uri :status ?publicationStatus ;
          :modifiedDate ?modifiedDate ;
-         :identifier ?publicationIdentifier ;
-         :funding ?funding .
+         :identifier ?publicationIdentifier .
+
+    OPTIONAL {
+      ?uri :funding ?funding .
+      ?funding :identifier ?fundingId .
+      OPTIONAL {
+        ?funding :fundingSource ?fundingSource .
+      }
+    }
 
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
@@ -20,7 +27,5 @@ WHERE {
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
-    ?funding :identifier ?fundingId ;
-             :fundingSource ?fundingSource .
   }
 } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__

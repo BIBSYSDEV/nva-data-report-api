@@ -30,17 +30,25 @@ WHERE {
                  :affiliation ?affiliation .
     BIND(REPLACE(STR(?contributor), "^.*/([^/]*)$", "$1") AS ?contributorId)
 
-    ?affiliation :label ?label ;
-                 :institution ?institutionUri ;
-                 :faculty ?facultyUri ;
-                 :department ?departmentUri ;
-                 :group ?groupUri .
-
+    ?affiliation :label ?label .
     BIND(STR(?affiliation) as ?affiliationId)
-    BIND(STR(?institutionUri) as ?institutionId)
-    BIND(STR(?facultyUri) as ?facultyId)
-    BIND(STR(?departmentUri) as ?departmentId)
-    BIND(STR(?groupUri) as ?groupId)
+    OPTIONAL {
+      ?affiliation :institution ?institutionUri ;
+      BIND(STR(?institutionUri) as ?institutionId)
+    }
+    OPTIONAL {
+      ?affiliation :faculty ?facultyUri
+      BIND(STR(?facultyUri) as ?facultyId)
+    }
+    OPTIONAL {
+      ?affiliation :department ?departmentUri
+      BIND(STR(?departmentUri) as ?departmentId)
+    }
+    OPTIONAL {
+      ?affiliation :group ?groupUri .
+      BIND(STR(?groupUri) as ?groupId)
+    }
+
 
     FILTER(LANG(?label) = "en")
     BIND(STR(?label) AS ?affiliationName)
