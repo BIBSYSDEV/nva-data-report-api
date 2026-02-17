@@ -1,7 +1,8 @@
 PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT
+#SELECT DISTINCT
+SELECT
     ?publicationId
     ?status
     ?publicationTitle
