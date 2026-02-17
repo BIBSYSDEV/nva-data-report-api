@@ -20,6 +20,7 @@ WHERE {
          :modifiedDate ?modifiedDate ;
          :contributor ?contributor .
 
+    FILTER(?publicationIdentifier > "__CURSOR__")
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
@@ -54,4 +55,4 @@ WHERE {
     BIND(STR(?label) AS ?affiliationName)
 
   }
-} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ASC(?publicationIdentifier) LIMIT __PAGE_SIZE__

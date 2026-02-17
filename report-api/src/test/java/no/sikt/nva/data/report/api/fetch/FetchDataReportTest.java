@@ -97,6 +97,7 @@ class FetchDataReportTest extends LocalFusekiTest {
     void shouldReturnDataInExcelSheetWhenContentTypeIsExcel(FetchDataReportRequest request)
         throws IOException, BadRequestException {
         var testData = new TestData(generateDatePairs(2));
+        var identifiers = testData.getPublicationIdentifiers();
         loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
@@ -110,17 +111,18 @@ class FetchDataReportTest extends LocalFusekiTest {
 
     @ParameterizedTest
     @EnumSource(ReportType.class)
-    void shouldReturnResultWithOffset(ReportType reportType) throws IOException {
+    void shouldReturnResultWithCursor(ReportType reportType) throws IOException {
         var testData = new TestData(generateDatePairs(2));
+        var identifiers = testData.getPublicationIdentifiers();
         loadModels(testData.getModels());
         var service = new QueryService(databaseConnection);
         var handler = new FetchDataReport(service);
         var pageSize = 1;
-        var firstRequest = generateHandlerRequest(buildRequest(OFFSET_ZERO, valueOf(pageSize), reportType.getType()));
+        var firstRequest = generateHandlerRequest(buildRequest(null, valueOf(pageSize), reportType.getType()));
         var firstOutput = executeRequest(handler, firstRequest);
         var firstRequestDataLines = extractDataLines(fromOutputStream(firstOutput, String.class).getBody());
         assertEquals(pageSize, firstRequestDataLines.size());
-        var secondRequest = generateHandlerRequest(buildRequest(OFFSET_ONE, valueOf(pageSize), reportType.getType()));
+        var secondRequest = generateHandlerRequest(buildRequest(identifiers.getFirst(), valueOf(pageSize), reportType.getType()));
         var secondOutput = executeRequest(handler, secondRequest);
         var secondRequestDataLines = extractDataLines(fromOutputStream(secondOutput, String.class).getBody());
         assertEquals(pageSize, secondRequestDataLines.size());
@@ -158,13 +160,13 @@ class FetchDataReportTest extends LocalFusekiTest {
         return output;
     }
 
-    private static FetchDataReportRequest buildRequest(String offset, String pageSize, String reportType) {
+    private static FetchDataReportRequest buildRequest(String cursor, String pageSize, String reportType) {
         return new FetchDataReportRequest(
             TEXT_PLAIN.toString(),
             reportType,
             LocalDate.now(ZoneId.systemDefault()).toString(),
             "1998-01-01",
-            offset,
+            cursor,
             pageSize
         );
     }

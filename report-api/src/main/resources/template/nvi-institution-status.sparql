@@ -3,6 +3,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT DISTINCT
+  ?publicationIdentifier
   ?ARSTALL
   ?VARBEIDLOPENR
   ?ARSTALL_REG
@@ -75,6 +76,7 @@ SELECT DISTINCT
              :mainTitle ?VA_TITTEL ;
              :publicationContext ?publicationContext .
 
+        filter (?publicationIdentifier > "__CURSOR__")
         BIND(STR(?publicationYear) AS ?ARSTALL_REG)
         BIND(STR(?instanceType) AS ?PUBLIKASJONSFORM)
 
@@ -93,4 +95,4 @@ SELECT DISTINCT
         BIND(?contributorName AS ?ETTERNAVN)
         BIND(?contributorName AS ?FORNAVN)
      }
-    } LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ASC(?publicationIdentifier) LIMIT __PAGE_SIZE__

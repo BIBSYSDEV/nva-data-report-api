@@ -13,35 +13,33 @@ public class ReportRequest {
     private static final String TYPE_SELECTOR = "type";
     private static final String BEFORE_SELECTOR = "before";
     private static final String AFTER_SELECTOR = "after";
-    private static final String OFFSET_SELECTOR = "offset";
+    private static final String CURSOR_SELECTOR = "cursor";
     private static final String PAGE_SIZE_SELECTOR = "pageSize";
+    public static final String EMPTY_STRING = "";
     private final ReportFormat reportFormat;
     private final ReportType reportType;
     private final Instant before;
     private final Instant after;
-    private final int offset;
+    private final String cursor;
     private final int pageSize;
 
     public ReportRequest(ReportFormat reportFormat,
                          ReportType reportType,
                          Instant before,
                          Instant after,
-                         Integer offset,
+                         String cursor,
                          Integer pageSize) throws BadRequestException {
 
         this.reportFormat = nonNull(reportFormat) ? reportFormat : ReportFormat.CSV;
         this.reportType = reportType;
         this.before = nonNull(before) ? before : Instant.now();
         this.after = nonNull(after) ? after : Instant.now().minus(1, ChronoUnit.CENTURIES);
-        this.offset = nonNull(offset) ? offset : 0;
+        this.cursor = nonNull(cursor) && !cursor.isBlank() ? cursor : EMPTY_STRING;
         this.pageSize = nonNull(pageSize) ? pageSize : 10;
         validate();
     }
 
     private void validate() throws BadRequestException {
-        if (this.offset < 0) {
-            throw new BadRequestException("Offset cannot be less than zero");
-        }
         if (this.pageSize < 0) {
             throw new BadRequestException("Page size cannot be less than zero");
         }
@@ -54,11 +52,11 @@ public class ReportRequest {
                          String reportType,
                          String before,
                          String after,
-                         Integer offset,
+                         String cursor,
                          Integer pageSize)
         throws BadRequestException {
         this(ReportFormat.fromMediaType(reportFormat), ReportType.parse(reportType), InstantUtil.before(before),
-             InstantUtil.after(after), offset, pageSize);
+             InstantUtil.after(after), cursor, pageSize);
     }
 
     public static ReportRequest fromRequestInfo(RequestInfo requestInfo) throws BadRequestException {
@@ -66,7 +64,7 @@ public class ReportRequest {
                                  extractReportType(requestInfo),
                                  extractBeforeDate(requestInfo),
                                  extractAfterDate(requestInfo),
-                                 extractOffset(requestInfo),
+                                 extractCursor(requestInfo),
                                  extractPageSize(requestInfo));
     }
 
@@ -86,8 +84,8 @@ public class ReportRequest {
         return after;
     }
 
-    public int getOffset() {
-        return offset;
+    public String getCursor() {
+        return cursor;
     }
 
     public int getPageSize() {
@@ -99,8 +97,8 @@ public class ReportRequest {
         return extractValueAsInteger(requestInfo, PAGE_SIZE_SELECTOR);
     }
 
-    private static Integer extractOffset(RequestInfo requestInfo) {
-        return extractValueAsInteger(requestInfo, OFFSET_SELECTOR);
+    private static String extractCursor(RequestInfo requestInfo) {
+        return requestInfo.getQueryParameterOpt(CURSOR_SELECTOR).orElse(EMPTY_STRING);
     }
 
     private static Integer extractValueAsInteger(RequestInfo requestInfo, String selector) {

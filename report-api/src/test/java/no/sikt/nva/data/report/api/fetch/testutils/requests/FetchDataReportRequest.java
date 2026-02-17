@@ -2,18 +2,26 @@ package no.sikt.nva.data.report.api.fetch.testutils.requests;
 
 import java.util.Map;
 
+import static java.util.Objects.isNull;
+
 public record FetchDataReportRequest(String accept,
                                      String reportType,
                                      String before,
                                      String after,
-                                     String offset,
+                                     String cursor,
                                      String pageSize) {
+
+    public FetchDataReportRequest {
+        if (isNull(cursor) || cursor.isBlank()) {
+            cursor = "";
+        }
+    }
 
     public Map<String, String> queryParameters() {
         return Map.of(
             "before", before,
             "after", after,
-            "offset", offset,
+            "cursor", cursor,
             "pageSize", pageSize
         );
     }

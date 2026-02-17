@@ -21,6 +21,7 @@ import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeader
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLICATION_TITLE;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.PUBLISHED_YEAR;
 import static no.sikt.nva.data.report.api.fetch.model.NviInstitutionStatusHeaders.REPORTING_YEAR;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPublication.DELIMITER;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.util.List;

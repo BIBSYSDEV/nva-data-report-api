@@ -13,6 +13,8 @@ WHERE {
          :modifiedDate ?modifiedDate ;
          :identifier ?publicationIdentifier .
 
+    FILTER(?publicationIdentifier > "__CURSOR__")
+
     OPTIONAL {
       ?uri :funding ?funding .
       ?funding :identifier ?fundingId .
@@ -28,4 +30,4 @@ WHERE {
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
 
   }
-} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ASC(?publicationIdentifier) LIMIT __PAGE_SIZE__

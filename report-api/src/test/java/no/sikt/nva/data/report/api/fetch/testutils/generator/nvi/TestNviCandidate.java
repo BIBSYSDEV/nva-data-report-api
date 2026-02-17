@@ -3,6 +3,7 @@ package no.sikt.nva.data.report.api.fetch.testutils.generator.nvi;
 import static no.sikt.nva.data.report.api.fetch.testutils.NviTestUtils.getExpectedPointsForAffiliation;
 import static org.apache.commons.io.StandardLineSeparator.CRLF;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import no.sikt.nva.data.report.api.fetch.testutils.generator.model.nvi.ApprovalGenerator;
@@ -66,7 +67,10 @@ public record TestNviCandidate(String candidateUri,
     }
 
     private void generateExpectedLinesForNonApplicableCandidate(StringBuilder stringBuilder) {
-        stringBuilder.append(publicationDetails().id())
+
+        var id = publicationDetails().id();
+        stringBuilder.append(UriWrapper.fromUri(URI.create(id)).getLastPathElement()).append(DELIMITER)
+            .append(id)
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
             .append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER).append(DELIMITER)
             .append(DELIMITER).append(isApplicable()).append(CRLF.getString());
@@ -116,7 +120,9 @@ public record TestNviCandidate(String candidateUri,
     private void generateExpectedNviResponse(StringBuilder stringBuilder, TestNviContributor contributor,
                                              TestNviOrganization affiliation) {
         var approval = findExpectedApproval(affiliation);
-        stringBuilder.append(publicationDetails().id()).append(DELIMITER)
+        var id = publicationDetails().id();
+        stringBuilder.append(UriWrapper.fromUri(URI.create(id)).getLastPathElement()).append(DELIMITER)
+            .append(id).append(DELIMITER)
             .append(extractLastPathElement(contributor.id())).append(DELIMITER)
             .append(affiliation.id()).append(DELIMITER)
             .append(approval.institutionId()).append(DELIMITER)

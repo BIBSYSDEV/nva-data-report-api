@@ -2,6 +2,7 @@ PREFIX : <https://nva.sikt.no/ontology/publication#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT DISTINCT
+  ?publicationIdentifier
   ?publicationId
   ?contributorIdentifier
   ?affiliationId
@@ -33,6 +34,8 @@ WHERE {
         :nviContributor ?nviContributor ;
         :approval ?approval .
 
+      BIND(REPLACE(STR(?publicationUri), "^.*/([^/#]+)(?:[#/].*)?$", "$1") AS ?publicationIdentifier)
+      FILTER(?publicationIdentifier > "__CURSOR__")
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
@@ -72,12 +75,14 @@ WHERE {
         :publicationId ?publicationUri ;
         :isApplicable false .
 
+      BIND(STR(?publicationUri) AS ?publicationId)
+      BIND(REPLACE(?publicationId, "^.*/([^/#]+)(?:[#/].*)?$", "$1") AS ?publicationIdentifier)
+      FILTER(?publicationIdentifier > "__CURSOR__")
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
-      BIND(STR(?publicationUri) AS ?publicationId)
       BIND("false" AS ?isApplicable)
 
     }
   }
-} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ASC(?publicationIdentifier) LIMIT __PAGE_SIZE__

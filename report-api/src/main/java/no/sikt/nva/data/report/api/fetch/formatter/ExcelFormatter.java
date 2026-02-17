@@ -16,7 +16,7 @@ public class ExcelFormatter implements ResponseFormatter {
     public String format(ResultSet resultSet) {
         var headers = extractHeaders(resultSet);
         var data = extractData(resultSet);
-        var excel = Excel.fromJava(headers, data);
+        var excel = Excel.fromJava(headers, data.data());
         return ENCODER.encodeToString(excel.toBytes());
     }
 }

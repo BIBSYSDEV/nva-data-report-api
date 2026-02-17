@@ -15,7 +15,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
 
     private static final String NOW = Instant.now().toString();
     private static final String PAGE_SIZE = "100";
-    private static final String OFFSET = "0";
+    private static final String CURSOR = "";
 
     @Override
     public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameterDeclarations,
@@ -27,7 +27,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "affiliation",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -39,7 +39,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "affiliation",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -50,7 +50,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "contributor",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -62,7 +62,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "contributor",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -73,7 +73,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "funding",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -85,7 +85,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "funding",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -96,7 +96,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "identifier",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -108,7 +108,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "identifier",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -119,7 +119,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "publication",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -131,7 +131,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "publication",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )
@@ -141,7 +141,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                                       "nvi",
                                       NOW,
                                       "1998-01-01",
-                                      OFFSET,
+                                      CURSOR,
                                       PAGE_SIZE
                                   )
                          )
@@ -153,7 +153,7 @@ public class ValidExcelRequestSource implements ArgumentsProvider {
                              "nvi",
                              NOW,
                              "1998-01-01",
-                             OFFSET,
+                             CURSOR,
                              PAGE_SIZE
                          )
                 )

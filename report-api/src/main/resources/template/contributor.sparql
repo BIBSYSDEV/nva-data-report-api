@@ -16,6 +16,7 @@ SELECT DISTINCT
            :identifier ?publicationIdentifier ;
            :contributor ?contributor .
 
+      FILTER(?publicationIdentifier > "__CURSOR__")
       FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
       FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
@@ -30,4 +31,4 @@ SELECT DISTINCT
       BIND(REPLACE(STR(?contributor), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
       BIND(REPLACE(STR(?roleType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?contributorRole)
     }
-} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ASC(?publicationIdentifier) LIMIT __PAGE_SIZE__

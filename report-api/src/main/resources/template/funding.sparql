@@ -15,6 +15,7 @@ WHERE {
          :identifier ?publicationIdentifier ;
          :funding ?funding .
 
+    FILTER(?publicationIdentifier > "__CURSOR__")
     FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
     FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
@@ -27,4 +28,4 @@ WHERE {
     FILTER(LANG(?label) = "en")
     BIND(STR(?label) AS ?fundingName)
   }
-} LIMIT __PAGE_SIZE__ OFFSET __OFFSET__
+} ORDER BY ASC(?publicationIdentifier) LIMIT __PAGE_SIZE__

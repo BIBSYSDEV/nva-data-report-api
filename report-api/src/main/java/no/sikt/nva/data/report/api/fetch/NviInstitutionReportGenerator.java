@@ -9,6 +9,8 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import commons.db.GraphStoreProtocolConnection;
+
+import java.util.List;
 import java.util.Map;
 import no.sikt.nva.data.report.api.fetch.service.QueryService;
 import no.sikt.nva.data.report.api.fetch.utils.NviInstitutionReportPostProcessor;
@@ -27,13 +29,13 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(NviInstitutionReportGenerator.class);
-    private static final int PAGINATION_STARTING_OFFSET = 0;
+    private static final String PAGINATION_STARTING_CURSOR = "";
     private static final String GRAPH_DATABASE_PAGE_SIZE = "GRAPH_DATABASE_PAGE_SIZE";
     private static final String BUCKET = "NVI_REPORTS_BUCKET";
     private static final String REPLACE_REPORTING_YEAR = "__REPLACE_WITH_REPORTING_YEAR__";
     private static final String REPLACE_TOP_LEVEL_ORG = "__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__";
     private static final String PAGE_SIZE = "__PAGE_SIZE__";
-    private static final String OFFSET = "__OFFSET__";
+    private static final String CURSOR = "__CURSOR__";
     private static final String NVI_INSTITUTION_SPARQL = "nvi-institution-status";
     private static final String FETCH_DATA_MESSAGE = "Fetching data with offset: {} and page size: {}";
     private final QueryService queryService;
@@ -78,19 +80,28 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
     }
 
     private Excel generateReport(NviInstitutionReportRequest request) {
-        var offset = PAGINATION_STARTING_OFFSET;
+        var cursor = PAGINATION_STARTING_CURSOR;
         var reportingYear = request.reportingYear();
         var organization = String.valueOf(request.nviOrganization());
-        logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
-        var result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
-        var report = Excel.fromJava(result.getResultVars(), extractData(result));
+        logger.info(FETCH_DATA_MESSAGE, cursor, pageSize);
+        var result = getResult(reportingYear, organization, pageSize, cursor);
+        var dataResult = extractData(result);
+        var headers = result.getResultVars();
+        headers.remove("publicationIdentifier");
+        var data = dataResult.data().stream().map(this::removingFirstElement).toList();
+        var report = Excel.fromJava(headers, data);
         while (isNotEmpty(result)) {
-            offset += Integer.parseInt(pageSize);
-            logger.info(FETCH_DATA_MESSAGE, offset, pageSize);
-            result = getResult(reportingYear, organization, pageSize, String.valueOf(offset));
-            report.addData(extractData(result));
+            cursor = dataResult.cursor();
+            logger.info(FETCH_DATA_MESSAGE, cursor, pageSize);
+            result = getResult(reportingYear, organization, pageSize, cursor);
+            report.addData(extractData(result).data());
         }
         return NviInstitutionReportPostProcessor.postProcess(report);
+    }
+
+    private List<String> removingFirstElement(List<String> list) {
+        list.removeFirst();
+        return List.copyOf(list);
     }
 
     private NviInstitutionReportRequest extractFirstRequest(SQSEvent input) {
@@ -117,11 +128,11 @@ public class NviInstitutionReportGenerator implements RequestHandler<SQSEvent, S
     }
 
     private ResultSet getResult(String reportingYear, String topLevelOrganization,
-                                String pageSize, String offset) {
+                                String pageSize, String cursor) {
         var replacementStrings = Map.of(REPLACE_REPORTING_YEAR, reportingYear,
                                         REPLACE_TOP_LEVEL_ORG, topLevelOrganization,
                                         PAGE_SIZE, pageSize,
-                                        OFFSET, offset);
+                                        CURSOR, cursor);
         return queryService.getResult(NVI_INSTITUTION_SPARQL, replacementStrings);
     }
 }

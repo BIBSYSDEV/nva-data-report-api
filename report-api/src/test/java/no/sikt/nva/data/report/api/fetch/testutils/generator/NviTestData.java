@@ -16,6 +16,7 @@ import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationH
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.CONTRIBUTOR_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.INSTITUTION_ID;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_ID;
+import static no.sikt.nva.data.report.api.fetch.testutils.generator.PublicationHeaders.PUBLICATION_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_SUB_UNIT_IDENTIFIER;
 import static no.sikt.nva.data.report.api.fetch.testutils.generator.TestData.SOME_TOP_LEVEL_IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -44,7 +45,8 @@ import no.sikt.nva.data.report.api.fetch.testutils.generator.publication.TestPub
 
 public final class NviTestData {
 
-    public static final List<String> NVI_HEADERS = List.of(PUBLICATION_ID,
+    public static final List<String> NVI_HEADERS = List.of(PUBLICATION_IDENTIFIER,
+                                                           PUBLICATION_ID,
                                                            CONTRIBUTOR_IDENTIFIER,
                                                            AFFILIATION_ID, INSTITUTION_ID,
                                                            INSTITUTION_POINTS,

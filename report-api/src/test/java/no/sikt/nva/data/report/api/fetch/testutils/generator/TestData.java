@@ -303,6 +303,10 @@ public class TestData {
         return a.id().compareTo(b.id());
     }
 
+    public List<String> getPublicationIdentifiers() {
+        return publicationTestData.stream().map(TestPublication::getIdentifier).sorted().toList();
+    }
+
     public record DatePair(PublicationDate publicationDate, Instant modifiedDate) {
 
     }

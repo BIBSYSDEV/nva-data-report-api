@@ -8,6 +8,8 @@ import org.apache.jena.query.ResultSet;
 
 public final class ResultUtil {
 
+    private static final String PUBLICATION_IDENTIFIER_VAR = "publicationIdentifier";
+
     private ResultUtil() {
     }
 
@@ -15,9 +17,10 @@ public final class ResultUtil {
         return result.getRowNumber() > 0;
     }
 
-    public static List<List<String>> extractData(ResultSet resultSet) {
+    public static DataResult extractData(ResultSet resultSet) {
         var headers = resultSet.getResultVars();
         var data = new ArrayList<List<String>>();
+        String cursor = null;
         while (resultSet.hasNext()) {
             var row = resultSet.next();
             var rowData = new ArrayList<String>();
@@ -26,11 +29,17 @@ public final class ResultUtil {
                 rowData.add(nonNull(cell) ? cell.toString() : EMPTY_STRING);
             }
             data.add(rowData);
+            if (!resultSet.hasNext()) {
+                cursor = row.get(PUBLICATION_IDENTIFIER_VAR).toString();
+            }
         }
-        return data;
+        return new DataResult(cursor, data);
     }
 
     public static List<String> extractHeaders(ResultSet resultSet) {
         return resultSet.getResultVars();
+    }
+
+    public record DataResult (String cursor, List<List<String>> data) {
     }
 }
