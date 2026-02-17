@@ -25,8 +25,8 @@ WHERE {
          :publicationContext ?publicationContext .
 
     FILTER(?publicationIdentifier > "__CURSOR__")
-    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
-    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
+#    FILTER(?modifiedDate >= "__AFTER__"^^xsd:dateTime)
+#    FILTER(?modifiedDate < "__BEFORE__"^^xsd:dateTime)
 
     BIND(STR(?uri) AS ?publicationId)
     BIND(REPLACE(STR(?instanceType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?publicationCategory)
