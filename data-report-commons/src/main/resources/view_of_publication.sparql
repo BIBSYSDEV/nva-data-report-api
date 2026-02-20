@@ -81,7 +81,7 @@ CONSTRUCT {
   ?uri :publicationDate ?publicationDateIso.
   ?uri :publicationContext ?publicationContext .
   ?uri :funding ?funding .
-  ?uri :contributor ?identity .
+  ?uri :contributor ?contributor .
 
   ?publicationContext a ?channelType .
   ?publicationContext :identifier ?channelIdentifier .
@@ -94,10 +94,11 @@ CONSTRUCT {
   ?funding :identifier ?fundingId .
   ?funding :label ?fundingName .
 
-  ?identity :name ?contributorName .
-  ?identity :sequence ?sequence .
-  ?identity :role ?role .
-  ?identity :affiliation ?affiliation .
+  ?contributor :identity ?identity .
+  ?contributor :name ?contributorName .
+  ?contributor :sequence ?sequence .
+  ?contributor :role ?role .
+  ?contributor :affiliation ?affiliation .
 
   ?affiliation :label ?affiliationLabel .
   ?affiliation :institution ?institutionUri .

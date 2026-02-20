@@ -31,8 +31,10 @@ WHERE {
         :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPointsDecimal ;
         :reportingYear ?reportingYear ;
         :reported ?reported ;
-        :nviContributor ?nviContributor ;
+        :nviContributor ?nviContrib ;
         :approval ?approval .
+
+      ?nviContrib :identity ?nviContributor .
 
       BIND(REPLACE(STR(?publicationUri), "^.*/([^/#]+)(?:[#/].*)?$", "$1") AS ?publicationIdentifier)
       FILTER(?publicationIdentifier > "__CURSOR__")
@@ -51,7 +53,7 @@ WHERE {
       BIND(STR(?nviContributor) AS ?contributorIdString)
       BIND(REPLACE(STR(?nviContributor), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
 
-      ?nviContributor :nviAffiliation ?affiliationUri .
+      ?nviContrib :nviAffiliation ?affiliationUri .
       BIND(STR(?affiliationUri) AS ?affiliationId)
 
       ?approval :approvalStatus ?institutionApprovalStatus ;

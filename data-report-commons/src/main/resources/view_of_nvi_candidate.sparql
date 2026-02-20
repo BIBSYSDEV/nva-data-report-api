@@ -17,11 +17,11 @@ CONSTRUCT {
   ?uri :reportingYear ?reportingYear .
   ?uri :reported ?reported .
   ?uri :publicationId ?publicationId .
-  ?uri :nviContributor ?nviContributor .
+  ?uri :nviContributor ?nviContribNode .
+  ?nviContribNode :identity ?nviContributor .
+  ?nviContribNode :nviAffiliation ?nviAffiliation .
   ?uri :approval ?approval .
   ?uri :totalPoints ?totalPoints .
-
-  ?nviContributor :nviAffiliation ?nviAffiliation .
 
   ?approval :institutionId ?institutionId .
   ?approval :approvalStatus ?approvalStatus .
@@ -53,6 +53,7 @@ CONSTRUCT {
     ?reportingPeriod :year ?reportingYear .
 
     ?publicationId :contributor ?nviContributor .
+    BIND(IRI(CONCAT(STR(?uri), "#nviContrib-", ENCODE_FOR_URI(STR(?nviContributor)))) AS ?nviContribNode)
 
     ?nviContributor a :NviContributor .
     ?nviContributor :affiliation ?nviAffiliation .
