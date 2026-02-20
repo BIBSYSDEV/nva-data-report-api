@@ -34,8 +34,10 @@ SELECT DISTINCT
                :globalApprovalStatus ?RAPPORTSTATUS ;
                :publicationTypeChannelLevelPoints ?publicationTypeChannelLevelPoints ;
                :reportingYear ?reportingYear ;
-               :nviContributor ?nviContributor ;
+               :nviContributor ?nviContrib ;
                :approval ?approval .
+
+       ?nviContrib :identity ?nviContributor .
 
        FILTER (STR(?reportingYear) = "__REPLACE_WITH_REPORTING_YEAR__")
 
@@ -45,7 +47,7 @@ SELECT DISTINCT
        BIND(STR(?publicationUri) AS ?VARBEIDLOPENR)
        BIND(STR(?nviContributor) AS ?PERSONLOPENR)
 
-       ?nviContributor :nviAffiliation ?affiliationUri .
+       ?nviContrib :nviAffiliation ?affiliationUri .
 
       BIND(URI("__REPLACE_WITH_TOP_LEVEL_ORGANIZATION__") AS ?organizationUri)
       BIND(STR(?affiliationUri) AS ?affiliationUriString)

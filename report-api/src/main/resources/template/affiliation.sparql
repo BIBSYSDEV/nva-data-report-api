@@ -27,9 +27,10 @@ WHERE {
     BIND(REPLACE(STR(?publicationStatus), "^.*/([^/]*)$", "$1") AS ?status)
     BIND(STR(?uri) AS ?publicationId)
 
-    ?contributor :name ?contributorName ;
+    ?contributor :identity ?contributorUri ;
+                 :name ?contributorName ;
                  :affiliation ?affiliation .
-    BIND(REPLACE(STR(?contributor), "^.*/([^/]*)$", "$1") AS ?contributorId)
+    BIND(REPLACE(STR(?contributorUri), "^.*/([^/]*)$", "$1") AS ?contributorId)
 
     ?affiliation :label ?label .
     BIND(STR(?affiliation) as ?affiliationId)

@@ -24,11 +24,12 @@ SELECT DISTINCT
 
       BIND(STR(?uri) AS ?publicationId)
 
-      ?contributor :name ?contributorName ;
+      ?contributor :identity ?contributorUri ;
+                   :name ?contributorName ;
                    :role ?roleType ;
                    :sequence ?contributorSequenceNumber .
 
-      BIND(REPLACE(STR(?contributor), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
+      BIND(REPLACE(STR(?contributorUri), "^.*/([^/]*)$", "$1") AS ?contributorIdentifier)
       BIND(REPLACE(STR(?roleType), "https://nva.sikt.no/ontology/publication#", "", "i") AS ?contributorRole)
     }
 } ORDER BY ASC(?publicationIdentifier) LIMIT __PAGE_SIZE__
