@@ -32,7 +32,7 @@
     },
     "partOf": {
       "@container": "@set",
-      "@type": "@id"
+      "@id": "ignoredInGraphPartOf"
     },
     "involvedOrganizations": {
       "@id": "involvedOrganization",
