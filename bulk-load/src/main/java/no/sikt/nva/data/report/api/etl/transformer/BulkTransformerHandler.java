@@ -181,7 +181,12 @@ public class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, V
     private String extractContent(String key) {
         var s3Driver = new S3Driver(s3BatchesClient, KEY_BATCHES_BUCKET);
         logger.info(PROCESSING_BATCH_MESSAGE, key);
-        return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
+        try {
+            return s3Driver.getFile(UnixPath.of(key));
+        } catch (Exception exception) {
+            logger.error("Failed to extract content for key: {}", key, exception);
+            throw new RuntimeException(exception);
+        }
     }
 
     private String getLocation(KeyBatchRequestEvent input) {
