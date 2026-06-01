@@ -60,6 +60,8 @@ public final class NviInstitutionStatusSampleData {
                                                                               INTERNATIONAL_COLLABORATION_FACTOR,
                                                                               POINTS_FOR_AFFILIATION);
 
+    private NviInstitutionStatusSampleData() {}
+
     public static String generateExpectedNviInstitutionResponse(SampleNviContributor contributor,
                                                                 SampleNviCandidate candidate,
                                                                 SamplePublication publication) {
