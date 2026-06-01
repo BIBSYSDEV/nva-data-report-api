@@ -104,9 +104,9 @@ public record PublicationIndexDocument(String type,
                                      PublicationDate publicationDate,
                                      Reference reference) {
 
-        public static final String TYPE = "EntityDescription";
+        static final String TYPE = "EntityDescription";
 
-        public static EntityDescription from(SamplePublication publication) {
+        static EntityDescription from(SamplePublication publication) {
             return new EntityDescription(TYPE,
                                          publication.getContributors().stream().map(Contributor::from).toList(),
                                          publication.getMainTitle(),
@@ -120,9 +120,9 @@ public record PublicationIndexDocument(String type,
                                    String sequence,
                                    List<Affiliation> affiliations) {
 
-            public static final String TYPE = "Contributor";
+            static final String TYPE = "Contributor";
 
-            public static Contributor from(SampleContributor sampleContributor) {
+            static Contributor from(SampleContributor sampleContributor) {
                 return new Contributor(
                     TYPE,
                     Identity.from(sampleContributor.getIdentity()),
@@ -136,9 +136,9 @@ public record PublicationIndexDocument(String type,
                                     String name,
                                     String id) {
 
-                public static final String TYPE = "Identity";
+                static final String TYPE = "Identity";
 
-                public static Identity from(SampleIdentity identity) {
+                static Identity from(SampleIdentity identity) {
                     return new Identity(
                         TYPE,
                         identity.name(),
@@ -156,9 +156,9 @@ public record PublicationIndexDocument(String type,
                                        Map<String, String> labels,
                                        Affiliation partOf) {
 
-                public static final String TYPE = "Organization";
+                static final String TYPE = "Organization";
 
-                public static Affiliation from(
+                static Affiliation from(
                     SampleOrganization sampleOrganization) {
                     return new Affiliation(
                         sampleOrganization.getId(),
@@ -175,9 +175,9 @@ public record PublicationIndexDocument(String type,
                                        String month,
                                        String day) {
 
-            public static final String TYPE = "PublicationDate";
+            static final String TYPE = "PublicationDate";
 
-            public static PublicationDate from(
+            static PublicationDate from(
                 no.sikt.nva.data.report.testing.utils.generator.publication.PublicationDate date) {
                 return new PublicationDate(TYPE,
                                            date.year(),
@@ -190,9 +190,9 @@ public record PublicationIndexDocument(String type,
                                  PublicationContext publicationContext,
                                  PublicationInstance publicationInstance) {
 
-            public static final String TYPE = "Reference";
+            static final String TYPE = "Reference";
 
-            public static Reference from(SamplePublication publication) {
+            static Reference from(SamplePublication publication) {
                 return new Reference(TYPE,
                                      PublicationContext.from(publication),
                                      PublicationInstance.from(publication));
@@ -205,7 +205,7 @@ public record PublicationIndexDocument(String type,
                                               String printIssn,
                                               String scientificValue) {
 
-                public static PublicationContext from(SamplePublication publication) {
+                static PublicationContext from(SamplePublication publication) {
                     return new PublicationContext(
                         publication.getChannel().getType(),
                         publication.getChannel().getIdentifier(),
@@ -219,7 +219,7 @@ public record PublicationIndexDocument(String type,
 
             private record PublicationInstance(String type) {
 
-                public static PublicationInstance from(SamplePublication publication) {
+                static PublicationInstance from(SamplePublication publication) {
                     return new PublicationInstance(publication.getPublicationCategory());
                 }
             }
@@ -231,9 +231,9 @@ public record PublicationIndexDocument(String type,
                            String identifier,
                            FundingSource source) {
 
-        public static final String IRRELEVANT_HARDCODED_FUNDING_TYPE = "ConfirmedFunding";
+        static final String IRRELEVANT_HARDCODED_FUNDING_TYPE = "ConfirmedFunding";
 
-        public static Funding from(SampleFunding sampleFunding) {
+        static Funding from(SampleFunding sampleFunding) {
             return new Funding(
                 IRRELEVANT_HARDCODED_FUNDING_TYPE,
                 sampleFunding.getId(),
@@ -250,9 +250,9 @@ public record PublicationIndexDocument(String type,
                                      String type,
                                      Map<String, String> labels) {
 
-            public static final String TYPE = "FundingSource";
+            static final String TYPE = "FundingSource";
 
-            public static FundingSource from(SampleFunding sampleFunding) {
+            static FundingSource from(SampleFunding sampleFunding) {
                 return new FundingSource(
                     sampleFunding.getFundingSource(),
                     TYPE,
@@ -266,7 +266,7 @@ public record PublicationIndexDocument(String type,
                                         String value,
                                         String type) {
 
-        public static AdditionalIdentifier from(SampleAdditionalIdentifier additionalIdentifier) {
+        static AdditionalIdentifier from(SampleAdditionalIdentifier additionalIdentifier) {
             return new AdditionalIdentifier(additionalIdentifier.getSourceName(), additionalIdentifier.getValue(),
                                             additionalIdentifier.getType());
         }

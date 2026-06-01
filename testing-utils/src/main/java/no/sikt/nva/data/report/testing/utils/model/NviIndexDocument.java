@@ -70,9 +70,9 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
 
     private record ReportingPeriod(String type, String year) {
 
-        public static final String TYPE = "ReportingPeriod";
+        static final String TYPE = "ReportingPeriod";
 
-        public static ReportingPeriod from(String year) {
+        static ReportingPeriod from(String year) {
             return new ReportingPeriod(TYPE, year);
         }
     }
@@ -84,9 +84,9 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                             Set<String> involvedOrganizations,
                             String globalApprovalStatus) {
 
-        public static final String TYPE = "Approval";
+        static final String TYPE = "Approval";
 
-        public static Approval from(SampleApproval sampleApproval, String globalApprovalStatus) {
+        static Approval from(SampleApproval sampleApproval, String globalApprovalStatus) {
             return new Approval(TYPE,
                                 sampleApproval.institutionId(),
                                 sampleApproval.approvalStatus().getValue(),
@@ -99,9 +99,9 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                               double institutionPoints,
                               List<CreatorAffiliationPoints> creatorAffiliationPoints) {
 
-            public static final String TYPE = "InstitutionPoints";
+            static final String TYPE = "InstitutionPoints";
 
-            public static Points from(SampleInstitutionPoints points) {
+            static Points from(SampleInstitutionPoints points) {
                 return new Points(TYPE,
                                   points.institutionPoints().doubleValue(),
                                   points.creatorAffiliationPoints()
@@ -115,9 +115,9 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                                                     URI affiliationId,
                                                     double points) {
 
-                public static final String TYPE = "CreatorAffiliationPoints";
+                static final String TYPE = "CreatorAffiliationPoints";
 
-                public static CreatorAffiliationPoints from(
+                static CreatorAffiliationPoints from(
                     SampleCreatorAffiliationPoints sampleCreatorAffiliationPoints) {
                     return new CreatorAffiliationPoints(TYPE,
                                                         sampleCreatorAffiliationPoints.nviCreator(),
@@ -131,7 +131,7 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
     private record PublicationDetails(String id,
                                       List<NviContributor> contributors) {
 
-        public static PublicationDetails from(SamplePublicationDetails samplePublicationDetails) {
+        static PublicationDetails from(SamplePublicationDetails samplePublicationDetails) {
             return new PublicationDetails(samplePublicationDetails.id(),
                                           samplePublicationDetails.contributors().stream()
                                               .map(NviContributor::from)
@@ -142,9 +142,9 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                                       String id,
                                       List<NviOrganization> affiliations) {
 
-            public static final String TYPE = "NviContributor";
+            static final String TYPE = "NviContributor";
 
-            public static NviContributor from(SampleNviContributor sampleNviContributor) {
+            static NviContributor from(SampleNviContributor sampleNviContributor) {
                 return new NviContributor(TYPE,
                                           sampleNviContributor.id(),
                                           sampleNviContributor.affiliations()
@@ -157,9 +157,9 @@ public record NviIndexDocument(@JsonProperty("@context") String context,
                                            String id,
                                            List<String> partOf) {
 
-                public static final String TYPE = "NviOrganization";
+                static final String TYPE = "NviOrganization";
 
-                public static NviOrganization from(SampleNviOrganization sampleNviOrganization) {
+                static NviOrganization from(SampleNviOrganization sampleNviOrganization) {
                     return new NviOrganization(TYPE,
                                                sampleNviOrganization.id(),
                                                sampleNviOrganization.partOf());

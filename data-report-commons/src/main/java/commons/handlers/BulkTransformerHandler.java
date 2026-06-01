@@ -187,16 +187,16 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
         private final boolean truncated;
         private final String key;
 
-        public ListingResponse(ListObjectsV2Response response) {
+        ListingResponse(ListObjectsV2Response response) {
             this.truncated = Boolean.TRUE.equals(response.isTruncated());
             this.key = extractKey(response);
         }
 
-        public boolean isTruncated() {
+        boolean isTruncated() {
             return truncated;
         }
 
-        public Optional<String> getKey() {
+        Optional<String> getKey() {
             return Optional.ofNullable(key);
         }
 

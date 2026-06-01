@@ -38,7 +38,7 @@ public enum ReportType {
     }
 
     private static boolean isNotNviReportType(ReportType reportType) {
-        return !NVI.equals(reportType);
+        return NVI != reportType;
     }
 
     private static IllegalArgumentException getIllegalArgument() {

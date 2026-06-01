@@ -90,7 +90,7 @@ public class PersistedResourceCsvTransformer implements RequestHandler<SQSEvent,
         logInput(input);
         var eventType = EventType.parse(input.eventType());
         var documentType = DocumentType.fromLocation(input.getLocation());
-        if (UPSERT.equals(eventType)) {
+        if (UPSERT == eventType) {
             transformAndPersistObject(documentType, UnixPath.of(input.key()));
         }
     }
@@ -99,7 +99,7 @@ public class PersistedResourceCsvTransformer implements RequestHandler<SQSEvent,
         var resource = readAsJsonNode(objectKey);
         var identifier = resource.get(IDENTIFIER).asText();
         var model = loadIntoModel(resource);
-        var csvContent = NVI_CANDIDATE.equals(documentType)
+        var csvContent = NVI_CANDIDATE == documentType
                              ? List.of(transform(model, ReportType.NVI, identifier))
                              : generatePublicationReports(model, identifier);
         csvContent.forEach(this::persist);
