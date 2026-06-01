@@ -50,7 +50,7 @@
     <!--<exclude name="AvoidPrintStackTrace"/>-->
 
 
-    <!-- This rule does not allow us the following:
+    <!-- This rule does not allow us the following:BulkTransformerHandler
             private static final Logger logger=...
          It requires:
             private static final Logger LOGGER=... -->
