@@ -1,31 +1,18 @@
 plugins {
-    id 'jacoco-report-aggregation'
-    id 'base'
-    id 'java-library'
+    id 'nva.root-module-conventions'
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    subprojects.forEach {
-        jacocoAggregation it
+nva {
+    dependencyAnalysis {
+        enforced = false
     }
-}
-
-reporting {
-    reports {
-        testCodeCoverageReport(JacocoCoverageReport) {
-            testSuiteName = "test"
-        }
+    // Excluding testing-utils from coverage checks because it is largely unused
+    generatedCode = ['no/sikt/nva/data/report/testing/utils/**']
+    spectral {
+        documents = ['docs/*.yaml']
+        rulesetFile = file('.spectral.yaml')
     }
-}
-
-tasks.named('check') {
-    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
-}
-
-configurations {
-    compile.exclude module: 'testing-utils'
+    spotless {
+        enabled = false
+    }
 }

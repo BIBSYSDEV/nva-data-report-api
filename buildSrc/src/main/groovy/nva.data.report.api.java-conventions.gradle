@@ -1,56 +1,19 @@
 plugins {
-    id 'java'
-    id 'pmd'
-    id 'jacoco-report-aggregation'
+    id 'nva.java-conventions'
 }
 
-group = 'no.sikt'
+nva {
+    errorprone {
+        allErrorsAsWarnings = true
+    }
+    pmd {
+        rulesetFile = rootProject.file('config/pmd/ruleset.xml')
+    }
+    spotless {
+        enabled = false
+    }
+}
 
 dependencies {
     testImplementation libs.bundles.testing
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    // source-code version and must be <= targetCompatibility
-    targetCompatibility = JavaVersion.VERSION_21 // bytecode target version
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
-    failFast = false
-    testLogging {
-        events 'skipped', 'passed', 'failed'
-    }
-}
-
-pmd {
-    toolVersion = '7.23.0'
-    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
-    ruleSets = []
-    ignoreFailures = false
-}
-
-check.dependsOn jacocoTestCoverageVerification
-jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
-
-jacocoTestCoverageVerification {
-
-    violationRules {
-        rule {
-            limit {
-                counter = 'METHOD'
-                value = 'COVEREDRATIO'
-                minimum = 1.000
-            }
-        }
-
-        rule {
-            limit {
-                counter = 'CLASS'
-                value = 'COVEREDRATIO'
-                minimum = 1.000
-            }
-        }
-    }
 }
