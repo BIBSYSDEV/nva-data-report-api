@@ -13,7 +13,3 @@ nva {
         enabled = false
     }
 }
-
-dependencies {
-    testImplementation libs.bundles.testing
-}

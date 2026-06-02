@@ -4,7 +4,7 @@ plugins {
 
 nva {
     dependencyAnalysis {
-        enforced = false
+        enforced = true
     }
     // Excluding testing-utils from coverage checks because it is largely unused
     generatedCode = ['no/sikt/nva/data/report/testing/utils/**']

@@ -1,67 +1,14 @@
 [versions]
-awsLambdaCore = { strictly = '1.3.0' }
-awsLambdaEvents = { strictly = '3.16.0' }
-awsSdk2 = { strictly = '2.31.77' }
-guava = { strictly = '33.4.8-jre' }
-jackson = { strictly = '2.19.1' }
-jena = { require = '5.4.0' }
-jupiter = { strictly = '5.13.3' }
-log4j = { strictly = '2.25.0' }
-mockito = { strictly = '5.18.0' }
-nva = { strictly = '2.2.9' }
-slf4j = { strictly = '2.0.17' }
-zalandoProblem = { strictly = '0.27.1' }
-
+commonsCsv = { strictly = '1.14.1' }
+commonsIo = { strictly = '2.22.0' }
+commonsText = { strictly = '1.15.0' }
+jena = { strictly = '6.1.0' }
+titaniumJsonLd = { strictly = '1.7.0' }
 
 [libraries]
-junit-jupiter-api = { group = 'org.junit.jupiter', name = 'junit-jupiter-api', version.ref = 'jupiter' }
-junit-jupiter-params = { group = 'org.junit.jupiter', name = 'junit-jupiter-params', version.ref = 'jupiter' }
-junit-jupiter-engine = { group = 'org.junit.jupiter', name = 'junit-jupiter-engine', version.ref = 'jupiter' }
-
-nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nva' }
-nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nva' }
-
-nva-s3 = { group = 'com.github.bibsysdev', name = 's3', version.ref = 'nva' }
-nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nva' }
-nva-commons-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nva' }
-nva-commons-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nva' }
-nva-eventhandlers = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nva' }
-nva-identifiers = { group = 'com.github.bibsysdev', name = 'identifiers', version.ref = 'nva' }
-nva-commons-auth = { group = 'com.github.bibsysdev', name = 'auth', version.ref = 'nva' }
-nva-commons-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 'nva' }
-
-jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
-jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }
-
-aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
-aws-sdk2-s3 = { group = 'software.amazon.awssdk', name = 's3', version.ref = 'awsSdk2' }
-aws-sdk2-sqs = { group = 'software.amazon.awssdk', name = 'sqs', version.ref = 'awsSdk2' }
-aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
-aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
-aws-sdk2-apache-client = { group = 'software.amazon.awssdk', name = 'apache-client', version.ref = 'awsSdk2' }
-
-aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaCore' }
-aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
-
-log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
-log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.ref = 'log4j' }
-log4j-slf4j2-impl = { group = 'org.apache.logging.log4j', name = 'log4j-slf4j2-impl', version.ref = 'log4j' }
-
-slf4j-api = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
-
-jena-core = { group = 'org.apache.jena', name = 'jena-core', version.ref = 'jena' }
-jena-arq = { group = 'org.apache.jena', name = 'jena-arq', version.ref = 'jena' }
+commons-csv = { group = 'org.apache.commons', name = 'commons-csv', version.ref = 'commonsCsv' }
+commons-io = { group = 'commons-io', name = 'commons-io', version.ref = 'commonsIo' }
+commons-text = { group = 'org.apache.commons', name = 'commons-text', version.ref = 'commonsText' }
 jena-fuseki = { group = 'org.apache.jena', name = 'jena-fuseki-main', version.ref = 'jena' }
-jena-rdfconnection = { group = 'org.apache.jena', name = 'jena-rdfconnection', version.ref = 'jena' }
-
-zalando = { group = 'org.zalando', name = 'problem', version.ref = 'zalandoProblem' }
-
-guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
-
-mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mockito' }
-
-[bundles]
-jena = ['jena-core', 'jena-arq', 'jena-rdfconnection']
-logging = ['log4j-core', 'log4j-api', 'log4j-slf4j2-impl', 'slf4j-api', 'nva-logutils']
-testing = ['junit-jupiter-api', 'junit-jupiter-params', 'junit-jupiter-engine', 'mockito-core', 'zalando']
-jackson = ['jackson-core', 'jackson-databind']
+jena-fuseki-server = { group = 'org.apache.jena', name = 'jena-fuseki-server', version.ref = 'jena' }
+titanium-json-ld = { group = 'com.apicatalog', name = 'titanium-json-ld', version.ref = 'titaniumJsonLd' }
