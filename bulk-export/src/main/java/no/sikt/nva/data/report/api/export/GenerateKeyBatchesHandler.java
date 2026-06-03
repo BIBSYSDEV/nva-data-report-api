@@ -35,7 +35,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     private static final String DELIMITER = "/";
     private static final String INFO_MESSAGE = "Start marker: {}. Location: {}";
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
-    private static final Logger logger = LoggerFactory.getLogger(GenerateKeyBatchesHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenerateKeyBatchesHandler.class);
     private static final Environment ENVIRONMENT = new Environment();
     private static final String INPUT_BUCKET = ENVIRONMENT.readEnv("EXPANDED_RESOURCES_BUCKET");
     private static final String OUTPUT_BUCKET = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
@@ -75,9 +75,9 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
         var requestEvent = nonNull(input) ? input : new KeyBatchRequestEvent();
         var startMarker = requestEvent.getStartMarker();
         var location = requestEvent.getLocation();
-        logger.info(INFO_MESSAGE, startMarker, location);
+        LOGGER.info(INFO_MESSAGE, startMarker, location);
         var request = createRequest(startMarker, location);
-        logger.info("Requesting data from {}", request.bucket());
+        LOGGER.info("Requesting data from {}", request.bucket());
         var response = inputClient.listObjectsV2(request);
 
         getKeys(response)
@@ -87,9 +87,9 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
     }
 
     private void emitNextRequest(Context context, String location, String lastEvaluatedKey) {
-        logger.info(LAST_KEY_IN_BATCH_MESSAGE, lastEvaluatedKey);
+        LOGGER.info(LAST_KEY_IN_BATCH_MESSAGE, lastEvaluatedKey);
         var eventsResponse = sendEvent(constructRequestEntry(lastEvaluatedKey, context, location));
-        logger.info(eventsResponse.toString());
+        LOGGER.info(eventsResponse.toString());
     }
 
     private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
@@ -163,7 +163,7 @@ public class GenerateKeyBatchesHandler extends EventHandler<KeyBatchRequestEvent
                           .key(key)
                           .build();
         outputClient.putObject(request, RequestBody.fromBytes(object.getBytes(UTF_8)));
-        logger.info(WROTE_ITEMS_MESSAGE, keys.size(), OUTPUT_BUCKET);
+        LOGGER.info(WROTE_ITEMS_MESSAGE, keys.size(), OUTPUT_BUCKET);
         return getLastEvaluatedKey(keys);
     }
 }

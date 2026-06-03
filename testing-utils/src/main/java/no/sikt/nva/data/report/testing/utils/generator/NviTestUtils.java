@@ -12,6 +12,8 @@ public final class NviTestUtils {
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private static final int NVI_POINT_SCALE = 4;
 
+    private NviTestUtils() {}
+
     public static BigDecimal getExpectedPointsForAffiliation(SampleNviOrganization affiliation,
                                                              SampleNviContributor contributor, SampleApproval approval) {
         return approval.points()

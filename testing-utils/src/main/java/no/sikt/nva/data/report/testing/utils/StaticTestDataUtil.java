@@ -9,11 +9,13 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 
-public class StaticTestDataUtil {
+public final class StaticTestDataUtil {
 
     private static final Path ACADEMIC_ARTICLE_JSON = Path.of("academicArticle.json");
     private static final Path NVI_CANDIDATE = Path.of("nviCandidate.json");
     private static final Path NOT_APPLICABLE_CANDIDATE = Path.of("nonApplicableNviCandidate.json");
+
+    private StaticTestDataUtil() {}
 
     public static InputStream getPublication(URI id) {
         return stringToStream(fromResourcesReplacingId(ACADEMIC_ARTICLE_JSON, id));

@@ -14,7 +14,7 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 public class PublisherGenerator extends TripleBasedBuilder implements PublicationContext {
 
     public final Model model;
-    private static final Resource Publisher = new ResourceImpl(Constants.ONTOLOGY_BASE_URI + "Publisher");
+    private static final Resource PUBLISHER = new ResourceImpl(Constants.ONTOLOGY_BASE_URI + "Publisher");
     private static final Property SCIENTIFIC_VALUE = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "scientificValue");
     private static final Property NAME = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "name");
 
@@ -25,7 +25,7 @@ public class PublisherGenerator extends TripleBasedBuilder implements Publicatio
         this.model = ModelFactory.createDefaultModel();
         this.subject =
             model.createResource(Constants.publisherUri(identifier));
-        model.add(subject, TYPE, Publisher);
+        model.add(subject, TYPE, PUBLISHER);
         model.add(subject, IDENTIFIER, model.createLiteral(identifier.toString()));
     }
 

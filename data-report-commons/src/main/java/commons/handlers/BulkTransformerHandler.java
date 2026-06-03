@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 @JacocoGenerated //Abstract class, subclasses tested in modules bulk-export and bulk-load
 public abstract class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, Void> {
 
-    private static final Logger logger = LoggerFactory.getLogger(BulkTransformerHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BulkTransformerHandler.class);
     private static final Environment ENVIRONMENT = new Environment();
     private static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
     private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
@@ -80,7 +80,7 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
             .map((Stream<JsonNode> jsonNodeStream) -> processBatch(jsonNodeStream, location))
             .ifPresent(this::persist);
 
-        logger.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
+        LOGGER.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
         return null;
     }
 
@@ -127,7 +127,7 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
 
     private String extractContent(String key) {
         var s3Driver = new S3Driver(s3BatchesClient, KEY_BATCHES_BUCKET);
-        logger.info(PROCESSING_BATCH_MESSAGE, key);
+        LOGGER.info(PROCESSING_BATCH_MESSAGE, key);
         return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
     }
 
@@ -136,7 +136,7 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
     }
 
     private ListingResponse fetchSingleBatch(String location, String startMarker) {
-        logger.info("Fetching batch with location: {} and startMarker: {}", location, startMarker);
+        LOGGER.info("Fetching batch with location: {} and startMarker: {}", location, startMarker);
         var response = s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
@@ -171,12 +171,12 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
     }
 
     private Optional<String> fetchS3Content(String key) {
-        logger.info("Fetching content for key: {}", key);
+        LOGGER.info("Fetching content for key: {}", key);
         var s3Driver = new S3Driver(s3ResourcesClient, ENVIRONMENT.readEnv(EXPANDED_RESOURCES_BUCKET));
         try {
             return Optional.of(s3Driver.getFile(UnixPath.of(key)));
         } catch (NoSuchKeyException noSuchKeyException) {
-            logger.info("Key not found: {}", key);
+            LOGGER.info("Key not found: {}", key);
             return Optional.empty();
         }
     }
@@ -187,16 +187,16 @@ public abstract class BulkTransformerHandler extends EventHandler<KeyBatchReques
         private final boolean truncated;
         private final String key;
 
-        public ListingResponse(ListObjectsV2Response response) {
+        ListingResponse(ListObjectsV2Response response) {
             this.truncated = Boolean.TRUE.equals(response.isTruncated());
             this.key = extractKey(response);
         }
 
-        public boolean isTruncated() {
+        boolean isTruncated() {
             return truncated;
         }
 
-        public Optional<String> getKey() {
+        Optional<String> getKey() {
             return Optional.ofNullable(key);
         }
 
