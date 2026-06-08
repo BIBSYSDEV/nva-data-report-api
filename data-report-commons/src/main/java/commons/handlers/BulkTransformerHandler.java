@@ -2,6 +2,7 @@ package commons.handlers;
 
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.db.utils.DocumentUnwrapper;
@@ -29,181 +30,177 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
-@JacocoGenerated //Abstract class, subclasses tested in modules bulk-export and bulk-load
+@JacocoGenerated // Abstract class, subclasses tested in modules bulk-export and bulk-load
 public abstract class BulkTransformerHandler extends EventHandler<KeyBatchRequestEvent, Void> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BulkTransformerHandler.class);
-    private static final Environment ENVIRONMENT = new Environment();
-    private static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
-    private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
-    private static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
-    private static final String KEY_BATCHES_BUCKET
-        = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
-    private static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
-    private static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
-    private static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
-    private static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
-    private static final String LINE_BREAK = "\n";
-    private static final String DEFAULT_LOCATION = "resources";
-    private final S3Client s3ResourcesClient;
-    private final S3Client s3BatchesClient;
-    private final EventBridgeClient eventBridgeClient;
+  private static final Logger LOGGER = LoggerFactory.getLogger(BulkTransformerHandler.class);
+  private static final Environment ENVIRONMENT = new Environment();
+  private static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
+  private static final String MANDATORY_UNUSED_SUBTOPIC = "DETAIL.WITH.TOPIC";
+  private static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
+  private static final String KEY_BATCHES_BUCKET = ENVIRONMENT.readEnv("KEY_BATCHES_BUCKET");
+  private static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
+  private static final String TOPIC = ENVIRONMENT.readEnv("TOPIC");
+  private static final String PROCESSING_BATCH_MESSAGE = "Processing batch: {}";
+  private static final String LAST_CONSUMED_BATCH = "Last consumed batch: {}";
+  private static final String LINE_BREAK = "\n";
+  private static final String DEFAULT_LOCATION = "resources";
+  private final S3Client s3ResourcesClient;
+  private final S3Client s3BatchesClient;
+  private final EventBridgeClient eventBridgeClient;
 
-    @JacocoGenerated
-    public BulkTransformerHandler() {
-        this(defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
+  @JacocoGenerated
+  public BulkTransformerHandler() {
+    this(defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
+  }
+
+  public BulkTransformerHandler(
+      S3Client s3ResourcesClient, S3Client s3BatchesClient, EventBridgeClient eventBridgeClient) {
+    super(KeyBatchRequestEvent.class);
+    this.s3ResourcesClient = s3ResourcesClient;
+    this.s3BatchesClient = s3BatchesClient;
+    this.eventBridgeClient = eventBridgeClient;
+  }
+
+  @Override
+  protected Void processInput(
+      KeyBatchRequestEvent input,
+      AwsEventBridgeEvent<KeyBatchRequestEvent> event,
+      Context context) {
+    var startMarker = getStartMarker(input);
+    var location = getLocation(input);
+    var batchResponse = fetchSingleBatch(location, startMarker);
+
+    emitNextEvent(batchResponse, location, context);
+
+    batchResponse
+        .getKey()
+        .map(this::extractContent)
+        .filter(keys -> !keys.isEmpty())
+        .map(this::mapToIndexDocuments)
+        .map((Stream<JsonNode> jsonNodeStream) -> processBatch(jsonNodeStream, location))
+        .ifPresent(this::persist);
+
+    LOGGER.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
+    return null;
+  }
+
+  protected abstract List<ContentWithLocation> processBatch(
+      Stream<JsonNode> jsonNodeStream, String batchLocation);
+
+  protected abstract void persist(List<ContentWithLocation> content);
+
+  private static PutEventsRequestEntry constructRequestEntry(
+      String lastEvaluatedKey, String location, Context context) {
+    return PutEventsRequestEntry.builder()
+        .eventBusName(EVENT_BUS)
+        .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location).toJsonString())
+        .detailType(MANDATORY_UNUSED_SUBTOPIC)
+        .source(BulkTransformerHandler.class.getName())
+        .resources(context.getInvokedFunctionArn())
+        .time(Instant.now())
+        .build();
+  }
+
+  private static String getStartMarker(KeyBatchRequestEvent input) {
+    return nonNull(input) && nonNull(input.getStartMarker()) ? input.getStartMarker() : null;
+  }
+
+  @JacocoGenerated
+  private static S3Client defaultS3Client() {
+    return S3Driver.defaultS3Client().build();
+  }
+
+  @JacocoGenerated
+  private static EventBridgeClient defaultEventBridgeClient() {
+    return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
+  }
+
+  private void emitNextEvent(ListingResponse batchResponse, String location, Context context) {
+    if (batchResponse.isTruncated()) {
+      sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null), location, context));
     }
+  }
 
-    public BulkTransformerHandler(S3Client s3ResourcesClient,
-                                  S3Client s3BatchesClient,
-                                  EventBridgeClient eventBridgeClient) {
-        super(KeyBatchRequestEvent.class);
-        this.s3ResourcesClient = s3ResourcesClient;
-        this.s3BatchesClient = s3BatchesClient;
-        this.eventBridgeClient = eventBridgeClient;
-    }
+  private String extractContent(String key) {
+    var s3Driver = new S3Driver(s3BatchesClient, KEY_BATCHES_BUCKET);
+    LOGGER.info(PROCESSING_BATCH_MESSAGE, key);
+    return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
+  }
 
-    @Override
-    protected Void processInput(KeyBatchRequestEvent input,
-                                AwsEventBridgeEvent<KeyBatchRequestEvent> event,
-                                Context context) {
-        var startMarker = getStartMarker(input);
-        var location = getLocation(input);
-        var batchResponse = fetchSingleBatch(location, startMarker);
+  private String getLocation(KeyBatchRequestEvent input) {
+    return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : DEFAULT_LOCATION;
+  }
 
-        emitNextEvent(batchResponse, location, context);
-
-        batchResponse.getKey()
-            .map(this::extractContent)
-            .filter(keys -> !keys.isEmpty())
-            .map(this::mapToIndexDocuments)
-            .map((Stream<JsonNode> jsonNodeStream) -> processBatch(jsonNodeStream, location))
-            .ifPresent(this::persist);
-
-        LOGGER.info(LAST_CONSUMED_BATCH, batchResponse.getKey());
-        return null;
-    }
-
-    protected abstract List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream, String batchLocation);
-
-    protected abstract void persist(List<ContentWithLocation> content);
-
-    private static PutEventsRequestEntry constructRequestEntry(String lastEvaluatedKey,
-                                                               String location,
-                                                               Context context) {
-        return PutEventsRequestEntry.builder()
-                   .eventBusName(EVENT_BUS)
-                   .detail(new KeyBatchRequestEvent(lastEvaluatedKey, TOPIC, location).toJsonString())
-                   .detailType(MANDATORY_UNUSED_SUBTOPIC)
-                   .source(BulkTransformerHandler.class.getName())
-                   .resources(context.getInvokedFunctionArn())
-                   .time(Instant.now())
-                   .build();
-    }
-
-    private static String getStartMarker(KeyBatchRequestEvent input) {
-        return nonNull(input) && nonNull(input.getStartMarker()) ? input.getStartMarker() : null;
-    }
-
-    @JacocoGenerated
-    private static S3Client defaultS3Client() {
-        return S3Driver.defaultS3Client().build();
-    }
-
-    @JacocoGenerated
-    private static EventBridgeClient defaultEventBridgeClient() {
-        return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
-    }
-
-    private void emitNextEvent(ListingResponse batchResponse,
-                               String location,
-                               Context context) {
-        if (batchResponse.isTruncated()) {
-            sendEvent(constructRequestEntry(batchResponse.getKey().orElse(null),
-                                            location,
-                                            context));
-        }
-    }
-
-    private String extractContent(String key) {
-        var s3Driver = new S3Driver(s3BatchesClient, KEY_BATCHES_BUCKET);
-        LOGGER.info(PROCESSING_BATCH_MESSAGE, key);
-        return attempt(() -> s3Driver.getFile(UnixPath.of(key))).orElseThrow();
-    }
-
-    private String getLocation(KeyBatchRequestEvent input) {
-        return nonNull(input) && nonNull(input.getLocation()) ? input.getLocation() : DEFAULT_LOCATION;
-    }
-
-    private ListingResponse fetchSingleBatch(String location, String startMarker) {
-        LOGGER.info("Fetching batch with location: {} and startMarker: {}", location, startMarker);
-        var response = s3BatchesClient.listObjectsV2(
+  private ListingResponse fetchSingleBatch(String location, String startMarker) {
+    LOGGER.info("Fetching batch with location: {} and startMarker: {}", location, startMarker);
+    var response =
+        s3BatchesClient.listObjectsV2(
             ListObjectsV2Request.builder()
                 .bucket(KEY_BATCHES_BUCKET)
                 .prefix(location)
                 .startAfter(startMarker)
                 .maxKeys(1)
                 .build());
-        return new ListingResponse(response);
+    return new ListingResponse(response);
+  }
+
+  private void sendEvent(PutEventsRequestEntry event) {
+    eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
+  }
+
+  private Stream<JsonNode> mapToIndexDocuments(String content) {
+    return extractIdentifiers(content)
+        .filter(Objects::nonNull)
+        .map(this::fetchS3Content)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(this::unwrap);
+  }
+
+  private JsonNode unwrap(String json) {
+    return attempt(() -> new DocumentUnwrapper(API_HOST).unwrap(json)).orElseThrow();
+  }
+
+  private Stream<String> extractIdentifiers(String value) {
+    return nonNull(value) && !value.isBlank()
+        ? Arrays.stream(value.split(LINE_BREAK))
+        : Stream.empty();
+  }
+
+  private Optional<String> fetchS3Content(String key) {
+    LOGGER.info("Fetching content for key: {}", key);
+    var s3Driver = new S3Driver(s3ResourcesClient, ENVIRONMENT.readEnv(EXPANDED_RESOURCES_BUCKET));
+    try {
+      return Optional.of(s3Driver.getFile(UnixPath.of(key)));
+    } catch (NoSuchKeyException noSuchKeyException) {
+      LOGGER.info("Key not found: {}", key);
+      return Optional.empty();
+    }
+  }
+
+  @JacocoGenerated
+  private static class ListingResponse {
+
+    private final boolean truncated;
+    private final String key;
+
+    ListingResponse(ListObjectsV2Response response) {
+      this.truncated = Boolean.TRUE.equals(response.isTruncated());
+      this.key = extractKey(response);
     }
 
-    private void sendEvent(PutEventsRequestEntry event) {
-        eventBridgeClient.putEvents(PutEventsRequest.builder().entries(event).build());
+    boolean isTruncated() {
+      return truncated;
     }
 
-    private Stream<JsonNode> mapToIndexDocuments(String content) {
-        return extractIdentifiers(content)
-                   .filter(Objects::nonNull)
-                   .map(this::fetchS3Content)
-                   .filter(Optional::isPresent)
-                   .map(Optional::get)
-                   .map(this::unwrap);
+    Optional<String> getKey() {
+      return Optional.ofNullable(key);
     }
 
-    private JsonNode unwrap(String json) {
-        return attempt(() -> new DocumentUnwrapper(API_HOST).unwrap(json)).orElseThrow();
+    private static String extractKey(ListObjectsV2Response response) {
+      var contents = response.contents();
+      return contents.isEmpty() ? null : contents.getFirst().key();
     }
-
-    private Stream<String> extractIdentifiers(String value) {
-        return nonNull(value) && !value.isBlank()
-                   ? Arrays.stream(value.split(LINE_BREAK))
-                   : Stream.empty();
-    }
-
-    private Optional<String> fetchS3Content(String key) {
-        LOGGER.info("Fetching content for key: {}", key);
-        var s3Driver = new S3Driver(s3ResourcesClient, ENVIRONMENT.readEnv(EXPANDED_RESOURCES_BUCKET));
-        try {
-            return Optional.of(s3Driver.getFile(UnixPath.of(key)));
-        } catch (NoSuchKeyException noSuchKeyException) {
-            LOGGER.info("Key not found: {}", key);
-            return Optional.empty();
-        }
-    }
-
-    @JacocoGenerated
-    private static class ListingResponse {
-
-        private final boolean truncated;
-        private final String key;
-
-        ListingResponse(ListObjectsV2Response response) {
-            this.truncated = Boolean.TRUE.equals(response.isTruncated());
-            this.key = extractKey(response);
-        }
-
-        boolean isTruncated() {
-            return truncated;
-        }
-
-        Optional<String> getKey() {
-            return Optional.ofNullable(key);
-        }
-
-        private static String extractKey(ListObjectsV2Response response) {
-            var contents = response.contents();
-            return contents.isEmpty() ? null : contents.getFirst().key();
-        }
-    }
+  }
 }
-

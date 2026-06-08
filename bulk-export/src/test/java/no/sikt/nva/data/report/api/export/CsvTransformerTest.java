@@ -13,6 +13,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import commons.handlers.KeyBatchRequestEvent;
@@ -56,275 +57,293 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 class CsvTransformerTest {
 
-    public static final String PERSISTED_RESOURCES_NVI_CANDIDATES = "nvi-candidates";
-    public static final String PERSISTED_RESOURCES_PUBLICATIONS = "resources";
-    private static final Environment environment = new Environment();
-    private S3Driver s3KeyBatches3Driver;
-    private ByteArrayOutputStream outputStream;
-    private S3Driver s3OutputDriver;
-    private S3Driver s3ResourcesDriver;
-    private EventBridgeClient eventBridgeClient;
-    private CsvTransformer handler;
-    private S3Client s3keyBatchClient;
-    private S3Client s3ResourcesClient;
+  public static final String PERSISTED_RESOURCES_NVI_CANDIDATES = "nvi-candidates";
+  public static final String PERSISTED_RESOURCES_PUBLICATIONS = "resources";
+  private static final Environment environment = new Environment();
+  private S3Driver s3KeyBatches3Driver;
+  private ByteArrayOutputStream outputStream;
+  private S3Driver s3OutputDriver;
+  private S3Driver s3ResourcesDriver;
+  private EventBridgeClient eventBridgeClient;
+  private CsvTransformer handler;
+  private S3Client s3keyBatchClient;
+  private S3Client s3ResourcesClient;
 
-    public static EventConsumptionAttributes randomConsumptionAttribute() {
-        return new EventConsumptionAttributes(PERSISTED_RESOURCES_PUBLICATIONS, SortableIdentifier.next().toString());
+  public static EventConsumptionAttributes randomConsumptionAttribute() {
+    return new EventConsumptionAttributes(
+        PERSISTED_RESOURCES_PUBLICATIONS, SortableIdentifier.next().toString());
+  }
+
+  @BeforeEach
+  void setUp() {
+    outputStream = new ByteArrayOutputStream();
+    s3keyBatchClient = new FakeS3Client();
+    s3KeyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
+    var s3OutputClient = new FakeS3Client();
+    s3OutputDriver = new S3Driver(s3OutputClient, environment.readEnv("EXPORT_BUCKET"));
+    s3ResourcesClient = new FakeS3Client();
+    s3ResourcesDriver =
+        new S3Driver(s3ResourcesClient, environment.readEnv("EXPANDED_RESOURCES_BUCKET"));
+    eventBridgeClient = new StubEventBridgeClient();
+    handler =
+        new CsvTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);
+  }
+
+  @ParameterizedTest
+  @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
+  void shouldWriteCsvFileToS3ForAllReportTypes(ReportType reportType) throws IOException {
+    var testData = new SampleData(generateDatePairs(1));
+    var batch = setupExistingBatch(testData, reportType);
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, batch);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+    var expected = getExpectedResponseData(reportType, testData);
+    var actual = getActualPersistedFile(reportType);
+    assertEqualsInAnyOrder(expected, actual);
+  }
+
+  @ParameterizedTest
+  @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
+  void shouldWriteCsvFilesForAllReportTypesToSpecificFolderInExportBucket(ReportType reportType)
+      throws IOException {
+    var testData = new SampleData(generateDatePairs(1));
+    var batch = setupExistingBatch(testData, reportType);
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, batch);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+    var expectedPath = UnixPath.of(reportType.getType());
+    var file = s3OutputDriver.listAllFiles(expectedPath).getFirst();
+    assertNotNull(file);
+  }
+
+  @Test
+  void shouldWriteCsvFileToS3ForReportTypeNvi() throws IOException {
+    var reportType = ReportType.NVI;
+    var testData = new SampleData(generateDatePairs(2));
+    var batch = setupExistingBatch(testData, reportType);
+    var location = PERSISTED_RESOURCES_NVI_CANDIDATES;
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, batch);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+    var expected = getExpectedResponseData(reportType, testData);
+    var actual = getActualPersistedFile(reportType);
+    assertEqualsInAnyOrder(expected, actual);
+  }
+
+  @Test
+  void shouldWriteFilesWithCsvFileExtension() throws IOException {
+    var batch = setupExistingBatch(new SampleData(generateDatePairs(1)), ReportType.PUBLICATION);
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+    var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
+    assertTrue(file.getLastPathElement().contains(".csv"));
+  }
+
+  @Test
+  void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
+    var batch = setupExistingBatch(new SampleData(generateDatePairs(1)), ReportType.PUBLICATION);
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
+    var mockedS3OutputClient = mock(S3Client.class);
+    var handler =
+        new CsvTransformer(
+            s3keyBatchClient, s3ResourcesClient, mockedS3OutputClient, eventBridgeClient);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+    var requestWithExpectedContentType =
+        PutObjectRequest.builder()
+            .contentType("text/csv; charset=UTF-8")
+            .contentEncoding("UTF-8")
+            .build();
+    verify(mockedS3OutputClient, times(5))
+        .putObject(refEq(requestWithExpectedContentType, "key", "bucket"), any(RequestBody.class));
+  }
+
+  @Test
+  void shouldEncodeCsvFileInUtf8() throws IOException {
+    var testData = new SampleData(generateDatePairs(1));
+    var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
+    var reportType = ReportType.PUBLICATION;
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+    var expectedEncoding = StandardCharsets.UTF_8;
+    var actualContent =
+        s3OutputDriver.getUncompressedFile(getFirstFilePath(reportType), expectedEncoding);
+    var expectedContent = getExpectedResponseData(reportType, testData);
+    assertEquals(expectedContent, actualContent);
+  }
+
+  @Test
+  void shouldNotEmitNewEventWhenNoMoreBatchesToRetrieve() throws IOException {
+    var testData = new SampleData(generateDatePairs(2));
+    var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, batch);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+    var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+    assertNull(emittedEvent);
+  }
+
+  @Test
+  void shouldEmitNewEventWhenThereAreMoreBatchesToProcess() throws IOException {
+    var testData = new SampleData(generateDatePairs(2));
+    var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, batch);
+    var expectedStarMarkerFromEmittedEvent = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(expectedStarMarkerFromEmittedEvent, batch);
+    var list = new ArrayList<String>();
+    list.add(null);
+    list.add(batchKey.toString());
+    list.add(expectedStarMarkerFromEmittedEvent.toString());
+    for (var item : list) {
+      handler.handleRequest(eventStream(item, location), outputStream, mock(Context.class));
+
+      var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+
+      assertEquals(batchKey.toString(), emittedEvent.getStartMarker());
     }
+  }
 
-    @BeforeEach
-    void setUp() {
-        outputStream = new ByteArrayOutputStream();
-        s3keyBatchClient = new FakeS3Client();
-        s3KeyBatches3Driver = new S3Driver(s3keyBatchClient, environment.readEnv("KEY_BATCHES_BUCKET"));
-        var s3OutputClient = new FakeS3Client();
-        s3OutputDriver = new S3Driver(s3OutputClient, environment.readEnv("EXPORT_BUCKET"));
-        s3ResourcesClient = new FakeS3Client();
-        s3ResourcesDriver = new S3Driver(s3ResourcesClient, environment.readEnv("EXPANDED_RESOURCES_BUCKET"));
-        eventBridgeClient = new StubEventBridgeClient();
-        handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, s3OutputClient, eventBridgeClient);
-    }
+  @Test
+  void shouldNotFailWhenBlobNotFound() throws IOException {
+    var testData = new SampleData(generateDatePairs(2));
+    var indexDocuments = createAndPersistIndexDocuments(testData, ReportType.PUBLICATION);
+    removeOneResourceFromPersistedResourcesBucket(indexDocuments);
+    var batch =
+        indexDocuments.stream()
+            .map(IndexDocument::getIdentifier)
+            .collect(Collectors.joining(System.lineSeparator()));
+    var location = PERSISTED_RESOURCES_PUBLICATIONS;
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, batch);
+    assertDoesNotThrow(
+        () ->
+            handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class)));
+  }
 
-    @ParameterizedTest
-    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
-    void shouldWriteCsvFileToS3ForAllReportTypes(ReportType reportType) throws IOException {
-        var testData = new SampleData(generateDatePairs(1));
-        var batch = setupExistingBatch(testData, reportType);
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var expected = getExpectedResponseData(reportType, testData);
-        var actual = getActualPersistedFile(reportType);
-        assertEqualsInAnyOrder(expected, actual);
-    }
+  @Test
+  void shouldThrowIllegalArgumentExceptionWhenUnknownBatchLocationProvided() throws IOException {
+    var location = "unknown";
+    setUpValidTestData(location);
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class)));
+  }
 
-    @ParameterizedTest
-    @EnumSource(names = {"AFFILIATION", "CONTRIBUTOR", "FUNDING", "IDENTIFIER", "PUBLICATION"})
-    void shouldWriteCsvFilesForAllReportTypesToSpecificFolderInExportBucket(ReportType reportType) throws IOException {
-        var testData = new SampleData(generateDatePairs(1));
-        var batch = setupExistingBatch(testData, reportType);
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var expectedPath = UnixPath.of(reportType.getType());
-        var file = s3OutputDriver.listAllFiles(expectedPath).getFirst();
-        assertNotNull(file);
-    }
+  @Test
+  void shouldSkipEmptyBatches() throws IOException {
+    var location = PERSISTED_RESOURCES_NVI_CANDIDATES;
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, StringUtils.EMPTY_STRING);
+    handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
 
-    @Test
-    void shouldWriteCsvFileToS3ForReportTypeNvi() throws IOException {
-        var reportType = ReportType.NVI;
-        var testData = new SampleData(generateDatePairs(2));
-        var batch = setupExistingBatch(testData, reportType);
-        var location = PERSISTED_RESOURCES_NVI_CANDIDATES;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var expected = getExpectedResponseData(reportType, testData);
-        var actual = getActualPersistedFile(reportType);
-        assertEqualsInAnyOrder(expected, actual);
-    }
+    var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
+    assertEquals(0, actual.size());
+  }
 
-    @Test
-    void shouldWriteFilesWithCsvFileExtension() throws IOException {
-        var batch = setupExistingBatch(new SampleData(generateDatePairs(1)), ReportType.PUBLICATION);
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var file = s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).getFirst();
-        assertTrue(file.getLastPathElement().contains(".csv"));
-    }
+  List<DatePair> generateDatePairs(int numberOfDatePairs) {
+    return IntStream.range(0, numberOfDatePairs)
+        .mapToObj(
+            i ->
+                new DatePair(
+                    new PublicationDate("2024", "02", "02"),
+                    Instant.now().minus(100, ChronoUnit.DAYS)))
+        .toList();
+  }
 
-    @Test
-    void shouldWriteFilesWithContentTypeAndEncoding() throws IOException {
-        var batch = setupExistingBatch(new SampleData(generateDatePairs(1)), ReportType.PUBLICATION);
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
-        var mockedS3OutputClient = mock(S3Client.class);
-        var handler = new CsvTransformer(s3keyBatchClient, s3ResourcesClient, mockedS3OutputClient, eventBridgeClient);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var requestWithExpectedContentType = PutObjectRequest.builder()
-                                                 .contentType("text/csv; charset=UTF-8")
-                                                 .contentEncoding("UTF-8")
-                                                 .build();
-        verify(mockedS3OutputClient, times(5))
-            .putObject(refEq(requestWithExpectedContentType, "key", "bucket"), any(RequestBody.class));
-    }
+  private static String getExpectedResponseData(ReportType reportType, SampleData test) {
+    return switch (reportType) {
+      case AFFILIATION -> test.getAffiliationResponseData();
+      case CONTRIBUTOR -> test.getContributorResponseData();
+      case FUNDING -> test.getFundingResponseData();
+      case IDENTIFIER -> test.getIdentifierResponseData();
+      case PUBLICATION -> test.getPublicationResponseData();
+      case NVI -> test.getNviResponseData();
+    };
+  }
 
-    @Test
-    void shouldEncodeCsvFileInUtf8() throws IOException {
-        var testData = new SampleData(generateDatePairs(1));
-        var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
-        var reportType = ReportType.PUBLICATION;
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        s3KeyBatches3Driver.insertFile(UnixPath.of(location).addChild(randomString()), batch);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var expectedEncoding = StandardCharsets.UTF_8;
-        var actualContent = s3OutputDriver.getUncompressedFile(getFirstFilePath(reportType), expectedEncoding);
-        var expectedContent = getExpectedResponseData(reportType, testData);
-        assertEquals(expectedContent, actualContent);
-    }
+  private static IndexDocument toIndexDocument(SamplePublication publication) {
+    return new IndexDocument(
+        randomConsumptionAttribute(), PublicationIndexDocument.from(publication).asJsonNode());
+  }
 
-    @Test
-    void shouldNotEmitNewEventWhenNoMoreBatchesToRetrieve() throws IOException {
-        var testData = new SampleData(generateDatePairs(2));
-        var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
-        var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
-        assertNull(emittedEvent);
-    }
+  private static IndexDocument toIndexDocument(SampleNviCandidate nviCandidate) {
+    return new IndexDocument(
+        randomConsumptionAttribute(), NviIndexDocument.from(nviCandidate).asJsonNode());
+  }
 
-    @Test
-    void shouldEmitNewEventWhenThereAreMoreBatchesToProcess() throws IOException {
-        var testData = new SampleData(generateDatePairs(2));
-        var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-        var expectedStarMarkerFromEmittedEvent = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(expectedStarMarkerFromEmittedEvent, batch);
-        var list = new ArrayList<String>();
-        list.add(null);
-        list.add(batchKey.toString());
-        list.add(expectedStarMarkerFromEmittedEvent.toString());
-        for (var item : list) {
-            handler.handleRequest(eventStream(item, location), outputStream, mock(Context.class));
+  private void assertEqualsInAnyOrder(String expected, String actual) {
+    var expectedLines = expected.split(System.lineSeparator());
+    var actualLines = actual.split(System.lineSeparator());
+    assertEquals(expectedLines.length, actualLines.length);
+    var expectedList = List.of(expectedLines);
+    var actualList = List.of(actualLines);
+    assertTrue(expectedList.containsAll(actualList));
+    assertTrue(actualList.containsAll(expectedList));
+  }
 
-            var emittedEvent = ((StubEventBridgeClient) eventBridgeClient).getLatestEvent();
+  private UnixPath getFirstFilePath(ReportType reportType) {
+    return s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).getFirst();
+  }
 
-            assertEquals(batchKey.toString(), emittedEvent.getStartMarker());
-        }
-    }
+  private void setUpValidTestData(String location) throws IOException {
+    var testData = new SampleData(generateDatePairs(2));
+    var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
+    var batchKey = UnixPath.of(location).addChild(randomString());
+    s3KeyBatches3Driver.insertFile(batchKey, batch);
+  }
 
-    @Test
-    void shouldNotFailWhenBlobNotFound() throws IOException {
-        var testData = new SampleData(generateDatePairs(2));
-        var indexDocuments = createAndPersistIndexDocuments(testData, ReportType.PUBLICATION);
-        removeOneResourceFromPersistedResourcesBucket(indexDocuments);
-        var batch = indexDocuments.stream()
-                        .map(IndexDocument::getIdentifier)
-                        .collect(Collectors.joining(System.lineSeparator()));
-        var location = PERSISTED_RESOURCES_PUBLICATIONS;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-        assertDoesNotThrow(
-            () -> handler.handleRequest(eventStream(null, location), outputStream,
-                                        mock(Context.class)));
-    }
+  private String setupExistingBatch(SampleData sampleData, ReportType type) {
+    var indexDocuments = createAndPersistIndexDocuments(sampleData, type);
+    return indexDocuments.stream()
+        .map(IndexDocument::getIdentifier)
+        .collect(Collectors.joining(System.lineSeparator()));
+  }
 
-    @Test
-    void shouldThrowIllegalArgumentExceptionWhenUnknownBatchLocationProvided() throws IOException {
-        var location = "unknown";
-        setUpValidTestData(location);
-        assertThrows(IllegalArgumentException.class,
-                     () -> handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class)));
-    }
+  private void removeOneResourceFromPersistedResourcesBucket(
+      List<IndexDocument> expectedDocuments) {
+    var document = expectedDocuments.getFirst();
+    s3ResourcesDriver.deleteFile(UnixPath.of(document.getIdentifier()));
+  }
 
-    @Test
-    void shouldSkipEmptyBatches() throws IOException {
-        var location = PERSISTED_RESOURCES_NVI_CANDIDATES;
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, StringUtils.EMPTY_STRING);
-        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class));
+  private List<IndexDocument> createAndPersistIndexDocuments(
+      SampleData sampleData, ReportType type) {
+    var indexDocuments =
+        ReportType.NVI.equals(type)
+            ? createAndPersistNviData(sampleData)
+            : createAndPersistPublications(sampleData);
+    indexDocuments.forEach(document -> document.persistInS3(s3ResourcesDriver));
+    return indexDocuments;
+  }
 
-        var actual = s3OutputDriver.listAllFiles(UnixPath.of(""));
-        assertEquals(0, actual.size());
-    }
+  private List<IndexDocument> createAndPersistPublications(SampleData sampleData) {
+    return sampleData.getPublicationTestData().stream()
+        .map(CsvTransformerTest::toIndexDocument)
+        .toList();
+  }
 
-    List<DatePair> generateDatePairs(int numberOfDatePairs) {
-        return IntStream.range(0, numberOfDatePairs)
-                   .mapToObj(i -> new DatePair(new PublicationDate("2024", "02", "02"),
-                                               Instant.now().minus(100, ChronoUnit.DAYS)))
-                   .toList();
-    }
+  private List<IndexDocument> createAndPersistNviData(SampleData sampleData) {
+    return sampleData.getNviTestData().stream().map(CsvTransformerTest::toIndexDocument).toList();
+  }
 
-    private static String getExpectedResponseData(ReportType reportType, SampleData test) {
-        return switch (reportType) {
-            case AFFILIATION -> test.getAffiliationResponseData();
-            case CONTRIBUTOR -> test.getContributorResponseData();
-            case FUNDING -> test.getFundingResponseData();
-            case IDENTIFIER -> test.getIdentifierResponseData();
-            case PUBLICATION -> test.getPublicationResponseData();
-            case NVI -> test.getNviResponseData();
-        };
-    }
+  private String getActualPersistedFile(ReportType reportType) {
+    var file = getFirstFilePath(reportType);
+    return s3OutputDriver.getFile(file);
+  }
 
-    private static IndexDocument toIndexDocument(SamplePublication publication) {
-        return new IndexDocument(randomConsumptionAttribute(), PublicationIndexDocument.from(publication).asJsonNode());
-    }
-
-    private static IndexDocument toIndexDocument(SampleNviCandidate nviCandidate) {
-        return new IndexDocument(randomConsumptionAttribute(), NviIndexDocument.from(nviCandidate).asJsonNode());
-    }
-
-    private void assertEqualsInAnyOrder(String expected, String actual) {
-        var expectedLines = expected.split(System.lineSeparator());
-        var actualLines = actual.split(System.lineSeparator());
-        assertEquals(expectedLines.length, actualLines.length);
-        var expectedList = List.of(expectedLines);
-        var actualList = List.of(actualLines);
-        assertTrue(expectedList.containsAll(actualList));
-        assertTrue(actualList.containsAll(expectedList));
-    }
-
-    private UnixPath getFirstFilePath(ReportType reportType) {
-        return s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).getFirst();
-    }
-
-    private void setUpValidTestData(String location) throws IOException {
-        var testData = new SampleData(generateDatePairs(2));
-        var batch = setupExistingBatch(testData, ReportType.PUBLICATION);
-        var batchKey = UnixPath.of(location).addChild(randomString());
-        s3KeyBatches3Driver.insertFile(batchKey, batch);
-    }
-
-    private String setupExistingBatch(SampleData sampleData, ReportType type) {
-        var indexDocuments = createAndPersistIndexDocuments(sampleData, type);
-        return indexDocuments.stream()
-                   .map(IndexDocument::getIdentifier)
-                   .collect(Collectors.joining(System.lineSeparator()));
-    }
-
-    private void removeOneResourceFromPersistedResourcesBucket(List<IndexDocument> expectedDocuments) {
-        var document = expectedDocuments.getFirst();
-        s3ResourcesDriver.deleteFile(UnixPath.of(document.getIdentifier()));
-    }
-
-    private List<IndexDocument> createAndPersistIndexDocuments(SampleData sampleData, ReportType type) {
-        var indexDocuments = ReportType.NVI.equals(type)
-                                 ? createAndPersistNviData(sampleData)
-                                 : createAndPersistPublications(sampleData);
-        indexDocuments.forEach(document -> document.persistInS3(s3ResourcesDriver));
-        return indexDocuments;
-    }
-
-    private List<IndexDocument> createAndPersistPublications(SampleData sampleData) {
-        return sampleData.getPublicationTestData().stream()
-                   .map(CsvTransformerTest::toIndexDocument)
-                   .toList();
-    }
-
-    private List<IndexDocument> createAndPersistNviData(SampleData sampleData) {
-        return sampleData.getNviTestData().stream()
-                   .map(CsvTransformerTest::toIndexDocument)
-                   .toList();
-    }
-
-    private String getActualPersistedFile(ReportType reportType) {
-        var file = getFirstFilePath(reportType);
-        return s3OutputDriver.getFile(file);
-    }
-
-    private InputStream eventStream(String startMarker, String location) throws JsonProcessingException {
-        var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
-        event.setDetail(new KeyBatchRequestEvent(startMarker, randomString(), location));
-        event.setId(randomString());
-        var jsonString = dtoObjectMapper.writeValueAsString(event);
-        return IoUtils.stringToStream(jsonString);
-    }
+  private InputStream eventStream(String startMarker, String location)
+      throws JsonProcessingException {
+    var event = new AwsEventBridgeEvent<KeyBatchRequestEvent>();
+    event.setDetail(new KeyBatchRequestEvent(startMarker, randomString(), location));
+    event.setId(randomString());
+    var jsonString = dtoObjectMapper.writeValueAsString(event);
+    return IoUtils.stringToStream(jsonString);
+  }
 }

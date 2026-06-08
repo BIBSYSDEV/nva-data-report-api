@@ -3,6 +3,7 @@ package no.sikt.nva.data.report.api.etl;
 import static commons.model.DocumentType.NVI_CANDIDATE;
 import static no.sikt.nva.data.report.api.etl.model.EventType.UPSERT;
 import static nva.commons.core.attempt.Try.attempt;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
@@ -34,94 +35,100 @@ import org.slf4j.LoggerFactory;
 
 public class PersistedResourceCsvTransformer implements RequestHandler<SQSEvent, Void> {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(PersistedResourceCsvTransformer.class);
-    public static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
-    public static final String API_HOST = "API_HOST";
-    public static final String EXPORT_BUCKET = "EXPORT_BUCKET";
-    public static final String HYPHEN = "-";
-    public static final String IDENTIFIER = "identifier";
-    private final StorageReader<UnixPath> storageReader;
-    private final StorageWriter storageWriter;
+  public static final Logger LOGGER =
+      LoggerFactory.getLogger(PersistedResourceCsvTransformer.class);
+  public static final String EXPANDED_RESOURCES_BUCKET = "EXPANDED_RESOURCES_BUCKET";
+  public static final String API_HOST = "API_HOST";
+  public static final String EXPORT_BUCKET = "EXPORT_BUCKET";
+  public static final String HYPHEN = "-";
+  public static final String IDENTIFIER = "identifier";
+  private final StorageReader<UnixPath> storageReader;
+  private final StorageWriter storageWriter;
 
-    @JacocoGenerated
-    public PersistedResourceCsvTransformer() {
-        this(new S3StorageReader(new Environment().readEnv(EXPANDED_RESOURCES_BUCKET)),
-             new S3StorageWriter(new Environment().readEnv(EXPORT_BUCKET)));
-    }
+  @JacocoGenerated
+  public PersistedResourceCsvTransformer() {
+    this(
+        new S3StorageReader(new Environment().readEnv(EXPANDED_RESOURCES_BUCKET)),
+        new S3StorageWriter(new Environment().readEnv(EXPORT_BUCKET)));
+  }
 
-    public PersistedResourceCsvTransformer(StorageReader<UnixPath> storageReader, StorageWriter storageWriter) {
-        LOGGER.info("Initializing SingleObjectDataLoader");
-        this.storageReader = storageReader;
-        this.storageWriter = storageWriter;
-    }
+  public PersistedResourceCsvTransformer(
+      StorageReader<UnixPath> storageReader, StorageWriter storageWriter) {
+    LOGGER.info("Initializing SingleObjectDataLoader");
+    this.storageReader = storageReader;
+    this.storageWriter = storageWriter;
+  }
 
-    @Override
-    public Void handleRequest(SQSEvent input, Context context) {
-        input.getRecords().stream()
-            .map(SQSEvent.SQSMessage::getBody)
-            .map(PersistedResourceEvent::fromJson)
-            .forEach(this::processInput);
-        return null;
-    }
+  @Override
+  public Void handleRequest(SQSEvent input, Context context) {
+    input.getRecords().stream()
+        .map(SQSEvent.SQSMessage::getBody)
+        .map(PersistedResourceEvent::fromJson)
+        .forEach(this::processInput);
+    return null;
+  }
 
-    private static JsonNode toJsonNode(String blob) {
-        var documentUnwrapper = new DocumentUnwrapper(new Environment().readEnv(API_HOST));
-        return attempt(() -> documentUnwrapper.unwrap(blob)).orElseThrow();
-    }
+  private static JsonNode toJsonNode(String blob) {
+    var documentUnwrapper = new DocumentUnwrapper(new Environment().readEnv(API_HOST));
+    return attempt(() -> documentUnwrapper.unwrap(blob)).orElseThrow();
+  }
 
-    private static UnixPath constructNewLocation(String folder, String identifier) {
-        return UnixPath.of(folder).addChild(identifier + HYPHEN + LocalDateTime.now());
-    }
+  private static UnixPath constructNewLocation(String folder, String identifier) {
+    return UnixPath.of(folder).addChild(identifier + HYPHEN + LocalDateTime.now());
+  }
 
-    private static ContentWithLocation transform(Model model, ReportType reportType, String identifier) {
-        var result = new ModelQueryService().query(model, reportType);
-        var formatted = new CsvFormatter().format(result);
-        return new ContentWithLocation(constructNewLocation(reportType.getType(), identifier), formatted);
-    }
+  private static ContentWithLocation transform(
+      Model model, ReportType reportType, String identifier) {
+    var result = new ModelQueryService().query(model, reportType);
+    var formatted = new CsvFormatter().format(result);
+    return new ContentWithLocation(
+        constructNewLocation(reportType.getType(), identifier), formatted);
+  }
 
-    private static Model loadIntoModel(JsonNode resource) {
-        var model = ModelFactory.createDefaultModel();
-        RDFDataMgr.read(model, IoUtils.stringToStream(resource.toString()), Lang.JSONLD);
-        return model;
-    }
+  private static Model loadIntoModel(JsonNode resource) {
+    var model = ModelFactory.createDefaultModel();
+    RDFDataMgr.read(model, IoUtils.stringToStream(resource.toString()), Lang.JSONLD);
+    return model;
+  }
 
-    private void processInput(PersistedResourceEvent input) {
-        input.validate();
-        logInput(input);
-        var eventType = EventType.parse(input.eventType());
-        var documentType = DocumentType.fromLocation(input.getLocation());
-        if (UPSERT == eventType) {
-            transformAndPersistObject(documentType, UnixPath.of(input.key()));
-        }
+  private void processInput(PersistedResourceEvent input) {
+    input.validate();
+    logInput(input);
+    var eventType = EventType.parse(input.eventType());
+    var documentType = DocumentType.fromLocation(input.getLocation());
+    if (UPSERT == eventType) {
+      transformAndPersistObject(documentType, UnixPath.of(input.key()));
     }
+  }
 
-    private void transformAndPersistObject(DocumentType documentType, UnixPath objectKey) {
-        var resource = readAsJsonNode(objectKey);
-        var identifier = resource.get(IDENTIFIER).asText();
-        var model = loadIntoModel(resource);
-        var csvContent = NVI_CANDIDATE == documentType
-                             ? List.of(transform(model, ReportType.NVI, identifier))
-                             : generatePublicationReports(model, identifier);
-        csvContent.forEach(this::persist);
-    }
+  private void transformAndPersistObject(DocumentType documentType, UnixPath objectKey) {
+    var resource = readAsJsonNode(objectKey);
+    var identifier = resource.get(IDENTIFIER).asText();
+    var model = loadIntoModel(resource);
+    var csvContent =
+        NVI_CANDIDATE == documentType
+            ? List.of(transform(model, ReportType.NVI, identifier))
+            : generatePublicationReports(model, identifier);
+    csvContent.forEach(this::persist);
+  }
 
-    private List<ContentWithLocation> generatePublicationReports(Model model, String identifier) {
-        return ReportType.getAllTypesExcludingNviReport().stream()
-                   .map(reportType -> transform(model, reportType, identifier))
-                   .toList();
-    }
+  private List<ContentWithLocation> generatePublicationReports(Model model, String identifier) {
+    return ReportType.getAllTypesExcludingNviReport().stream()
+        .map(reportType -> transform(model, reportType, identifier))
+        .toList();
+  }
 
-    private JsonNode readAsJsonNode(UnixPath objectKey) {
-        var blob = storageReader.read(objectKey);
-        return toJsonNode(blob);
-    }
+  private JsonNode readAsJsonNode(UnixPath objectKey) {
+    var blob = storageReader.read(objectKey);
+    return toJsonNode(blob);
+  }
 
-    private void persist(ContentWithLocation contentWithLocation) {
-        storageWriter.writeCsv(contentWithLocation.location(), contentWithLocation.content());
-        LOGGER.info("Persisted object with key: {}", contentWithLocation.location());
-    }
+  private void persist(ContentWithLocation contentWithLocation) {
+    storageWriter.writeCsv(contentWithLocation.location(), contentWithLocation.content());
+    LOGGER.info("Persisted object with key: {}", contentWithLocation.location());
+  }
 
-    private void logInput(PersistedResourceEvent input) {
-        LOGGER.info("Input object key: {}, eventType: {}", input.key(), input.eventType());
-    }
+  private void logInput(PersistedResourceEvent input) {
+    LOGGER.info("Input object key: {}, eventType: {}", input.key(), input.eventType());
+  }
 }

@@ -6,16 +6,16 @@ Description: >
 Parameters:
   # TODO: Determine access to API
   CognitoAuthorizerArn:
-    Type: 'AWS::SSM::Parameter::Value<String>'
+    Type: "AWS::SSM::Parameter::Value<String>"
     Description: Reference to Cognito UserPool for the stage
     Default: CognitoAuthorizerArn
   ExternalCognitoAuthorizerArn:
-    Type: 'AWS::SSM::Parameter::Value<String>'
+    Type: "AWS::SSM::Parameter::Value<String>"
     Description: Reference to ARN of ExternalUsers UserPool
     Default: ExternalCognitoAuthorizerArn
   CognitoAuthorizationUri:
-    Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/NVA/CognitoUri'
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: "/NVA/CognitoUri"
   CognitoAuthorizerUrls:
     Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
     Default: CognitoAuthorizerUrls
@@ -23,23 +23,23 @@ Parameters:
     Type: String
     Default: nva-data-report
   ApiDomain:
-    Type: 'AWS::SSM::Parameter::Value<String>'
+    Type: "AWS::SSM::Parameter::Value<String>"
     Description: The Api domain
     Default: /NVA/ApiDomain
   DataWarehouseDataBricksArn:
-    Type: 'AWS::SSM::Parameter::Value<String>'
+    Type: "AWS::SSM::Parameter::Value<String>"
     Description: Data warehouse Databricks Unity Catalog ARN
     Default: /NVA/IAM/DataWarehouse/DataBricksArn
   DataWarehouseRoleName:
     Type: String
     Default: nva-data-report-DataWarehouseRole
   DataWarehouseExternalId:
-    Type: 'AWS::SSM::Parameter::Value<String>'
+    Type: "AWS::SSM::Parameter::Value<String>"
     Description: External ID to assume DataWarehouseRole
     Default: /NVA/IAM/DataWarehouse/ExternalId
   Suffix:
     Type: String
-    Default: ''
+    Default: ""
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
   ResourcesBucket:
     Type: AWS::SSM::Parameter::Value<String>
@@ -53,28 +53,28 @@ Parameters:
     Description: Prefix for nvi-candidate files in persisted-resources bucket
     Default: nvi-candidates/
   LoaderBucketName:
-    Type: 'String'
+    Type: "String"
     Default: "loader-input-files"
     Description: Name of bucket for input NQuads files
   KeyBatchesBucketName:
-    Type: 'String'
+    Type: "String"
     Default: "data-report-key-batches"
     Description: Name of bucket for key batch files
   ExportBucketName:
-    Type: 'String'
+    Type: "String"
     Default: "data-report-csv-export"
     Description: Name of bucket for csv export files
   AllowedOrigins:
     Type: String
     Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
-    Default: '*'
+    Default: "*"
   S3NoncurrentVersionExpirationDays:
     Type: Number
     Default: 60
     Description: Number of days to retain non-current object versions in versioned S3 buckets
 
 Conditions:
-  WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
+  WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
 
 Globals:
   Function:
@@ -110,7 +110,7 @@ Resources:
   PersistedResourceCsvTransformerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${PersistedResourceCsvTransformer}'
+      LogGroupName: !Sub "/aws/lambda/${PersistedResourceCsvTransformer}"
       RetentionInDays: 5
 
   # ---- Policies ----
@@ -119,11 +119,11 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
-              - 's3:DeleteObject'
+              - "s3:DeleteObject"
             Resource:
               - !GetAtt KeyBatchesBucket.Arn
 
@@ -131,7 +131,7 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -139,7 +139,7 @@ Resources:
               - s3:List*
               - s3:PutObject
               - events:*
-            Resource: '*'
+            Resource: "*"
 
   SendMessagePolicy:
     Type: AWS::SQS::QueuePolicy
@@ -149,11 +149,11 @@ Resources:
         - !Ref TransformPersistedResourceDLQ
       PolicyDocument:
         Id: SendMessagePolicy
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Sid: Allow-SNS-SendMessage
             Effect: Allow
-            Principal: '*'
+            Principal: "*"
             Action: sqs:SendMessage
             Resource: !GetAtt TransformPersistedResourceQueue.Arn
             Condition:
@@ -168,7 +168,7 @@ Resources:
       Description: Provides external access when paired with known external account and id
       RoleName: !Ref DataWarehouseRoleName
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -189,7 +189,7 @@ Resources:
       Policies:
         - PolicyName: S3ExportPolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -197,14 +197,14 @@ Resources:
                   - s3:ListBucket
                   - s3:GetBucketLocation
                 Resource:
-                  - !Sub '${ExportBucket.Arn}/*'
-                  - !Sub '${ExportBucket.Arn}'
+                  - !Sub "${ExportBucket.Arn}/*"
+                  - !Sub "${ExportBucket.Arn}"
         - PolicyName: AssumeRolePolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: [ 'iam:GetRole', 'sts:AssumeRole' ]
+                Action: ["iam:GetRole", "sts:AssumeRole"]
                 Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRoleName}
 
   #===========================EventBridge Rule========================================================
@@ -255,7 +255,7 @@ Resources:
       Environment:
         Variables:
           BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
-          BACKEND_CLIENT_SECRET_NAME: 'BackendCognitoClientCredentials'
+          BACKEND_CLIENT_SECRET_NAME: "BackendCognitoClientCredentials"
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           EXPORT_BUCKET: !Ref ExportBucket
       Events:
@@ -286,7 +286,7 @@ Resources:
           EVENT_BUS: !GetAtt BatchLoadEventBus.Name
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
-          TOPIC: 'ReportApi.Bulk.KeyBasedBatch'
+          TOPIC: "ReportApi.Bulk.KeyBasedBatch"
       Events:
         BatchIndexEvent:
           Type: EventBridgeRule
@@ -294,7 +294,7 @@ Resources:
             EventBusName: !GetAtt BatchLoadEventBus.Name
             Pattern:
               detail:
-                topic: [ 'ReportApi.Bulk.KeyBasedBatch' ]
+                topic: ["ReportApi.Bulk.KeyBasedBatch"]
 
   CsvBulkTransformerHandler:
     Type: AWS::Serverless::Function
@@ -312,7 +312,7 @@ Resources:
           EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
           KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
           EXPORT_BUCKET: !Ref ExportBucket
-          TOPIC: 'ReportApi.Bulk.TransformKeyBatchCsv'
+          TOPIC: "ReportApi.Bulk.TransformKeyBatchCsv"
       Events:
         BatchIndexEvent:
           Type: EventBridgeRule
@@ -320,7 +320,7 @@ Resources:
             EventBusName: !GetAtt BatchLoadEventBus.Name
             Pattern:
               detail:
-                topic: [ 'ReportApi.Bulk.TransformKeyBatchCsv' ]
+                topic: ["ReportApi.Bulk.TransformKeyBatchCsv"]
 
   #---- EventBus ----
 
@@ -329,7 +329,7 @@ Resources:
     Properties:
       Name: !If
         - WithSuffix
-        - !Join [ "-",[ "BatchLoadEventBus", !Ref Suffix ] ]
+        - !Join ["-", ["BatchLoadEventBus", !Ref Suffix]]
         - "BatchLoadEventBus"
 
   #---- Buckets ----
@@ -367,7 +367,7 @@ Resources:
             NoncurrentVersionExpiration:
               NoncurrentDays: !Ref S3NoncurrentVersionExpirationDays
       Tags:
-          - Key: IncludedInBackup
-            Value: "true"
+        - Key: IncludedInBackup
+          Value: "true"
       VersioningConfiguration:
-          Status: Enabled
+        Status: Enabled

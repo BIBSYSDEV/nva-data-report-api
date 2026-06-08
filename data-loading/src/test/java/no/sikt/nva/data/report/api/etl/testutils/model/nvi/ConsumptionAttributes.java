@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record ConsumptionAttributes(UUID documentIdentifier, String index) {
 
-    public static ConsumptionAttributes from(UUID documentIdentifier) {
-        return new ConsumptionAttributes(documentIdentifier, "notRelevant");
-    }
+  public static ConsumptionAttributes from(UUID documentIdentifier) {
+    return new ConsumptionAttributes(documentIdentifier, "notRelevant");
+  }
 }

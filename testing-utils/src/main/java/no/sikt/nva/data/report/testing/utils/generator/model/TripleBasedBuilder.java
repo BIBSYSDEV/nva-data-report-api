@@ -7,9 +7,9 @@ import org.apache.jena.vocabulary.RDF;
 
 public abstract class TripleBasedBuilder {
 
-    public static final Property TYPE = RDF.type;
+  public static final Property TYPE = RDF.type;
 
-    public abstract Model build();
+  public abstract Model build();
 
-    public abstract Resource getSubject();
+  public abstract Resource getSubject();
 }

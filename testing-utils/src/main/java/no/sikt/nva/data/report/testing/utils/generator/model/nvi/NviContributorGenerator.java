@@ -10,31 +10,33 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class NviContributorGenerator extends TripleBasedBuilder {
 
-    private static final Property CONTRIBUTOR = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "NviContributor");
-    private static final Property AFFILIATION = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "affiliation");
-    private final Model model;
-    private final Resource subject;
+  private static final Property CONTRIBUTOR =
+      new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "NviContributor");
+  private static final Property AFFILIATION =
+      new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "affiliation");
+  private final Model model;
+  private final Resource subject;
 
-    public NviContributorGenerator(String id) {
-        super();
-        this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource(id);
-        model.add(subject, TYPE, CONTRIBUTOR);
-    }
+  public NviContributorGenerator(String id) {
+    super();
+    this.model = ModelFactory.createDefaultModel();
+    this.subject = model.createResource(id);
+    model.add(subject, TYPE, CONTRIBUTOR);
+  }
 
-    public NviContributorGenerator withAffiliation(NviOrganizationGenerator affiliation) {
-        model.add(subject, AFFILIATION, affiliation.getSubject());
-        model.add(affiliation.build());
-        return this;
-    }
+  public NviContributorGenerator withAffiliation(NviOrganizationGenerator affiliation) {
+    model.add(subject, AFFILIATION, affiliation.getSubject());
+    model.add(affiliation.build());
+    return this;
+  }
 
-    @Override
-    public Model build() {
-        return model;
-    }
+  @Override
+  public Model build() {
+    return model;
+  }
 
-    @Override
-    public Resource getSubject() {
-        return subject;
-    }
+  @Override
+  public Resource getSubject() {
+    return subject;
+  }
 }

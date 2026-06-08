@@ -1,6 +1,7 @@
 package no.sikt.nva.data.report.api.export;
 
 import static nva.commons.core.ioutils.IoUtils.stringToStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import commons.formatter.CsvFormatter;
 import commons.handlers.BulkTransformerHandler;
@@ -27,82 +28,86 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class CsvTransformer extends BulkTransformerHandler {
 
-    private static final String ENCODING = StandardCharsets.UTF_8.name();
+  private static final String ENCODING = StandardCharsets.UTF_8.name();
 
-    private static final String CONTENT_TYPE = "text/csv; charset=" + ENCODING;
-    private static final String DELIMITER = "/";
-    private static final String FILE_EXTENSION_CSV = ".csv";
-    private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
-    private final S3Client s3OutputClient;
-    private final String exportBucket;
+  private static final String CONTENT_TYPE = "text/csv; charset=" + ENCODING;
+  private static final String DELIMITER = "/";
+  private static final String FILE_EXTENSION_CSV = ".csv";
+  private static final String ENV_VAR_EXPORT_BUCKET = "EXPORT_BUCKET";
+  private final S3Client s3OutputClient;
+  private final String exportBucket;
 
-    @JacocoGenerated
-    public CsvTransformer() {
-        this(defaultS3Client(), defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
-    }
+  @JacocoGenerated
+  public CsvTransformer() {
+    this(defaultS3Client(), defaultS3Client(), defaultS3Client(), defaultEventBridgeClient());
+  }
 
-    public CsvTransformer(S3Client s3BatchesClient, S3Client s3ResourcesClient, S3Client s3OutputClient,
-                          EventBridgeClient eventBridgeClient) {
-        super(s3ResourcesClient, s3BatchesClient, eventBridgeClient);
-        this.exportBucket = new Environment().readEnv(ENV_VAR_EXPORT_BUCKET);
-        this.s3OutputClient = s3OutputClient;
-    }
+  public CsvTransformer(
+      S3Client s3BatchesClient,
+      S3Client s3ResourcesClient,
+      S3Client s3OutputClient,
+      EventBridgeClient eventBridgeClient) {
+    super(s3ResourcesClient, s3BatchesClient, eventBridgeClient);
+    this.exportBucket = new Environment().readEnv(ENV_VAR_EXPORT_BUCKET);
+    this.s3OutputClient = s3OutputClient;
+  }
 
-    @Override
-    protected List<ContentWithLocation> processBatch(Stream<JsonNode> jsonNodeStream, String batchLocation) {
-        var model = createModelAndLoadInput(jsonNodeStream);
-        var documentType = DocumentType.fromLocation(batchLocation);
-        return switch (documentType) {
-            case PUBLICATION -> transformResources(model);
-            case NVI_CANDIDATE -> List.of(transform(model, ReportType.NVI));
-        };
-    }
+  @Override
+  protected List<ContentWithLocation> processBatch(
+      Stream<JsonNode> jsonNodeStream, String batchLocation) {
+    var model = createModelAndLoadInput(jsonNodeStream);
+    var documentType = DocumentType.fromLocation(batchLocation);
+    return switch (documentType) {
+      case PUBLICATION -> transformResources(model);
+      case NVI_CANDIDATE -> List.of(transform(model, ReportType.NVI));
+    };
+  }
 
-    @Override
-    protected void persist(List<ContentWithLocation> transformedData) {
-        transformedData.forEach(this::persist);
-    }
+  @Override
+  protected void persist(List<ContentWithLocation> transformedData) {
+    transformedData.forEach(this::persist);
+  }
 
-    private void persist(ContentWithLocation transformation) {
-        var request = buildRequest(transformation.location());
-        s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
-    }
+  private void persist(ContentWithLocation transformation) {
+    var request = buildRequest(transformation.location());
+    s3OutputClient.putObject(request, RequestBody.fromString(transformation.content()));
+  }
 
-    private static Model createModelAndLoadInput(Stream<JsonNode> jsonNodeStream) {
-        var model = ModelFactory.createDefaultModel();
-        jsonNodeStream.forEach(jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
-        return model;
-    }
+  private static Model createModelAndLoadInput(Stream<JsonNode> jsonNodeStream) {
+    var model = ModelFactory.createDefaultModel();
+    jsonNodeStream.forEach(
+        jsonNode -> RDFDataMgr.read(model, stringToStream(jsonNode.toString()), Lang.JSONLD));
+    return model;
+  }
 
-    @JacocoGenerated
-    private static EventBridgeClient defaultEventBridgeClient() {
-        return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
-    }
+  @JacocoGenerated
+  private static EventBridgeClient defaultEventBridgeClient() {
+    return EventBridgeClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
+  }
 
-    @JacocoGenerated
-    private static S3Client defaultS3Client() {
-        return S3Driver.defaultS3Client().build();
-    }
+  @JacocoGenerated
+  private static S3Client defaultS3Client() {
+    return S3Driver.defaultS3Client().build();
+  }
 
-    private List<ContentWithLocation> transformResources(Model model) {
-        return ReportType.getAllTypesExcludingNviReport()
-                   .stream()
-                   .map(reportType -> transform(model, reportType))
-                   .toList();
-    }
+  private List<ContentWithLocation> transformResources(Model model) {
+    return ReportType.getAllTypesExcludingNviReport().stream()
+        .map(reportType -> transform(model, reportType))
+        .toList();
+  }
 
-    private ContentWithLocation transform(Model model, ReportType reportType) {
-        var resultSet = new ModelQueryService().query(model, reportType);
-        var formatted = new CsvFormatter().format(resultSet);
-        return new ContentWithLocation(UnixPath.of(reportType.getType()), formatted);
-    }
+  private ContentWithLocation transform(Model model, ReportType reportType) {
+    var resultSet = new ModelQueryService().query(model, reportType);
+    var formatted = new CsvFormatter().format(resultSet);
+    return new ContentWithLocation(UnixPath.of(reportType.getType()), formatted);
+  }
 
-    private PutObjectRequest buildRequest(UnixPath path) {
-        return PutObjectRequest.builder()
-                   .bucket(exportBucket)
-                   .key(path + DELIMITER + UUID.randomUUID() + FILE_EXTENSION_CSV)
-                   .contentEncoding(ENCODING)
-                   .contentType(CONTENT_TYPE)
-                   .build();
-    }
+  private PutObjectRequest buildRequest(UnixPath path) {
+    return PutObjectRequest.builder()
+        .bucket(exportBucket)
+        .key(path + DELIMITER + UUID.randomUUID() + FILE_EXTENSION_CSV)
+        .contentEncoding(ENCODING)
+        .contentType(CONTENT_TYPE)
+        .build();
+  }
 }

@@ -4,28 +4,29 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 public enum DocumentType {
-    PUBLICATION("resources"),
-    NVI_CANDIDATE("nvi-candidates");
+  PUBLICATION("resources"),
+  NVI_CANDIDATE("nvi-candidates");
 
-    private final String keyPrefix;
+  private final String keyPrefix;
 
-    DocumentType(String keyPrefix) {
-        this.keyPrefix = keyPrefix;
-    }
+  DocumentType(String keyPrefix) {
+    this.keyPrefix = keyPrefix;
+  }
 
-    public static DocumentType fromLocation(String location) {
-        return Stream.of(values())
-                   .filter(type -> type.getKeyPrefix().equalsIgnoreCase(location))
-                   .findFirst()
-                   .orElseThrow(DocumentType::getIllegalArgument);
-    }
+  public static DocumentType fromLocation(String location) {
+    return Stream.of(values())
+        .filter(type -> type.getKeyPrefix().equalsIgnoreCase(location))
+        .findFirst()
+        .orElseThrow(DocumentType::getIllegalArgument);
+  }
 
-    public String getKeyPrefix() {
-        return keyPrefix;
-    }
+  public String getKeyPrefix() {
+    return keyPrefix;
+  }
 
-    private static IllegalArgumentException getIllegalArgument() {
-        var message = String.format("Illegal argument. Acceptable locations are: %s", Arrays.toString(values()));
-        return new IllegalArgumentException(message);
-    }
+  private static IllegalArgumentException getIllegalArgument() {
+    var message =
+        String.format("Illegal argument. Acceptable locations are: %s", Arrays.toString(values()));
+    return new IllegalArgumentException(message);
+  }
 }
