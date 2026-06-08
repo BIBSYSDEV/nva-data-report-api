@@ -21,20 +21,21 @@ The steps below can be outlined briefly as:
    In aws console, go
    to
 
-    _S3_ -> _persisted-resources-{accountName}_ -> _Properties_ ->
-    _Amazon EventBridge_ -> _Edit_ -> _Off_
+   _S3_ -> _persisted-resources-{accountName}_ -> _Properties_ ->
+   _Amazon EventBridge_ -> _Edit_ -> _Off_
+
 2. Remove all objects from S3 bucket `data-report-csv-export-{accountName}`
 
 ## Bulk export steps
 
 1. Generate key batches for both locations: `resources` and `nvi-candidates`.
-Manually trigger `GenerateKeyBatchesHandler` with the following input:
+   Manually trigger `GenerateKeyBatchesHandler` with the following input:
 
    ```json
    {
-      "detail": {
-         "location": "resources|nvi-candidates"
-      }
+     "detail": {
+       "location": "resources|nvi-candidates"
+     }
    }
    ```
 
@@ -47,15 +48,15 @@ Manually trigger `GenerateKeyBatchesHandler` with the following input:
 
    ```json
    {
-      "detail": {
-         "location": "resources|nvi-candidates"
-      }
+     "detail": {
+       "location": "resources|nvi-candidates"
+     }
    }
    ```
 
 4. Verify that `CsvBulkTransformerHandler` is done processing (i.e. check logs)
-and that csv files have been generated S3 bucket
-`data-report-csv-export-{accountName}`
+   and that csv files have been generated S3 bucket
+   `data-report-csv-export-{accountName}`
 
 ## Post-run steps
 

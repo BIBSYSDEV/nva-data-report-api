@@ -12,43 +12,45 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class CreatorAffiliationPointsGenerator extends TripleBasedBuilder {
 
-    public static final PropertyImpl CREATOR_ID = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "nviCreator");
-    public static final PropertyImpl AFFILIATION_ID = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "affiliationId");
-    public static final PropertyImpl POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "points");
-    private static final Property CREATOR_AFFILIATION_POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI,
-                                                                                "CreatorAffiliationPoints");
-    private final Model model;
-    private final Resource subject;
+  public static final PropertyImpl CREATOR_ID =
+      new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "nviCreator");
+  public static final PropertyImpl AFFILIATION_ID =
+      new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "affiliationId");
+  public static final PropertyImpl POINTS = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "points");
+  private static final Property CREATOR_AFFILIATION_POINTS =
+      new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "CreatorAffiliationPoints");
+  private final Model model;
+  private final Resource subject;
 
-    public CreatorAffiliationPointsGenerator() {
-        super();
-        this.model = ModelFactory.createDefaultModel();
-        this.subject = BlankNodeUtil.createRandom(model);
-        model.add(subject, TYPE, CREATOR_AFFILIATION_POINTS);
-    }
+  public CreatorAffiliationPointsGenerator() {
+    super();
+    this.model = ModelFactory.createDefaultModel();
+    this.subject = BlankNodeUtil.createRandom(model);
+    model.add(subject, TYPE, CREATOR_AFFILIATION_POINTS);
+  }
 
-    public CreatorAffiliationPointsGenerator withCreatorId(String creatorId) {
-        model.add(subject, CREATOR_ID, creatorId);
-        return this;
-    }
+  public CreatorAffiliationPointsGenerator withCreatorId(String creatorId) {
+    model.add(subject, CREATOR_ID, creatorId);
+    return this;
+  }
 
-    public CreatorAffiliationPointsGenerator withAffiliationId(String affiliationId) {
-        model.add(subject, AFFILIATION_ID, affiliationId);
-        return this;
-    }
+  public CreatorAffiliationPointsGenerator withAffiliationId(String affiliationId) {
+    model.add(subject, AFFILIATION_ID, affiliationId);
+    return this;
+  }
 
-    public CreatorAffiliationPointsGenerator withPoints(BigDecimal points) {
-        model.add(subject, POINTS, model.createTypedLiteral(points, XSDDouble.XSDdouble));
-        return this;
-    }
+  public CreatorAffiliationPointsGenerator withPoints(BigDecimal points) {
+    model.add(subject, POINTS, model.createTypedLiteral(points, XSDDouble.XSDdouble));
+    return this;
+  }
 
-    @Override
-    public Model build() {
-        return model;
-    }
+  @Override
+  public Model build() {
+    return model;
+  }
 
-    @Override
-    public Resource getSubject() {
-        return subject;
-    }
+  @Override
+  public Resource getSubject() {
+    return subject;
+  }
 }

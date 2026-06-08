@@ -21,7 +21,7 @@ Combination of `publicationId`, `contributorIdentifier` and `affiliationId`
 - `institutionId`
   - type: URI
   - description: The resource uri of the top level organization the contributor
-  is affiliated with
+    is affiliated with
   - example: <https://api.nva.unit.no/cristin/organization/10.0.0.0>
 - `institutionPoints`
   - type: double
@@ -44,7 +44,7 @@ Combination of `publicationId`, `contributorIdentifier` and `affiliationId`
 - `reportedPeriod`
   - type: string
   - description: If the publication is not reported, the value is NotReported.
-  If the publication is reported, the value is the year of the reporting period
+    If the publication is reported, the value is the year of the reporting period
   - example: 2023
 - `totalPoints`
   - type: double
@@ -53,22 +53,22 @@ Combination of `publicationId`, `contributorIdentifier` and `affiliationId`
 - `publicationTypeChannelLevelPoints`
   - type: double
   - description: The number of points awarded for the publication type and
-  channel level
+    channel level
   - example: 1.000
 - `authorShareCount`
   - type: integer
   - description: The number combinations of authors and affiliations for the
-  publication
+    publication
   - example: 3
 - `internationalCollaborationFactor`
   - type: double
   - description: A factor that is part of the calculation of the points awarded
-  for the publication
+    for the publication
   - example: 1.000
 - `isApplicable`
   - type: boolean
   - description: A flag indicating if the publication is applicable for nvi
-  candidacy or not
+    candidacy or not
   - example: true
 - `modifiedDate`
   - type: string

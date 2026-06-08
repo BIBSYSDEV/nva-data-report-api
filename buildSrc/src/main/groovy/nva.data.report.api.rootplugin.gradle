@@ -7,7 +7,9 @@ nva {
         enforced = true
     }
     // Excluding testing-utils from coverage checks because it is largely unused
-    generatedCode = ['no/sikt/nva/data/report/testing/utils/**']
+    generatedCode = [
+        'no/sikt/nva/data/report/testing/utils/**'
+    ]
     spectral {
         documents = ['docs/*.yaml']
         rulesetFile = file('.spectral.yaml')

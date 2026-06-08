@@ -11,32 +11,33 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 public class PublicationDetailsGenerator extends TripleBasedBuilder {
 
-    private static final Resource PUBLICATION_DETAILS = new ResourceImpl(
-        Constants.ONTOLOGY_BASE_URI + "PublicationDetails");
-    private static final Property CONTRIBUTOR = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "contributor");
-    private final Model model;
-    private final Resource subject;
+  private static final Resource PUBLICATION_DETAILS =
+      new ResourceImpl(Constants.ONTOLOGY_BASE_URI + "PublicationDetails");
+  private static final Property CONTRIBUTOR =
+      new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "contributor");
+  private final Model model;
+  private final Resource subject;
 
-    public PublicationDetailsGenerator(String id) {
-        super();
-        this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource(id);
-        model.add(subject, TYPE, PUBLICATION_DETAILS);
-    }
+  public PublicationDetailsGenerator(String id) {
+    super();
+    this.model = ModelFactory.createDefaultModel();
+    this.subject = model.createResource(id);
+    model.add(subject, TYPE, PUBLICATION_DETAILS);
+  }
 
-    public PublicationDetailsGenerator withNviContributor(NviContributorGenerator contributor) {
-        model.add(subject, CONTRIBUTOR, contributor.getSubject());
-        model.add(contributor.build());
-        return this;
-    }
+  public PublicationDetailsGenerator withNviContributor(NviContributorGenerator contributor) {
+    model.add(subject, CONTRIBUTOR, contributor.getSubject());
+    model.add(contributor.build());
+    return this;
+  }
 
-    @Override
-    public Model build() {
-        return model;
-    }
+  @Override
+  public Model build() {
+    return model;
+  }
 
-    @Override
-    public Resource getSubject() {
-        return subject;
-    }
+  @Override
+  public Resource getSubject() {
+    return subject;
+  }
 }

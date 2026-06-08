@@ -11,31 +11,31 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public class NviOrganizationGenerator extends TripleBasedBuilder {
 
-    private static final Property PART_OF = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "partOf");
-    private static final String NVI_ORGANIZATION = "NviOrganization";
+  private static final Property PART_OF = new PropertyImpl(Constants.ONTOLOGY_BASE_URI, "partOf");
+  private static final String NVI_ORGANIZATION = "NviOrganization";
 
-    private final Model model;
-    private final Resource subject;
+  private final Model model;
+  private final Resource subject;
 
-    public NviOrganizationGenerator(String id) {
-        super();
-        this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource(id);
-        model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + NVI_ORGANIZATION));
-    }
+  public NviOrganizationGenerator(String id) {
+    super();
+    this.model = ModelFactory.createDefaultModel();
+    this.subject = model.createResource(id);
+    model.add(subject, TYPE, model.createResource(Constants.ONTOLOGY_BASE_URI + NVI_ORGANIZATION));
+  }
 
-    public NviOrganizationGenerator withPartOf(List<String> partOfList) {
-        partOfList.forEach(partOf -> model.add(subject, PART_OF, model.createResource(partOf)));
-        return this;
-    }
+  public NviOrganizationGenerator withPartOf(List<String> partOfList) {
+    partOfList.forEach(partOf -> model.add(subject, PART_OF, model.createResource(partOf)));
+    return this;
+  }
 
-    @Override
-    public Model build() {
-        return model;
-    }
+  @Override
+  public Model build() {
+    return model;
+  }
 
-    @Override
-    public Resource getSubject() {
-        return subject;
-    }
+  @Override
+  public Resource getSubject() {
+    return subject;
+  }
 }

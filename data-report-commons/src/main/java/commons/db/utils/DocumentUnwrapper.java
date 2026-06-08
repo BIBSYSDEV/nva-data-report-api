@@ -10,39 +10,38 @@ import nva.commons.core.paths.UriWrapper;
 
 public final class DocumentUnwrapper {
 
-    public static final String JSON_PTR_BODY = "/body";
-    public static final String CONTEXT_NODE = "@context";
-    public static final String JSON_PTR_CONTEXT = "/@context";
-    public static final String SCIENTIFIC_INDEX = "scientific-index";
-    public static final String NVI_CONTEXT_JSONLD = "nvi_context.jsonld";
-    public static final String NVA_CONTEXT_JSONLD = "nva_context.jsonld";
-    private final String apiDomain;
+  public static final String JSON_PTR_BODY = "/body";
+  public static final String CONTEXT_NODE = "@context";
+  public static final String JSON_PTR_CONTEXT = "/@context";
+  public static final String SCIENTIFIC_INDEX = "scientific-index";
+  public static final String NVI_CONTEXT_JSONLD = "nvi_context.jsonld";
+  public static final String NVA_CONTEXT_JSONLD = "nva_context.jsonld";
+  private final String apiDomain;
 
-    public DocumentUnwrapper(String apiDomain) {
-        this.apiDomain = apiDomain;
-    }
+  public DocumentUnwrapper(String apiDomain) {
+    this.apiDomain = apiDomain;
+  }
 
-    public JsonNode unwrap(String indexDocument) throws JsonProcessingException {
-        var objectNode = JsonUtils.dtoObjectMapper.readTree(indexDocument);
-        var jsonld = objectNode.at(JSON_PTR_BODY);
-        var context = getReplacementContext(jsonld);
-        ((ObjectNode) jsonld).set(CONTEXT_NODE, context.at(JSON_PTR_CONTEXT));
-        return jsonld;
-    }
+  public JsonNode unwrap(String indexDocument) throws JsonProcessingException {
+    var objectNode = JsonUtils.dtoObjectMapper.readTree(indexDocument);
+    var jsonld = objectNode.at(JSON_PTR_BODY);
+    var context = getReplacementContext(jsonld);
+    ((ObjectNode) jsonld).set(CONTEXT_NODE, context.at(JSON_PTR_CONTEXT));
+    return jsonld;
+  }
 
-    private JsonNode getReplacementContext(JsonNode jsonld) throws JsonProcessingException {
-        var originalContext = jsonld.at(JSON_PTR_CONTEXT).asText();
-        if (originalContext.isBlank()) {
-            return jsonld;
-        }
-        var contextFile = originalContext.contains(SCIENTIFIC_INDEX)
-                              ? NVI_CONTEXT_JSONLD
-                              : NVA_CONTEXT_JSONLD;
-        return JsonUtils.dtoObjectMapper.readTree(getContext(contextFile));
+  private JsonNode getReplacementContext(JsonNode jsonld) throws JsonProcessingException {
+    var originalContext = jsonld.at(JSON_PTR_CONTEXT).asText();
+    if (originalContext.isBlank()) {
+      return jsonld;
     }
+    var contextFile =
+        originalContext.contains(SCIENTIFIC_INDEX) ? NVI_CONTEXT_JSONLD : NVA_CONTEXT_JSONLD;
+    return JsonUtils.dtoObjectMapper.readTree(getContext(contextFile));
+  }
 
-    private String getContext(String contextFile) {
-        return IoUtils.stringFromResources(Path.of(contextFile)).replace("__REPLACE_WITH_API_DOMAIN__",
-                                                                         UriWrapper.fromHost(apiDomain).toString());
-    }
+  private String getContext(String contextFile) {
+    return IoUtils.stringFromResources(Path.of(contextFile))
+        .replace("__REPLACE_WITH_API_DOMAIN__", UriWrapper.fromHost(apiDomain).toString());
+  }
 }

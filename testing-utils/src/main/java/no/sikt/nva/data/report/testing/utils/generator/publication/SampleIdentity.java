@@ -4,7 +4,7 @@ import no.sikt.nva.data.report.testing.utils.generator.model.publication.Identit
 
 public record SampleIdentity(String uri, String name) {
 
-    public IdentityGenerator toModel() {
-        return new IdentityGenerator(uri, name);
-    }
+  public IdentityGenerator toModel() {
+    return new IdentityGenerator(uri, name);
+  }
 }
