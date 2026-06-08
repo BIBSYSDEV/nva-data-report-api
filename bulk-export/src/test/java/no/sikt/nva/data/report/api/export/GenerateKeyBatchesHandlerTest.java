@@ -175,7 +175,7 @@ class GenerateKeyBatchesHandlerTest {
             PutEventsRequestEntry eventEntry = putEventsRequest.entries()
                                                    .stream()
                                                    .collect(SingletonCollector.collect());
-            return Try.attempt(eventEntry::detail).map(
+            return attempt(eventEntry::detail).map(
                 jsonString -> objectMapperWithEmpty.readValue(jsonString, KeyBatchRequestEvent.class)).orElseThrow();
         }
     }
