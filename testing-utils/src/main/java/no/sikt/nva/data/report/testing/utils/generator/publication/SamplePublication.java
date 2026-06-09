@@ -288,7 +288,7 @@ public class SamplePublication {
 
   private static String getItemAt(List<String> affiliations, int offset) {
     int size = affiliations.size();
-    return (size >= offset) ? affiliations.get(size - offset) : EMPTY_STRING;
+    return size >= offset ? affiliations.get(size - offset) : EMPTY_STRING;
   }
 
   private static Optional<SampleOrganization> getPartOf(

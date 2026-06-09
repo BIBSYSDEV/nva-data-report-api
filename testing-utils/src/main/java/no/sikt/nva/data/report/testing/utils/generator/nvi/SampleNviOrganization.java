@@ -71,8 +71,6 @@ public record SampleNviOrganization(String id, List<String> partOf) {
     }
 
     private List<String> generatePartOfList(String id) {
-      var partOfList = new ArrayList<String>();
-
       if (isNull(id) || id.endsWith(TOP_LEVEL_SUFFIX)) {
         return Collections.emptyList();
       }
@@ -84,6 +82,8 @@ public record SampleNviOrganization(String id, List<String> partOf) {
         throw new RuntimeException(
             "The last path element in the organization URI should be formatted as 10.0.0.0");
       }
+
+      var partOfList = new ArrayList<String>();
       final var baseUri = id.substring(0, lastIndexOfSlash);
       if (ZERO.equals(parts[1])) {
         return Collections.emptyList();
