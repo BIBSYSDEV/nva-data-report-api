@@ -1,5 +1,6 @@
 package no.sikt.nva.data.report.testing.utils.model;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
@@ -161,7 +162,7 @@ public record PublicationIndexDocument(
               sampleOrganization.getId(),
               TYPE,
               isNull(sampleOrganization.getName())
-                  ? null
+                  ? emptyMap()
                   : Map.of(EN, sampleOrganization.getName()),
               sampleOrganization.getPartOf().map(Affiliation::from).orElse(null));
         }
