@@ -16,5 +16,4 @@ dependencies {
     implementation(nvaLibs.core)
     implementation(nvaLibs.testutils)
     runtimeOnly(libs.jena.fuseki)
-    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
 }

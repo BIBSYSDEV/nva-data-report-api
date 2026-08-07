@@ -26,7 +26,6 @@ dependencies {
     testImplementation(project(':testing-utils'))
     testRuntimeOnly(libs.jena.fuseki)
     testRuntimeOnly(libs.jena.fuseki.server)
-    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
 }
 
 test {
