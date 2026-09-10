@@ -2,7 +2,7 @@
 commonsCsv = { strictly = '1.14.1' }
 commonsIo = { strictly = '2.22.0' }
 commonsText = { strictly = '1.15.0' }
-jena = { strictly = '6.1.0' }
+jena = { strictly = '6.2.0' }
 titaniumJsonLd = { strictly = '1.7.0' }
 
 [libraries]
