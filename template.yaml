@@ -26,17 +26,6 @@ Parameters:
     Type: "AWS::SSM::Parameter::Value<String>"
     Description: The Api domain
     Default: /NVA/ApiDomain
-  DataWarehouseDataBricksArn:
-    Type: "AWS::SSM::Parameter::Value<String>"
-    Description: Data warehouse Databricks Unity Catalog ARN
-    Default: /NVA/IAM/DataWarehouse/DataBricksArn
-  DataWarehouseRoleName:
-    Type: String
-    Default: nva-data-report-DataWarehouseRole
-  DataWarehouseExternalId:
-    Type: "AWS::SSM::Parameter::Value<String>"
-    Description: External ID to assume DataWarehouseRole
-    Default: /NVA/IAM/DataWarehouse/ExternalId
   Suffix:
     Type: String
     Default: ""
@@ -159,53 +148,6 @@ Resources:
             Condition:
               ArnEquals:
                 aws:SourceArn: !GetAtt PersistedResourcesEventRule.Arn
-
-  #============================= Roles ==========================================================
-
-  DataWarehouseRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Description: Provides external access when paired with known external account and id
-      RoleName: !Ref DataWarehouseRoleName
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS:
-                - !Ref DataWarehouseDataBricksArn
-            Action: sts:AssumeRole
-            Condition:
-              StringEquals:
-                sts:ExternalId: !Ref DataWarehouseExternalId
-          - Effect: Allow
-            Principal:
-              AWS:
-                - !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: sts:AssumeRole
-            Condition:
-              ArnEquals:
-                aws:PrincipalArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRoleName}
-      Policies:
-        - PolicyName: S3ExportPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:ListBucket
-                  - s3:GetBucketLocation
-                Resource:
-                  - !Sub "${ExportBucket.Arn}/*"
-                  - !Sub "${ExportBucket.Arn}"
-        - PolicyName: AssumeRolePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: ["iam:GetRole", "sts:AssumeRole"]
-                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${DataWarehouseRoleName}
 
   #===========================EventBridge Rule========================================================
   PersistedResourcesEventRule:
