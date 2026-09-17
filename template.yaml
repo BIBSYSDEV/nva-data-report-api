@@ -368,6 +368,6 @@ Resources:
               NoncurrentDays: !Ref S3NoncurrentVersionExpirationDays
       Tags:
         - Key: IncludedInBackup
-          Value: "true"
+          Value: "false"
       VersioningConfiguration:
         Status: Enabled
