@@ -5,6 +5,8 @@ See [reportTypes](documentation/reportTypes.md) for a list of reports and data t
 
 This is a comment.
 
+This is another comment.
+
 ## Architectural overview
 
 ![Architecture](documentation/images/data_export_overview.png)
