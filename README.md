@@ -3,6 +3,8 @@
 This repository contains functions for generating csv reports of data from NVA.
 See [reportTypes](documentation/reportTypes.md) for a list of reports and data types.
 
+This is a comment.
+
 ## Architectural overview
 
 ![Architecture](documentation/images/data_export_overview.png)
