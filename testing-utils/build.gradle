@@ -15,5 +15,5 @@ dependencies {
     implementation(nvaCatalog.jackson.core)
     implementation(nvaLibs.core)
     implementation(nvaLibs.testutils)
-    runtimeOnly(libs.jena.fuseki)
+    runtimeOnly(nvaCatalog.jena.fuseki)
 }

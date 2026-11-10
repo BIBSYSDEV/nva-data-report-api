@@ -2,13 +2,8 @@
 commonsCsv = { strictly = '1.14.1' }
 commonsIo = { strictly = '2.22.0' }
 commonsText = { strictly = '1.15.0' }
-jena = { strictly = '6.2.0' }
-titaniumJsonLd = { strictly = '1.7.0' }
 
 [libraries]
 commons-csv = { group = 'org.apache.commons', name = 'commons-csv', version.ref = 'commonsCsv' }
 commons-io = { group = 'commons-io', name = 'commons-io', version.ref = 'commonsIo' }
 commons-text = { group = 'org.apache.commons', name = 'commons-text', version.ref = 'commonsText' }
-jena-fuseki = { group = 'org.apache.jena', name = 'jena-fuseki-main', version.ref = 'jena' }
-jena-fuseki-server = { group = 'org.apache.jena', name = 'jena-fuseki-server', version.ref = 'jena' }
-titanium-json-ld = { group = 'com.apicatalog', name = 'titanium-json-ld', version.ref = 'titaniumJsonLd' }
