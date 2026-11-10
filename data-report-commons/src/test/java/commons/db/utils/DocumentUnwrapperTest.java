@@ -33,9 +33,8 @@ class DocumentUnwrapperTest {
   void shouldUnwrapContext(String json) throws JsonProcessingException {
     var actual = new DocumentUnwrapper(API_HOST).unwrap(json);
     assertTrue(actual.at(CONTEXT_POINTER).isObject());
-    assertDoesNotThrow(
-        () ->
-            JsonLd.toRdf(JsonDocument.of(new ByteArrayInputStream(actual.toString().getBytes())))
-                .get());
+    assertDoesNotThrow(() ->
+        JsonLd.toRdf(JsonDocument.of(new ByteArrayInputStream(actual.toString().getBytes())))
+            .get());
   }
 }

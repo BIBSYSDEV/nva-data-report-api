@@ -72,10 +72,9 @@ public final class NviInstitutionStatusSampleData {
     var stringBuilder = new StringBuilder();
     contributor
         .affiliations()
-        .forEach(
-            affiliation ->
-                generateExpectedNviInstitutionResponse(
-                    stringBuilder, contributor, affiliation, candidate, publication));
+        .forEach(affiliation ->
+            generateExpectedNviInstitutionResponse(
+                stringBuilder, contributor, affiliation, candidate, publication));
     return stringBuilder.toString();
   }
 

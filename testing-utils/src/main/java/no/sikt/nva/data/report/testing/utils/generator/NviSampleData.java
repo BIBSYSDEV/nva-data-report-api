@@ -170,10 +170,8 @@ public final class NviSampleData {
       SamplePublication publication) {
     var contributors =
         publication.getContributors().stream()
-            .map(
-                contributor ->
-                    generateNviContributor(
-                        contributor.getIdentity().uri(), SOME_SUB_UNIT_IDENTIFIER))
+            .map(contributor ->
+                generateNviContributor(contributor.getIdentity().uri(), SOME_SUB_UNIT_IDENTIFIER))
             .toList();
     return SamplePublicationDetails.builder()
         .withId(publication.getPublicationUri())
@@ -231,9 +229,8 @@ public final class NviSampleData {
   private static Set<String> getAffiliations(
       String topLevelOrganization, List<SampleNviContributor> nviContributors) {
     return nviContributors.stream()
-        .flatMap(
-            contributor ->
-                contributor.filterAffiliationsWithTopLevelOrg(topLevelOrganization).stream())
+        .flatMap(contributor ->
+            contributor.filterAffiliationsWithTopLevelOrg(topLevelOrganization).stream())
         .map(SampleNviOrganization::id)
         .collect(Collectors.toCollection(HashSet::new));
   }

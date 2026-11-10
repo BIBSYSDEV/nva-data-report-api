@@ -67,9 +67,8 @@ public record NviIndexDocument(
 
   private static List<Approval> generateApprovals(SampleNviCandidate nviCandidate) {
     return nviCandidate.approvals().stream()
-        .map(
-            testApproval ->
-                Approval.from(testApproval, nviCandidate.globalApprovalStatus().getValue()))
+        .map(testApproval ->
+            Approval.from(testApproval, nviCandidate.globalApprovalStatus().getValue()))
         .toList();
   }
 

@@ -223,23 +223,22 @@ public class SamplePublication {
     var stringBuilder = new StringBuilder();
     additionalIdentifiers.stream()
         .filter(isNotHandleIdentifier())
-        .forEach(
-            additionalIdentifier ->
-                stringBuilder
-                    .append(publicationUri)
-                    .append(DELIMITER)
-                    .append(publicationStatus)
-                    .append(DELIMITER)
-                    .append(identifier)
-                    .append(DELIMITER)
-                    .append(additionalIdentifier.getSourceName())
-                    .append(DELIMITER)
-                    .append(additionalIdentifier.getValue())
-                    .append(DELIMITER)
-                    .append(additionalIdentifier.getType())
-                    .append(DELIMITER)
-                    .append(modifiedDate)
-                    .append(CRLF.getString()));
+        .forEach(additionalIdentifier ->
+            stringBuilder
+                .append(publicationUri)
+                .append(DELIMITER)
+                .append(publicationStatus)
+                .append(DELIMITER)
+                .append(identifier)
+                .append(DELIMITER)
+                .append(additionalIdentifier.getSourceName())
+                .append(DELIMITER)
+                .append(additionalIdentifier.getValue())
+                .append(DELIMITER)
+                .append(additionalIdentifier.getType())
+                .append(DELIMITER)
+                .append(modifiedDate)
+                .append(CRLF.getString()));
     return stringBuilder.toString();
   }
 

@@ -19,9 +19,8 @@ public final class NviTestUtils {
       SampleNviContributor contributor,
       SampleApproval approval) {
     return approval.points().creatorAffiliationPoints().stream()
-        .filter(
-            pointsForAffiliation ->
-                isForCreatorAndAffiliation(affiliation, contributor, pointsForAffiliation))
+        .filter(pointsForAffiliation ->
+            isForCreatorAndAffiliation(affiliation, contributor, pointsForAffiliation))
         .findFirst()
         .map(SampleCreatorAffiliationPoints::points)
         .map(points -> points.stripTrailingZeros().setScale(NVI_POINT_SCALE, ROUNDING_MODE))
