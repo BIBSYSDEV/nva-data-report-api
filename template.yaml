@@ -67,7 +67,7 @@ Conditions:
 
 Globals:
   Function:
-    Runtime: java21
+    Runtime: java25
     MemorySize: 1536
     Environment:
       Variables:
