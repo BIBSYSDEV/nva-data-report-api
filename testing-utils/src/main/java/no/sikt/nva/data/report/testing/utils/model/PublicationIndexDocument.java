@@ -62,10 +62,8 @@ public record PublicationIndexDocument(
       SamplePublication publication) {
     return publication.getContributorAffiliations().stream()
         .map(PublicationIndexDocument::generateTopLevelOrganization)
-        .map(
-            json ->
-                attempt(() -> dtoObjectMapper.readValue(json, TestOrganization.class))
-                    .orElseThrow())
+        .map(json ->
+            attempt(() -> dtoObjectMapper.readValue(json, TestOrganization.class)).orElseThrow())
         .toList();
   }
 

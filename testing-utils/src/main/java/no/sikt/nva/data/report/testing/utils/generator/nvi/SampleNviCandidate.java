@@ -106,13 +106,12 @@ public record SampleNviCandidate(
     approval
         .points()
         .creatorAffiliationPoints()
-        .forEach(
-            creatorAffiliationPoints ->
-                institutionPointsGenerator.withCreatorAffiliationPoints(
-                    new CreatorAffiliationPointsGenerator()
-                        .withAffiliationId(creatorAffiliationPoints.affiliationId().toString())
-                        .withCreatorId(creatorAffiliationPoints.nviCreator().toString())
-                        .withPoints(creatorAffiliationPoints.points())));
+        .forEach(creatorAffiliationPoints ->
+            institutionPointsGenerator.withCreatorAffiliationPoints(
+                new CreatorAffiliationPointsGenerator()
+                    .withAffiliationId(creatorAffiliationPoints.affiliationId().toString())
+                    .withCreatorId(creatorAffiliationPoints.nviCreator().toString())
+                    .withPoints(creatorAffiliationPoints.points())));
   }
 
   private CandidateGenerator getCandidateGenerator(PublicationDetailsGenerator publicationDetails) {
@@ -176,12 +175,8 @@ public record SampleNviCandidate(
 
   private SampleApproval findExpectedApproval(SampleNviOrganization affiliation) {
     return approvals().stream()
-        .filter(
-            testApproval ->
-                testApproval
-                    .institutionId()
-                    .toString()
-                    .equals(affiliation.getTopLevelOrganization()))
+        .filter(testApproval ->
+            testApproval.institutionId().toString().equals(affiliation.getTopLevelOrganization()))
         .findFirst()
         .orElse(null);
   }

@@ -111,9 +111,8 @@ class PersistedResourceCsvTransformerTest {
     var expectedReportTypes = List.of(PUBLICATION, AFFILIATION, CONTRIBUTOR, FUNDING, IDENTIFIER);
     var expectedNumberOfFiles = expectedReportTypes.size();
     assertEquals(expectedNumberOfFiles, s3OutputDriver.listAllFiles(UnixPath.ROOT_PATH).size());
-    expectedReportTypes.forEach(
-        reportType ->
-            assertEquals(1, s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).size()));
+    expectedReportTypes.forEach(reportType ->
+        assertEquals(1, s3OutputDriver.listAllFiles(UnixPath.of(reportType.getType())).size()));
   }
 
   @Test

@@ -222,9 +222,8 @@ class CsvTransformerTest {
     var location = PERSISTED_RESOURCES_PUBLICATIONS;
     var batchKey = UnixPath.of(location).addChild(randomString());
     s3KeyBatches3Driver.insertFile(batchKey, batch);
-    assertDoesNotThrow(
-        () ->
-            handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class)));
+    assertDoesNotThrow(() ->
+        handler.handleRequest(eventStream(null, location), outputStream, mock(Context.class)));
   }
 
   @Test
@@ -250,11 +249,9 @@ class CsvTransformerTest {
 
   List<DatePair> generateDatePairs(int numberOfDatePairs) {
     return IntStream.range(0, numberOfDatePairs)
-        .mapToObj(
-            i ->
-                new DatePair(
-                    new PublicationDate("2024", "02", "02"),
-                    Instant.now().minus(100, ChronoUnit.DAYS)))
+        .mapToObj(i ->
+            new DatePair(
+                new PublicationDate("2024", "02", "02"), Instant.now().minus(100, ChronoUnit.DAYS)))
         .toList();
   }
 
