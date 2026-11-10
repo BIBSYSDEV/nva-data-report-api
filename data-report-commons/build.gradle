@@ -25,12 +25,12 @@ dependencies {
     runtimeOnly(nvaCatalog.log4j.api)
     runtimeOnly(nvaCatalog.log4j.slf4j.impl)
     testImplementation(libs.commons.io)
-    testImplementation(libs.titanium.json.ld)
+    testImplementation(nvaCatalog.titanium.json.ld)
     testImplementation(nvaCatalog.junit.jupiter.api)
     testImplementation(nvaCatalog.junit.jupiter.params)
     testImplementation(nvaLibs.testutils)
     testImplementation(project(':testing-utils'))
-    testRuntimeOnly(libs.jena.fuseki)
+    testRuntimeOnly(nvaCatalog.jena.fuseki)
 }
 
 test {

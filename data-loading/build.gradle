@@ -24,8 +24,8 @@ dependencies {
     testImplementation(nvaCatalog.mockito.core)
     testImplementation(nvaLibs.testutils)
     testImplementation(project(':testing-utils'))
-    testRuntimeOnly(libs.jena.fuseki)
-    testRuntimeOnly(libs.jena.fuseki.server)
+    testRuntimeOnly(nvaCatalog.jena.fuseki)
+    testRuntimeOnly(nvaCatalog.jena.fuseki.server)
 }
 
 test {
