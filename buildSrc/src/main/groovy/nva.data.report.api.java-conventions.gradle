@@ -7,7 +7,11 @@ nva {
         allErrorsAsWarnings = true
     }
     pmd {
-        rulesetFile = rootProject.file('config/pmd/ruleset.xml')
+        analyzeTests = false
+        excludedRules = [
+            'AvoidThrowingRawExceptionTypes',
+            'GuardLogStatement'
+        ]
     }
     spotless {
         enabled = true

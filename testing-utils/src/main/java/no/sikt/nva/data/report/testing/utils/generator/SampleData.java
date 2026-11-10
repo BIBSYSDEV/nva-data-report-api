@@ -52,7 +52,6 @@ import no.sikt.nva.data.report.testing.utils.generator.publication.SampleIdentit
 import no.sikt.nva.data.report.testing.utils.generator.publication.SampleOrganization;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SamplePublication;
 
-@SuppressWarnings("PMD.AvoidUsingHardCodedIP")
 public class SampleData {
 
   public static final String SOME_TOP_LEVEL_IDENTIFIER = "10.0.0.0";

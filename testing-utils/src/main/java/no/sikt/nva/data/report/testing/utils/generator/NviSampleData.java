@@ -44,7 +44,6 @@ import no.sikt.nva.data.report.testing.utils.generator.nvi.SampleNviOrganization
 import no.sikt.nva.data.report.testing.utils.generator.nvi.SamplePublicationDetails;
 import no.sikt.nva.data.report.testing.utils.generator.publication.SamplePublication;
 
-@SuppressWarnings("PMD.AvoidUsingHardCodedIP")
 public final class NviSampleData {
 
   public static final List<String> NVI_HEADERS =
