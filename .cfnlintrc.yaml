@@ -1,3 +1,5 @@
 ignore_checks:
   # W3045: AccessControl is legacy - suppressed because S3 buckets are private by default
   - W3045
+  # W2001: Unused parameter - suppressed because the pipeline still passes AllowedOrigins as an override
+  - W2001
