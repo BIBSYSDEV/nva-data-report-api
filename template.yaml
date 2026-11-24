@@ -1,280 +1,24 @@
 AWSTemplateFormatVersion: 2010-09-09
-Transform: AWS::Serverless-2016-10-31
 Description: >
-  SAM Template for NVA data report API
+  NVA data report API (decommissioned). Only the buckets remain, with lifecycle
+  rules that empty them so the stack can be deleted.
 
 Parameters:
-  # TODO: Determine access to API
-  CognitoAuthorizerArn:
-    Type: "AWS::SSM::Parameter::Value<String>"
-    Description: Reference to Cognito UserPool for the stage
-    Default: CognitoAuthorizerArn
-  ExternalCognitoAuthorizerArn:
-    Type: "AWS::SSM::Parameter::Value<String>"
-    Description: Reference to ARN of ExternalUsers UserPool
-    Default: ExternalCognitoAuthorizerArn
-  CognitoAuthorizationUri:
-    Type: "AWS::SSM::Parameter::Value<String>"
-    Default: "/NVA/CognitoUri"
-  CognitoAuthorizerUrls:
-    Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
-    Default: CognitoAuthorizerUrls
-  ProjectName:
-    Type: String
-    Default: nva-data-report
-  ApiDomain:
-    Type: "AWS::SSM::Parameter::Value<String>"
-    Description: The Api domain
-    Default: /NVA/ApiDomain
-  Suffix:
-    Type: String
-    Default: ""
-    Description: Suffix used for naming resources for feature branches to avoid conflicts.
-  ResourcesBucket:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /NVA/Events/PersistedEntriesBucketName
-  ResourcesPrefix:
-    Type: String
-    Description: Prefix for resource files in persisted-resources bucket
-    Default: resources/
-  NviCandidatesPrefix:
-    Type: String
-    Description: Prefix for nvi-candidate files in persisted-resources bucket
-    Default: nvi-candidates/
-  LoaderBucketName:
-    Type: "String"
-    Default: "loader-input-files"
-    Description: Name of bucket for input NQuads files
-  KeyBatchesBucketName:
-    Type: "String"
-    Default: "data-report-key-batches"
-    Description: Name of bucket for key batch files
-  ExportBucketName:
-    Type: "String"
-    Default: "data-report-csv-export"
-    Description: Name of bucket for csv export files
   AllowedOrigins:
     Type: String
-    Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
+    Description: Unused. Kept because the pipeline still passes it as a parameter override.
     Default: "*"
-  S3NoncurrentVersionExpirationDays:
-    Type: Number
-    Default: 60
-    Description: Number of days to retain non-current object versions in versioned S3 buckets
-
-Conditions:
-  WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
-
-Globals:
-  Function:
-    Runtime: java25
-    MemorySize: 1536
-    Environment:
-      Variables:
-        API_HOST: !Ref ApiDomain
-        COGNITO_AUTHORIZER_URLS: !Join [",", !Ref CognitoAuthorizerUrls]
-        LOG_LEVEL: "info"
-        LOG4J_CONFIGURATION_FILE: classpath:nva-log4j2.xml
+  LoaderBucketName:
+    Type: String
+    Default: loader-input-files
+  KeyBatchesBucketName:
+    Type: String
+    Default: data-report-key-batches
+  ExportBucketName:
+    Type: String
+    Default: data-report-csv-export
 
 Resources:
-  # ---- SQS ----
-  TransformPersistedResourceQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt TransformPersistedResourceDLQ.Arn
-        maxReceiveCount: 5
-      # ---- DLQs ----
-  DataReportPersistedResourceDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
-  TransformPersistedResourceDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod: 1209600 #14 days
-
-  # ---- Logging ----
-
-  PersistedResourceCsvTransformerLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${PersistedResourceCsvTransformer}"
-      RetentionInDays: 5
-
-  # ---- Policies ----
-
-  DeleteS3ObjectPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "s3:DeleteObject"
-            Resource:
-              - !GetAtt KeyBatchesBucket.Arn
-
-  S3ManagedPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - s3:Get*
-              - s3:List*
-              - s3:PutObject
-              - events:*
-            Resource: "*"
-
-  SendMessagePolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      Queues:
-        - !Ref TransformPersistedResourceQueue
-        - !Ref TransformPersistedResourceDLQ
-      PolicyDocument:
-        Id: SendMessagePolicy
-        Version: "2012-10-17"
-        Statement:
-          - Sid: Allow-SNS-SendMessage
-            Effect: Allow
-            Principal: "*"
-            Action: sqs:SendMessage
-            Resource: !GetAtt TransformPersistedResourceQueue.Arn
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !GetAtt PersistedResourcesEventRule.Arn
-
-  #===========================EventBridge Rule========================================================
-  PersistedResourcesEventRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Description: "Trigger on create and delete events for S3 bucket persisted-resources"
-      EventPattern:
-        source:
-          - "aws.s3"
-        detail-type:
-          - "Object Created"
-        detail:
-          bucket:
-            name:
-              - !Ref ResourcesBucket
-          object:
-            key:
-              - prefix: !Ref ResourcesPrefix
-              - prefix: !Ref NviCandidatesPrefix
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt TransformPersistedResourceQueue.Arn
-          Id: "TransformPersistedResourceQueue"
-          InputTransformer:
-            InputPathsMap:
-              bucketName: "$.detail.bucket.name"
-              key: "$.detail.object.key"
-              eventType: "$.detail.reason"
-            InputTemplate: '{"bucketName": <bucketName>, "key": <key>, "eventType": <eventType>}'
-          DeadLetterConfig:
-            Arn: !GetAtt DataReportPersistedResourceDLQ.Arn
-          RetryPolicy:
-            MaximumRetryAttempts: 3
-
-  # ---- Handler ----
-
-  PersistedResourceCsvTransformer:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: no.sikt.nva.data.report.api.etl.PersistedResourceCsvTransformer::handleRequest
-      CodeUri: data-loading
-      Policies:
-        - !GetAtt S3ManagedPolicy.PolicyArn
-      Timeout: 30
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          BACKEND_CLIENT_AUTH_URL: !Ref CognitoAuthorizationUri
-          BACKEND_CLIENT_SECRET_NAME: "BackendCognitoClientCredentials"
-          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
-          EXPORT_BUCKET: !Ref ExportBucket
-      Events:
-        SqsEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt TransformPersistedResourceQueue.Arn
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt TransformPersistedResourceDLQ.Arn
-
-  #---- Generates key batches in bucket ----
-
-  GenerateKeyBatchesHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: bulk-export
-      Handler: no.sikt.nva.data.report.api.export.GenerateKeyBatchesHandler::handleRequest
-      Policies:
-        - !GetAtt S3ManagedPolicy.PolicyArn
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Environment:
-        Variables:
-          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
-          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
-          KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
-          TOPIC: "ReportApi.Bulk.KeyBasedBatch"
-      Events:
-        BatchIndexEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !GetAtt BatchLoadEventBus.Name
-            Pattern:
-              detail:
-                topic: ["ReportApi.Bulk.KeyBasedBatch"]
-
-  CsvBulkTransformerHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: bulk-export
-      Handler: no.sikt.nva.data.report.api.export.CsvTransformer::handleRequest
-      Timeout: 600
-      MemorySize: 1536
-      AutoPublishAlias: live
-      Policies:
-        - !GetAtt S3ManagedPolicy.PolicyArn
-      Environment:
-        Variables:
-          EVENT_BUS: !GetAtt BatchLoadEventBus.Name
-          EXPANDED_RESOURCES_BUCKET: !Ref ResourcesBucket
-          KEY_BATCHES_BUCKET: !Ref KeyBatchesBucket
-          EXPORT_BUCKET: !Ref ExportBucket
-          TOPIC: "ReportApi.Bulk.TransformKeyBatchCsv"
-      Events:
-        BatchIndexEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !GetAtt BatchLoadEventBus.Name
-            Pattern:
-              detail:
-                topic: ["ReportApi.Bulk.TransformKeyBatchCsv"]
-
-  #---- EventBus ----
-
-  BatchLoadEventBus:
-    Type: AWS::Events::EventBus
-    Properties:
-      Name: !If
-        - WithSuffix
-        - !Join ["-", ["BatchLoadEventBus", !Ref Suffix]]
-        - "BatchLoadEventBus"
-
-  #---- Buckets ----
   LoaderBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -282,9 +26,11 @@ Resources:
       BucketName: !Sub "${LoaderBucketName}-${AWS::AccountId}"
       LifecycleConfiguration:
         Rules:
-          - Id: DeleteContentAfter3Days
+          - Id: EmptyBucket
             Status: Enabled
-            ExpirationInDays: 3
+            ExpirationInDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
 
   KeyBatchesBucket:
     Type: AWS::S3::Bucket
@@ -293,9 +39,11 @@ Resources:
       BucketName: !Sub "${KeyBatchesBucketName}-${AWS::AccountId}"
       LifecycleConfiguration:
         Rules:
-          - Id: DeleteContentAfter3Days
+          - Id: EmptyBucket
             Status: Enabled
-            ExpirationInDays: 3
+            ExpirationInDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
 
   ExportBucket:
     Type: AWS::S3::Bucket
@@ -304,10 +52,16 @@ Resources:
       BucketName: !Sub "${ExportBucketName}-${AWS::AccountId}"
       LifecycleConfiguration:
         Rules:
-          - Id: ExpireOldObjectVersions
+          - Id: EmptyBucket
             Status: Enabled
+            ExpirationInDays: 1
             NoncurrentVersionExpiration:
-              NoncurrentDays: !Ref S3NoncurrentVersionExpirationDays
+              NoncurrentDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+          - Id: RemoveExpiredDeleteMarkers
+            Status: Enabled
+            ExpiredObjectDeleteMarker: true
       Tags:
         - Key: IncludedInBackup
           Value: "false"

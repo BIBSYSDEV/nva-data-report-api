@@ -1,5 +1,11 @@
 # NVA Data Report API
 
+> [!WARNING]
+> This service is decommissioned.
+> The stack only contains the S3 buckets, with lifecycle rules that empty them so the stack can be deleted.
+> The Lambda functions are no longer deployed, and the rest of this README describes the service as it was.
+> The code is left as it last ran, and the [last full template](https://github.com/BIBSYSDEV/nva-data-report-api/blob/2d3a30ae0d98264fc964c20d04d233e4123df164/template.yaml) is in the history.
+
 This repository contains functions for generating csv reports of data from NVA.
 See [reportTypes](documentation/reportTypes.md) for a list of reports and data types.
 
